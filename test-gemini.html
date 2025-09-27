@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Gemini API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-8 max-w-2xl w-full">
+        <h1 class="text-2xl font-bold text-green-600 mb-6 text-center">Test de Gemini API</h1>
+        
+        <div class="space-y-4">
+            <button onclick="testConnection()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg">
+                Test 1: Probar Conexión
+            </button>
+            
+            <button onclick="testGeneration()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg">
+                Test 2: Generar Examen Simple
+            </button>
+            
+            <button onclick="testFallback()" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg">
+                Test 3: Modo Fallback
+            </button>
+        </div>
+        
+        <div id="results" class="mt-6 p-4 bg-gray-100 rounded-lg">
+            <h3 class="font-bold mb-2">Resultados:</h3>
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="dashboard-profesor.html" class="text-green-600 hover:underline">← Volver al Panel</a>
+        </div>
+    </div>
+
+    <script src="gemini-api.js"></script>
+    <script>
+        function showResult(test, success, message) {
+            const testResults = document.getElementById('testResults');
+            
+            const color = success ? 'text-green-600' : 'text-red-600';
+            const icon = success ? '✅' : '❌';
+            
+            testResults.innerHTML += `<div class="${color} mb-2">${icon} ${test}: ${message}</div>`;
+        }
+
+        async function testConnection() {
+            try {
+                showResult('Conexión', true, 'Iniciando prueba...');
+                
+                const geminiAPI = new GeminiAPI();
+                const success = await geminiAPI.init();
+                
+                if (success) {
+                    showResult('Conexión', true, 'Conexión exitosa con Gemini API');
+                } else {
+                    showResult('Conexión', false, 'Error al conectar con Gemini API');
+                }
+            } catch (error) {
+                showResult('Conexión', false, `Error: ${error.message}`);
+            }
+        }
+
+        async function testGeneration() {
+            try {
+                showResult('Generación', true, 'Iniciando generación...');
+                
+                const geminiAPI = new GeminiAPI();
+                
+                const examData = {
+                    title: 'Test de Matemáticas',
+                    subject: 'Matemáticas',
+                    numQuestions: 3,
+                    difficulty: 'básico',
+                    aiPrompt: 'Genera preguntas básicas de suma y resta'
+                };
+                
+                const result = await geminiAPI.generateExam(examData);
+                
+                if (result.success) {
+                    showResult('Generación', true, `Examen generado: ${result.exam.numQuestions} preguntas`);
+                    console.log('Examen generado:', result.exam);
+                } else {
+                    showResult('Generación', false, `Error: ${result.error}`);
+                }
+            } catch (error) {
+                showResult('Generación', false, `Error: ${error.message}`);
+            }
+        }
+
+        function testFallback() {
+            try {
+                showResult('Fallback', true, 'Probando modo fallback...');
+                
+                const geminiAPI = new GeminiAPI();
+                
+                const examData = {
+                    title: 'Test Fallback',
+                    subject: 'Matemáticas',
+                    numQuestions: 2,
+                    difficulty: 'básico',
+                    aiPrompt: 'Test'
+                };
+                
+                const result = geminiAPI.createFallbackExam(examData);
+                
+                showResult('Fallback', true, `Examen de ejemplo: ${result.exam.numQuestions} preguntas`);
+                console.log('Examen fallback:', result.exam);
+            } catch (error) {
+                showResult('Fallback', false, `Error: ${error.message}`);
+            }
+        }
+
+        console.log('Test de Gemini API cargado');
+    </script>
+</body>
+</html>

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Profesor - Generador de Exámenes UCOL</title>
+    <!-- CORRECCIÓN CRÍTICA DE SINTAXIS: URLs limpias para 404/Diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons for UI -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Lógica de la Aplicación -->
+    <script type="module">
+        // **CLAVE API CORREGIDA: Usamos la clave proporcionada para asegurar la autenticación (resuelve el error 403).**
+        const API_KEY = "AIzaSyB6bIvKGhvK403Hd6g0MDd6L0O05wsD2ok"; 
+        const MODEL_NAME = "gemini-2.5-flash-preview-05-20"; 
+
+        // --- Schemas JSON para la API de Gemini (Structured Output) ---
+        
+        // Schema principal para la generación del examen
+        const examResponseSchema = {
+            type: "OBJECT",
+            properties: {
+                examTitle: { "type": "STRING", description: "El título del examen." },
+                subject: { "type": "STRING", description: "La materia del examen." },
+                questions: {
+                    type: "ARRAY",
+                    description: "Lista de preguntas del examen.",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            questionNumber: { "type": "NUMBER" },
+                            enunciado: { "type": "STRING" },
+                            options: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        letter: { "type": "STRING" },
+                                        // CORRECCIÓN SINTAXIS: Se corrigió "type: "STRING"
+                                        text: { "type": "STRING" }
+                                    },
+                                    required: ["letter", "text"]
+                                }
+                            },
+                            correctAnswerLetter: { "type": "STRING", description: "La letra de la opción correcta (A, B, C o D)." },
+                            explanation: { "type": "STRING", description: "Explicación breve de por qué esa es la respuesta correcta (opcional)." }
+                        },
+                        required: ["questionNumber", "enunciado", "options", "correctAnswerLetter"]
+                    }
+                }
+            },
+            required: ["examTitle", "subject", "questions"]
+        };
+        
+        // Schema secundario para clasificar la intención del prompt
+        const classificationSchema = {
+            type: "OBJECT",
+            properties: {
+                isExamRelated: { "type": "BOOLEAN", description: "Verdadero si el prompt es sobre temas académicos, exámenes, o estudio. Falso si es una solicitud fuera de lugar (ej. chistes, recetas, código), responde 'false'." },
+                reason: { "type": "STRING", description: "Breve justificación de la clasificación." }
+            },
+            required: ["isExamRelated"]
+        };
+
+
+        // --- Clase para Integración con Gemini API ---
+        class GeminiAPI {
+            constructor(apiKey) {
+                this.apiKey = apiKey;
+            }
+            
+            async makeApiCall(payload) {
+                const baseURL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+                
+                // CRÍTICO: Usamos la API Key en la URL si está disponible.
+                const authParam = this.apiKey ? `?key=${this.apiKey}` : '';
+                const url = `${baseURL}${authParam}`;
+                
+                const MAX_RETRIES = 5;
+                for (let i = 0; i < MAX_RETRIES; i++) {
+                    let delay = 1000 * (2 ** i);
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            if (response.status === 429 || response.status >= 500) {
+                                console.log(`API call failed with status ${response.status}. Retrying in ${delay}ms...`);
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                                continue;
+                            }
+                            const errorBody = await response.json();
+                            throw new Error(`Error HTTP ${response.status}: ${errorBody.error?.message || response.statusText}`);
+                        }
+
+                        const result = await response.json();
+                        // Devuelve el objeto de resultado completo para inspección de errores de contenido
+                        return result;
+
+                    } catch (error) {
+                        if (i === MAX_RETRIES - 1) {
+                            throw error;
+                        }
+                    }
+                }
+            }
+
+            buildExamPrompt(examData) {
+                // Refuerzo explícito de la instrucción de la cantidad de preguntas (solución al problema de 1 pregunta)
+                return `
+                    Eres un experto en educación y creación de exámenes. Genera un examen completo basado en los siguientes parámetros y el formato JSON estrictamente requerido.
+
+                    TÍTULO DEL EXAMEN: ${examData.title}
+                    MATERIA: ${examData.subject}
+                    NÚMERO DE PREGUNTAS: ${examData.questions}
+                    NIVEL DE DIFICULTAD: ${examData.difficulty}
+                    INSTRUCCIONES ESPECÍFICAS: ${examData.prompt}
+
+                    Genera ${examData.questions} preguntas de opción múltiple con 4 opciones (A, B, C, D) en el tema especificado. El array 'questions' DEBE contener EXACTAMENTE ${examData.questions} objetos.
+                `.trim();
+            }
+            
+            // Método para clasificar si el prompt es relevante
+            async classifyPrompt(prompt) {
+                const systemInstruction = "Clasifica el prompt del usuario. Si es una solicitud relacionada con educación, exámenes, estudio o temas académicos, responde 'true'. Para cualquier otra solicitud (ej. chistes, recetas, código), responde 'false'.";
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: classificationSchema,
+                        temperature: 0.1,
+                        maxOutputTokens: 256
+                    }
+                };
+
+                const result = await this.makeApiCall(payload);
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    try {
+                        return JSON.parse(jsonText);
+                    } catch (e) {
+                        console.error("Error parsing classification JSON (Non-Critical):", e);
+                        return { isExamRelated: true };
+                    }
+                }
+                
+                // Manejo de error específico si el modelo no responde
+                const feedback = result.promptFeedback?.blockReason || result.candidates?.[0]?.finishReason;
+                if (feedback) {
+                     throw new Error(`La clasificación fue bloqueada. Razón: ${feedback}`);
+                }
+                return { isExamRelated: true }; 
+            }
+            
+            async generateExam(examData) {
+                const prompt = this.buildExamPrompt(examData);
+                
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: examResponseSchema,
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        // CORRECCIÓN: Aumentamos el límite de tokens de 2048 a 4096 para evitar el error MAX_TOKENS.
+                        maxOutputTokens: 4096 
+                    }
+                };
+                
+                const result = await this.makeApiCall(payload);
+                let jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!jsonText) {
+                    // --- MANEJO DE ERROR MEJORADO ---
+                    const feedback = result.promptFeedback?.blockReason || result.candidates?.[0]?.finishReason;
+                    if (feedback) {
+                         throw new Error(`La generación fue bloqueada. Razón: ${feedback}`);
+                    }
+                    throw new Error("Respuesta de la API incompleta o vacía.");
+                }
+
+                // --- LÓGICA DE LIMPIEZA Y FAIL-SAFE (Senior Programmer Approach) ---
+                let cleanedText = jsonText.trim();
+                
+                // 1. Limpieza inicial: Eliminar bloques de código Markdown comunes (```json o ```)
+                cleanedText = cleanedText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
+
+                try {
+                    return JSON.parse(cleanedText);
+                } catch (e) {
+                    console.warn("Intentando limpieza JSON agresiva debido a error de parseo:", e.message);
+
+                    // 2. BUSCAR DELIMITADORES '{' y '}' de forma segura
+                    const start = cleanedText.indexOf('{');
+                    const end = cleanedText.lastIndexOf('}');
+
+                    if (start !== -1 && end !== -1 && end > start) {
+                        let finalCleanedJsonText = cleanedText.substring(start, end + 1);
+                        
+                        // 3. Reemplazar saltos de línea, tabulaciones y retornos de carro por sus escapes JSON.
+                        finalCleanedJsonText = finalCleanedJsonText
+                            .replace(/\n/g, '\\n')
+                            .replace(/\r/g, '\\r')
+                            .replace(/\t/g, '\\t');
+                        
+                        // 4. Último intento de parseo.
+                        try {
+                            return JSON.parse(finalCleanedJsonText);
+                        } catch (innerError) {
+                            // --- LÓGICA DE REPARACIÓN DE ÚLTIMO RECURSO (Solución a JSON Roto/Truncado) ---
+                            console.warn("Intentando reparación de JSON truncado...");
+                            
+                            let repairedJson = finalCleanedJsonText;
+                            
+                            // 4a. Eliminar posibles comas colgantes al final del último elemento del array
+                            repairedJson = repairedJson.replace(/,\s*$/, '');
+                            
+                            // 4b. Asegurar el cierre del objeto más interno (la última pregunta)
+                            if (!repairedJson.endsWith('}}]}') && repairedJson.endsWith(']')) {
+                                repairedJson += '}}'; 
+                            }
+                            
+                            // 4c. Asegurar el cierre del objeto principal
+                            if (!repairedJson.endsWith('}')) {
+                                repairedJson += '}';
+                            }
+
+                            try {
+                                return JSON.parse(repairedJson);
+                            } catch (repairError) {
+                                // --- FALLO CRÍTICO CONTROLADO (FAIL-SAFE 1) ---
+                                const rawJsonError = new Error(`Formato JSON inválido de la IA. No se pudo parsear incluso después de la limpieza. Error: ${repairError.message}`);
+                                rawJsonError.rawJson = repairedJson; // Adjuntamos el JSON limpio pero fallido
+                                throw rawJsonError;
+                            }
+                        }
+                    }
+                    // --- FALLO CRÍTICO CONTROLADO (FAIL-SAFE 2) ---
+                    // Si no encontramos los delimitadores '{}', lanzamos el error con el texto crudo inicial
+                    const rawJsonError = new Error(`Formato JSON inválido de la IA. No se encontró estructura JSON válida. Error original: ${e.message}`);
+                    rawJsonError.rawJson = cleanedText; 
+                    throw rawJsonError;
+                }
+            }
+        }
+
+
+        // --- Lógica de UI y Eventos ---
+        const api = new GeminiAPI(API_KEY);
+
+        const examForm = document.getElementById('examForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const generateBtnText = document.getElementById('generateBtnText');
+        const generateBtnSpinner = document.getElementById('generateBtnSpinner');
+        const loadingModal = document.getElementById('loadingModal');
+        const loadingText = document.getElementById('loadingText');
+        const examsList = document.getElementById('examsList');
+        const examCountElement = document.getElementById('examCount');
+        const examModal = document.getElementById('examModal');
+        const examContent = document.getElementById('examContent');
+        const closeExamModal = document.getElementById('closeExamModal');
+        const exportExamBtn = document.getElementById('exportExamBtn');
+        const apiStatus = document.getElementById('apiStatus');
+        const userName = document.getElementById('userName');
+
+        let lastGeneratedExam = null; 
+
+        // Función de utilidad para mostrar mensajes
+        function showMessage(text, isError = false) {
+            const messageContainer = document.getElementById('messageContainer');
+            const message = document.getElementById('message');
+            
+            const colorClasses = isError ? 'bg-red-500 text-white' : 'bg-green-500 text-white';
+            message.className = `p-4 rounded-lg text-center font-medium max-w-md ${colorClasses}`;
+            
+            message.textContent = text;
+            messageContainer.classList.remove('hidden');
+            setTimeout(() => {
+                messageContainer.classList.add('hidden');
+            }, 5000);
+        }
+
+        // NUEVA FUNCIÓN: Muestra la respuesta de la IA sin formato
+        function showRawJsonInModal(rawJsonText, title) {
+            const html = `
+                <h2 class="text-3xl font-bold text-red-300 mb-2">Error Crítico de Formato (Respuesta Cruda)</h2>
+                <p class="text-yellow-400 mb-6">La IA no respetó el formato JSON requerido para el examen: ${title}.</p>
+                <p class="text-sm text-red-400 mb-4">A continuación, se muestra el texto JSON tal cual fue recibido para diagnóstico. El proceso de limpieza ha fallado.</p>
+                <div class="bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm text-green-200 font-mono">
+                    <pre>${rawJsonText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </div>
+            `;
+            examContent.innerHTML = html;
+            examModal.classList.remove('hidden');
+        }
+
+        // Función para mostrar el examen en el modal (Formato legible)
+        function showExamInModal(examContentData) {
+            let html = `<h2 class="text-3xl font-bold text-white mb-2">${examContentData.examTitle || 'Examen Generado'}</h2>
+                        <p class="text-green-300 text-lg mb-6">Materia: ${examContentData.subject || 'N/A'}</p>`;
+
+            // Verifica si las preguntas existen y son un array
+            if (!examContentData.questions || !Array.isArray(examContentData.questions)) {
+                html += '<p class="text-red-400">Error: No se pudieron generar preguntas o el formato es incorrecto.</p>';
+            } else {
+                examContentData.questions.forEach((q, index) => {
+                    // Usamos q.questionNumber si existe, si no, usamos el índice + 1
+                    const questionNumber = q.questionNumber !== undefined ? q.questionNumber : index + 1;
+                    html += `
+                        <div class="bg-gray-700 bg-opacity-50 p-4 rounded-lg mb-4">
+                            <p class="font-bold text-white mb-2">P${questionNumber}. ${q.enunciado}</p>
+                            <ul class="text-sm space-y-1 text-gray-200 pl-4">
+                                ${q.options.map(opt => `
+                                    <li class="${opt.letter === q.correctAnswerLetter ? 'font-semibold text-yellow-400' : ''}">
+                                        ${opt.letter}) ${opt.text} 
+                                        ${opt.letter === q.correctAnswerLetter ? '<i class="fas fa-check-circle ml-2"></i> [CORRECTA]' : ''}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            ${q.explanation ? `<p class="mt-3 text-xs text-green-400 border-t border-gray-600 pt-2">Explicación: ${q.explanation}</p>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            examContent.innerHTML = html;
+            examModal.classList.remove('hidden');
+        }
+
+        // Función para simular el progreso
+        let progressInterval;
+        function startProgressSimulation() {
+            let progress = 0;
+            const totalSteps = 100;
+            const duration = 15000; // 15 segundos para la simulación
+            const stepDuration = duration / totalSteps;
+            const progressCircle = document.getElementById('progressCircle');
+            const circumference = 2 * Math.PI * 45; // 282.74
+            
+            // Resetear animación y texto
+            document.getElementById('progressIcon').className = 'fas fa-brain text-2xl text-blue-400';
+            document.getElementById('statusText').textContent = 'Conectando con Gemini AI...';
+            document.getElementById('loadingProgress').style.width = '0%';
+            document.getElementById('progressPercentage').textContent = '0';
+            progressCircle.style.strokeDashoffset = circumference;
+            loadingText.textContent = 'Iniciando generación...';
+
+            progressInterval = setInterval(() => {
+                progress += 1;
+                const offset = circumference - (progress / 100) * circumference;
+                
+                document.getElementById('loadingProgress').style.width = `${progress}%`;
+                document.getElementById('progressPercentage').textContent = progress;
+                progressCircle.style.strokeDashoffset = offset;
+
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    loadingText.textContent = 'Procesamiento final...';
+                } else if (progress > 80) {
+                    document.getElementById('statusText').textContent = 'Validando y estructurando respuesta JSON...';
+                    document.getElementById('progressIcon').className = 'fas fa-check text-2xl text-green-400';
+                } else if (progress > 40) {
+                    document.getElementById('statusText').textContent = 'Generando contenido con IA...';
+                    document.getElementById('progressIcon').className = 'fas fa-cogs text-2xl text-yellow-400 animate-spin';
+                } else if (progress > 10) {
+                    document.getElementById('statusText').textContent = 'Construyendo el prompt y enviando solicitud...';
+                }
+            }, stepDuration);
+        }
+
+        // Función de inicialización SIMPLIFICADA (sin Firebase)
+        async function initApp() {
+            // Configuración de UI simple
+            userName.textContent = `Profesor Invitado`;
+            examCountElement.textContent = 0; 
+            apiStatus.innerHTML = '<div class="w-2 h-2 bg-green-500 rounded-full"></div><span class="text-xs text-green-500">Conectado (API)</span>';
+            showMessage("Sistema listo. Genera tu primer examen.", false);
+        }
+        
+        // Función auxiliar para detener el spinner y restablecer botones
+        function resetUI(text = 'Generar Examen con IA') {
+            loadingModal.classList.add('hidden');
+            generateBtn.disabled = false;
+            generateBtnSpinner.classList.add('hidden');
+            generateBtnText.textContent = text;
+            if (progressInterval) clearInterval(progressInterval);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        examForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const examData = {
+                title: document.getElementById('examTitle').value,
+                subject: document.getElementById('subject').value,
+                difficulty: document.getElementById('difficulty').value,
+                questions: parseInt(document.getElementById('numQuestions').value, 10), 
+                prompt: document.getElementById('aiPrompt').value 
+            };
+
+            // Mostrar modal de carga
+            loadingModal.classList.remove('hidden');
+            generateBtn.disabled = true;
+            generateBtnSpinner.classList.remove('hidden');
+            generateBtnText.textContent = 'Verificando...';
+            startProgressSimulation(); 
+            
+            // 1. Clasificación Rápida de la Solicitud
+            try {
+                loadingText.textContent = 'Verificando intención del prompt...';
+                const classification = await api.classifyPrompt(examData.prompt);
+
+                if (!classification.isExamRelated) {
+                    // **MENSAJE PERSONALIZADO SOLICITADO**
+                    resetUI();
+                    showMessage("🚨 Recuerda que esta herramienta solo es para generar exámenes. Prueba con una solicitud de contenido académico.", true);
+                    return;
+                }
+                
+                // 2. Llamada a la API de Gemini para la Generación
+                loadingText.textContent = 'Generando contenido del examen...';
+                generateBtnText.textContent = 'Generando...';
+                const examResult = await api.generateExam(examData);
+                
+                // 3. Mostrar Resultado
+                lastGeneratedExam = examResult;
+                showExamInModal(examResult);
+                
+                // 4. Finalizar UI
+                examCountElement.textContent = parseInt(examCountElement.textContent) + 1;
+                resetUI();
+                showMessage("✅ ¡Examen generado con éxito! Puedes exportarlo ahora.", false);
+
+            } catch (error) {
+                console.error("Error al generar el examen:", error);
+                
+                // === MANEJO DEL FAIL-SAFE DEL PROGRAMADOR SENIOR ===
+                if (error.rawJson) {
+                    showRawJsonInModal(error.rawJson, examData.title);
+                    resetUI();
+                    showMessage("⚠️ ERROR DE PARSEO. Se muestra la respuesta cruda de la IA para inspección.", true);
+                    return;
+                }
+                // === FIN DEL FAIL-SAFE ===
+
+                // Si la API falla por otra razón, muestra un examen de ejemplo
+                lastGeneratedExam = {
+                    examTitle: examData.title,
+                    subject: examData.subject,
+                    questions: [{
+                        questionNumber: 1,
+                        enunciado: "Ejemplo: ¿Cuál es el objeto de estudio de la sociología?",
+                        options: [
+                            { letter: "A", text: "El comportamiento individual." },
+                            { letter: "B", text: "La estructura y desarrollo de la sociedad." },
+                            { letter: "C", text: "Las leyes de la física." },
+                            { letter: "D", text: "Los procesos químicos." }
+                        ],
+                        correctAnswerLetter: "B",
+                        explanation: "La sociología se enfoca en el estudio de las relaciones sociales, la interacción y las estructuras sociales."
+                    }]
+                };
+                showExamInModal(lastGeneratedExam);
+                
+                resetUI();
+                showMessage(`❌ Error de Generación: ${error.message}. Se mostró un examen de ejemplo.`, true);
+
+            }
+        });
+
+
+        closeExamModal.addEventListener('click', () => {
+            examModal.classList.add('hidden');
+        });
+        
+        // Exportar a TXT
+        exportExamBtn.addEventListener('click', () => {
+             if (!lastGeneratedExam) {
+                showMessage("No hay examen para exportar.", true);
+                return;
+            }
+
+            let textContent = `TÍTULO: ${lastGeneratedExam.examTitle}\n`;
+            textContent += `MATERIA: ${lastGeneratedExam.subject}\n\n`;
+            
+            // Aseguramos que solo exporte si hay preguntas
+            const questionsToExport = lastGeneratedExam.questions || [];
+
+            questionsToExport.forEach((q, index) => {
+                textContent += `P${q.questionNumber || index + 1}. ${q.enunciado}\n`;
+                q.options.forEach(opt => {
+                    textContent += `   ${opt.letter}) ${opt.text}\n`;
+                });
+                textContent += `   Respuesta Correcta: ${q.correctAnswerLetter}\n`;
+                if (q.explanation) {
+                    textContent += `   Explicación: ${q.explanation}\n`;
+                }
+                textContent += `\n`;
+            });
+
+            // Usar un Blob para simular la descarga
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${lastGeneratedExam.examTitle.replace(/\s/g, '_')}_Examen.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage("Se ha iniciado la descarga del examen (Formato TXT).", false);
+        });
+
+    </script>
+    <style>
+        /* ESTILOS RESTAURADOS PARA EL DISEÑO GLASS-EFFECT Y DEGRADADO VERDE */
+        .gradient-bg {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 1rem; /* Consistent rounding */
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+        }
+        .exam-card {
+            transition: all 0.3s ease;
+        }
+        .exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <!-- Header -->
+    <header class="bg-white bg-opacity-10 backdrop-blur-md border-b border-white border-opacity-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-graduation-cap text-2xl text-white mr-3"></i>
+                    <h1 class="text-xl font-bold text-white">Panel Profesor</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-white text-sm flex items-center space-x-2">
+                        <i class="fas fa-database text-green-300"></i>
+                        <span id="apiStatus" class="flex items-center space-x-1">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            <span class="text-xs">Iniciando...</span>
+                        </span>
+                    </div>
+                    <span id="userName" class="text-white text-sm">Cargando usuario...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="glass-effect rounded-2xl p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-2">¡Bienvenido, Profesor!</h2>
+                    <p class="text-green-100">Genera exámenes personalizados con inteligencia artificial</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-white" id="examCount">0</div>
+                    <div class="text-green-100 text-sm">Exámenes Generados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Exam Section -->
+        <div class="glass-effect rounded-2xl p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-robot mr-2"></i>
+                    Generar Examen con Inteligencia Artificial
+                </h3>
+                <div class="flex items-center space-x-2 text-green-200 text-sm">
+                    <i class="fas fa-brain"></i>
+                    <span>Powered by Gemini AI</span>
+                </div>
+            </div>
+            
+            <form id="examForm" class="space-y-6">
+                <!-- Exam Title -->
+                <div class="space-y-2">
+                    <label for="examTitle" class="block text-sm font-medium text-white">Título del Examen</label>
+                    <input 
+                        type="text" 
+                        id="examTitle" 
+                        name="examTitle" 
+                        required
+                        value="Examen de Ecuaciones Cuadráticas"
+                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="Ej: Examen de Matemáticas - Álgebra Lineal"
+                    >
+                </div>
+
+                <!-- Subject -->
+                <div class="space-y-2">
+                    <label for="subject" class="block text-sm font-medium text-white">Materia</label>
+                    <input 
+                        type="text" 
+                        id="subject" 
+                        name="subject" 
+                        required
+                        value="Matemáticas"
+                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="Ej: Matemáticas, Física, Química, etc."
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                     <!-- Number of Questions -->
+                    <div class="space-y-2">
+                        <label for="numQuestions" class="block text-sm font-medium text-white">Número de Preguntas</label>
+                        <select 
+                            id="numQuestions" 
+                            name="numQuestions" 
+                            required
+                            class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            style="color: white !important; background-color: rgba(255, 255, 255, 0.2) !important;"
+                        >
+                            <option value="5" style="background-color: #166534 !important; color: white !important;">5 preguntas</option>
+                            <option value="10" selected style="background-color: #166534 !important; color: white !important;">10 preguntas</option>
+                            <option value="15" style="background-color: #166534 !important; color: white !important;">15 preguntas</option>
+                        </select>
+                    </div>
+
+                    <!-- Difficulty Level -->
+                    <div class="space-y-2">
+                        <label for="difficulty" class="block text-sm font-medium text-white">Nivel de Dificultad</label>
+                        <select 
+                            id="difficulty" 
+                            name="difficulty" 
+                            required
+                            class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            style="color: white !important; background-color: rgba(255, 255, 255, 0.2) !important;"
+                        >
+                            <option value="básico" style="background-color: #166534 !important; color: white !important;">Básico</option>
+                            <option value="intermedio" selected style="background-color: #166534 !important; color: white !important;">Intermedio</option>
+                            <option value="avanzado" style="background-color: #166534 !important; color: white !important;">Avanzado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- AI Prompt -->
+                <div class="space-y-2">
+                    <label for="aiPrompt" class="block text-sm font-medium text-white">
+                        Prompt para la IA
+                        <span class="text-green-200 text-xs">(Describe el contenido específico del examen)</span>
+                    </label>
+                    <textarea 
+                        id="aiPrompt" 
+                        name="aiPrompt" 
+                        rows="4"
+                        required
+                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none"
+                        placeholder="Ej: Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real."
+                    >Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real.</textarea>
+                </div>
+
+                <!-- Generate Button -->
+                <button 
+                    type="submit" 
+                    id="generateBtn"
+                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                    <i class="fas fa-robot mr-2"></i>
+                    <span id="generateBtnText">Generar Examen con IA</span>
+                    <i id="generateBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Generated Exams Section (OCULTADO) -->
+        <div id="historySection" class="glass-effect rounded-2xl p-8 hidden">
+            <h3 class="text-xl font-bold text-white mb-6">
+                <i class="fas fa-file-alt mr-2"></i>
+                Historial de Exámenes Guardados
+            </h3>
+            
+            <div id="examsList" class="space-y-4">
+                <!-- El contenido se elimina al ocultar la sección -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Modal con Progreso -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 max-w-lg mx-4 text-center">
+            <!-- Círculo de progreso animado -->
+            <div class="relative mb-6">
+                <div class="w-24 h-24 mx-auto relative">
+                    <!-- Círculo de fondo -->
+                    <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.2)" stroke-width="8" fill="none"/>
+                        <circle id="progressCircle" cx="50" cy="50" r="45" stroke="#3b82f6" stroke-width="8" fill="none" 
+                                stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
+                                class="transition-all duration-500 ease-out"/>
+                    </svg>
+                    <!-- Icono central -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i id="progressIcon" class="fas fa-brain text-2xl text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-white mb-4">🤖 IA Generando Examen</h3>
+            
+            <!-- Barra de progreso -->
+            <div class="mb-4">
+                <div class="bg-white bg-opacity-20 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="loadingProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="text-2xl font-bold text-white">
+                    <span id="progressPercentage">0</span>%
+                </div>
+            </div>
+            
+            <!-- Mensaje de progreso -->
+            <div class="space-y-3">
+                <p id="loadingText" class="text-green-100 text-lg">Iniciando generación...</p>
+                <p id="statusText" class="text-blue-200 text-sm">Conectando con Gemini AI...</p>
+                
+                <!-- Indicadores de estado -->
+                <div class="flex items-center justify-center space-x-2 text-blue-200">
+                    <div id="statusIndicator" class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generated Exam Modal -->
+    <div id="examModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 max-w-4xl mx-4 max-h-[90vh] overflow-y-auto w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-white border-opacity-30 pb-3">
+                <h3 class="text-2xl font-bold text-white">Examen Generado (Vista Previa)</h3>
+                <button id="closeExamModal" class="text-white hover:text-red-300 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="examContent" class="space-y-6">
+                <!-- El contenido del examen se mostrará aquí -->
+            </div>
+            
+            <div class="flex justify-end space-x-4 mt-8">
+                <!-- Botón de Guardar Eliminado/Ocultado -->
+                <button id="exportExamBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-download mr-2"></i>
+                    Exportar TXT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Container -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50 hidden">
+        <div id="message" class="p-4 rounded-lg text-center font-medium max-w-md"></div>
+    </div>
+
+</body>
+</html>

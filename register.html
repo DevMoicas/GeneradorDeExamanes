@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Generador de Exámenes UCOL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SQL.js para base de datos SQLite -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo y título -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4 shadow-lg">
+                <i class="fas fa-user-plus text-3xl text-green-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Registro de Usuario</h1>
+            <p class="text-green-100">Universidad de Colima</p>
+        </div>
+
+        <!-- Formulario de registro -->
+        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+            <form id="registerForm" class="space-y-6">
+                <!-- Selector de tipo de usuario -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-white">Tipo de Usuario</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="userType" value="profesor" class="sr-only" checked>
+                            <div class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-transparent bg-white bg-opacity-20 text-white transition-all duration-200 hover:bg-opacity-30">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i>
+                                <span>Profesor</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="userType" value="alumno" class="sr-only">
+                            <div class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-transparent bg-white bg-opacity-20 text-white transition-all duration-200 hover:bg-opacity-30">
+                                <i class="fas fa-user-graduate mr-2"></i>
+                                <span>Alumno</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Nombre -->
+                <div class="space-y-2">
+                    <label for="nombre" class="block text-sm font-medium text-white">Nombre</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="nombre" 
+                            name="nombre" 
+                            required
+                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Tu nombre"
+                        >
+                    </div>
+                </div>
+
+                <!-- Apellido -->
+                <div class="space-y-2">
+                    <label for="apellido" class="block text-sm font-medium text-white">Apellido</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="apellido" 
+                            name="apellido" 
+                            required
+                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            placeholder="Tu apellido"
+                        >
+                    </div>
+                </div>
+
+                <!-- Campo de email -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-medium text-white">Correo Electrónico</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required
+                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            placeholder="tu@email.com"
+                        >
+                    </div>
+                </div>
+
+                <!-- Campo de contraseña -->
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-white">Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            class="input-focus w-full pl-10 pr-12 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            placeholder="••••••••"
+                        >
+                        <button 
+                            type="button" 
+                            id="togglePassword"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+                        >
+                            <i class="fas fa-eye" id="passwordIcon"></i>
+                        </button>
+                    </div>
+                    <div class="text-xs text-green-200">
+                        Mínimo 6 caracteres
+                    </div>
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="space-y-2">
+                    <label for="confirmPassword" class="block text-sm font-medium text-white">Confirmar Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword" 
+                            required
+                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                </div>
+
+                <!-- Términos y condiciones -->
+                <div class="flex items-start">
+                    <label class="flex items-start cursor-pointer">
+                        <input type="checkbox" id="acceptTerms" class="sr-only">
+                        <div class="remember-checkbox w-5 h-5 border-2 border-white border-opacity-30 rounded flex items-center justify-center mr-3 mt-0.5 transition-all duration-200">
+                            <i class="fas fa-check text-white text-xs opacity-0"></i>
+                        </div>
+                        <span class="text-white text-sm">
+                            Acepto los 
+                            <a href="#" class="text-green-200 hover:text-white underline">términos y condiciones</a>
+                            y la 
+                            <a href="#" class="text-green-200 hover:text-white underline">política de privacidad</a>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Botón de registro -->
+                <button 
+                    type="submit" 
+                    class="w-full bg-white text-green-600 py-3 px-4 rounded-lg font-semibold hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Registrarse
+                </button>
+            </form>
+
+            <!-- Enlaces adicionales -->
+            <div class="mt-6 text-center">
+                <p class="text-green-200 text-sm">
+                    ¿Ya tienes cuenta? 
+                    <a href="index.html" class="text-white hover:underline font-medium">Inicia sesión aquí</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Mensaje de error/success -->
+        <div id="messageContainer" class="mt-4 hidden">
+            <div id="message" class="p-4 rounded-lg text-center font-medium"></div>
+        </div>
+    </div>
+
+    <!-- Scripts de base de datos -->
+    <script src="database.js"></script>
+    <script src="init-db.js"></script>
+    <!-- Script de registro -->
+    <script src="register.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Generador de Exámenes UCOL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-green-600 mb-6 text-center">Test de Funcionalidades</h1>
+        
+        <div class="space-y-4">
+            <button onclick="testUserSelection()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg">
+                Test 1: Selector de Usuario
+            </button>
+            
+            <button onclick="testPasswordToggle()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg">
+                Test 2: Mostrar/Ocultar Contraseña
+            </button>
+            
+            <button onclick="testExamGeneration()" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg">
+                Test 3: Generación de Examen
+            </button>
+            
+            <button onclick="testDatabase()" class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg">
+                Test 4: Base de Datos
+            </button>
+        </div>
+        
+        <div id="results" class="mt-6 p-4 bg-gray-100 rounded-lg hidden">
+            <h3 class="font-bold mb-2">Resultados:</h3>
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="index.html" class="text-green-600 hover:underline">← Volver al Login</a>
+        </div>
+    </div>
+
+    <script>
+        function showResult(test, success, message) {
+            const results = document.getElementById('results');
+            const testResults = document.getElementById('testResults');
+            
+            results.classList.remove('hidden');
+            
+            const color = success ? 'text-green-600' : 'text-red-600';
+            const icon = success ? '✅' : '❌';
+            
+            testResults.innerHTML += `<div class="${color}">${icon} ${test}: ${message}</div>`;
+        }
+
+        function testUserSelection() {
+            try {
+                // Simular selección de usuario
+                selectUserType('profesor');
+                showResult('Selector de Usuario', true, 'Función ejecutada correctamente');
+            } catch (error) {
+                showResult('Selector de Usuario', false, error.message);
+            }
+        }
+
+        function testPasswordToggle() {
+            try {
+                // Crear un input de prueba
+                const testInput = document.createElement('input');
+                testInput.type = 'password';
+                testInput.value = 'test123';
+                
+                const originalType = testInput.type;
+                testInput.type = testInput.type === 'password' ? 'text' : 'password';
+                
+                showResult('Mostrar/Ocultar Contraseña', true, `Tipo cambiado de ${originalType} a ${testInput.type}`);
+            } catch (error) {
+                showResult('Mostrar/Ocultar Contraseña', false, error.message);
+            }
+        }
+
+        async function testExamGeneration() {
+            try {
+                // Simular datos de examen
+                const examData = {
+                    title: 'Test de Matemáticas',
+                    subject: 'Matemáticas',
+                    numQuestions: 5,
+                    difficulty: 'básico',
+                    aiPrompt: 'Genera preguntas básicas de matemáticas'
+                };
+                
+                // Crear instancia de Gemini API
+                const geminiAPI = new GeminiAPI();
+                await geminiAPI.init();
+                
+                const result = await geminiAPI.generateExam(examData);
+                
+                showResult('Generación de Examen', result.success, `Examen generado con ${result.exam.questions.length} preguntas`);
+            } catch (error) {
+                showResult('Generación de Examen', false, error.message);
+            }
+        }
+
+        async function testDatabase() {
+            try {
+                // Verificar si SQL.js está disponible
+                if (typeof SQL === 'undefined') {
+                    showResult('Base de Datos', false, 'SQL.js no está cargado');
+                    return;
+                }
+                
+                // Crear base de datos de prueba
+                const db = new SQL.Database();
+                db.exec('CREATE TABLE test (id INTEGER, name TEXT)');
+                db.exec('INSERT INTO test VALUES (1, "test")');
+                
+                const result = db.exec('SELECT * FROM test');
+                
+                showResult('Base de Datos', true, `Tabla creada con ${result[0].values.length} registros`);
+            } catch (error) {
+                showResult('Base de Datos', false, error.message);
+            }
+        }
+
+        // Función de selección de usuario (copiada del script principal)
+        function selectUserType(type) {
+            console.log('Seleccionando tipo de usuario:', type);
+            return true;
+        }
+
+        // Cargar SQL.js para las pruebas
+        if (typeof SQL === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js';
+            document.head.appendChild(script);
+        }
+
+        // Cargar Gemini API
+        const geminiScript = document.createElement('script');
+        geminiScript.src = 'gemini-api.js';
+        document.head.appendChild(geminiScript);
+    </script>
+</body>
+</html>

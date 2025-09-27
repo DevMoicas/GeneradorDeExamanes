@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Progreso - Generador de Exámenes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-8 max-w-2xl w-full">
+        <h1 class="text-3xl font-bold text-green-600 mb-6 text-center">Test de Progreso de Generación</h1>
+        
+        <div class="space-y-4 mb-6">
+            <button onclick="testProgress()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-play mr-2"></i>
+                Probar Animación de Progreso
+            </button>
+            
+            <button onclick="testRealGeneration()" class="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors">
+                <i class="fas fa-robot mr-2"></i>
+                Probar Generación Real con IA
+            </button>
+        </div>
+        
+        <div class="text-center">
+            <a href="dashboard-profesor.html" class="text-green-600 hover:underline">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver al Panel del Profesor
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal de carga con progreso (copiado del dashboard) -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 max-w-lg mx-4 text-center">
+            <!-- Círculo de progreso animado -->
+            <div class="relative mb-6">
+                <div class="w-24 h-24 mx-auto relative">
+                    <!-- Círculo de fondo -->
+                    <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" stroke="rgba(255,255,255,0.2)" stroke-width="8" fill="none"/>
+                        <circle id="progressCircle" cx="50" cy="50" r="45" stroke="#3b82f6" stroke-width="8" fill="none" 
+                                stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
+                                class="transition-all duration-500 ease-out"/>
+                    </svg>
+                    <!-- Icono central -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i id="progressIcon" class="fas fa-brain text-2xl text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-white mb-4">🤖 IA Generando Examen</h3>
+            
+            <!-- Barra de progreso -->
+            <div class="mb-4">
+                <div class="bg-white bg-opacity-20 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="loadingProgress" class="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="text-2xl font-bold text-white">
+                    <span id="progressPercentage">0</span>%
+                </div>
+            </div>
+            
+            <!-- Mensaje de progreso -->
+            <div class="space-y-3">
+                <p id="loadingText" class="text-green-100 text-lg">Iniciando generación...</p>
+                <p id="statusText" class="text-blue-200 text-sm">Conectando con Gemini AI...</p>
+                
+                <!-- Indicadores de estado -->
+                <div class="flex items-center justify-center space-x-2 text-blue-200">
+                    <div id="statusIndicator" class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+                
+                <div class="bg-blue-500 bg-opacity-20 rounded-lg p-3 mt-4">
+                    <p class="text-blue-100 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Si hay problemas con la API, se generará un examen de ejemplo
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones de progreso (copiadas del dashboard-profesor.js)
+        function showLoadingModal() {
+            const modal = document.getElementById('loadingModal');
+            modal.classList.remove('hidden');
+            startProgressAnimation();
+        }
+
+        function hideLoadingModal() {
+            const modal = document.getElementById('loadingModal');
+            modal.classList.add('hidden');
+            resetProgress();
+        }
+
+        function startProgressAnimation() {
+            const progressBar = document.getElementById('loadingProgress');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressCircle = document.getElementById('progressCircle');
+            const loadingText = document.getElementById('loadingText');
+            const statusText = document.getElementById('statusText');
+            const progressIcon = document.getElementById('progressIcon');
+            
+            let progress = 0;
+            const totalDuration = 8000; // 8 segundos total
+            const interval = 50; // Actualizar cada 50ms
+            const increment = (100 / (totalDuration / interval));
+            
+            const progressInterval = setInterval(() => {
+                progress += increment;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                }
+                
+                // Actualizar barra de progreso
+                progressBar.style.width = `${progress}%`;
+                progressPercentage.textContent = Math.round(progress);
+                
+                // Actualizar círculo de progreso
+                const circumference = 283; // 2 * π * 45
+                const offset = circumference - (progress / 100) * circumference;
+                progressCircle.style.strokeDashoffset = offset;
+                
+                // Actualizar mensajes según progreso
+                updateProgressMessages(progress, loadingText, statusText, progressIcon);
+                
+            }, interval);
+            
+            // Guardar referencia para poder limpiar
+            window.progressInterval = progressInterval;
+        }
+
+        function updateProgressMessages(progress, loadingText, statusText, progressIcon) {
+            if (progress >= 20 && progress < 50) {
+                loadingText.textContent = 'Petición entendida';
+                statusText.textContent = 'Analizando tu solicitud...';
+                progressIcon.className = 'fas fa-check-circle text-green-400';
+            } else if (progress >= 50 && progress < 75) {
+                loadingText.textContent = 'Generando preguntas';
+                statusText.textContent = 'Creando preguntas personalizadas...';
+                progressIcon.className = 'fas fa-question-circle text-yellow-400';
+            } else if (progress >= 75 && progress < 90) {
+                loadingText.textContent = 'Mejorando algunos detalles';
+                statusText.textContent = 'Optimizando contenido y formato...';
+                progressIcon.className = 'fas fa-cog text-blue-400 fa-spin';
+            } else if (progress >= 90 && progress < 100) {
+                loadingText.textContent = 'Está casi todo listo';
+                statusText.textContent = 'Finalizando detalles...';
+                progressIcon.className = 'fas fa-magic text-purple-400';
+            } else if (progress >= 100) {
+                loadingText.textContent = '¡Examen generado!';
+                statusText.textContent = 'Preparando para mostrar...';
+                progressIcon.className = 'fas fa-check-circle text-green-400';
+            }
+        }
+
+        function resetProgress() {
+            const progressBar = document.getElementById('loadingProgress');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressCircle = document.getElementById('progressCircle');
+            const loadingText = document.getElementById('loadingText');
+            const statusText = document.getElementById('statusText');
+            const progressIcon = document.getElementById('progressIcon');
+            
+            // Limpiar intervalo si existe
+            if (window.progressInterval) {
+                clearInterval(window.progressInterval);
+                window.progressInterval = null;
+            }
+            
+            // Resetear valores
+            progressBar.style.width = '0%';
+            progressPercentage.textContent = '0';
+            progressCircle.style.strokeDashoffset = '283';
+            loadingText.textContent = 'Iniciando generación...';
+            statusText.textContent = 'Conectando con Gemini AI...';
+            progressIcon.className = 'fas fa-brain text-blue-400';
+        }
+
+        // Funciones de prueba
+        function testProgress() {
+            console.log('🧪 Iniciando test de progreso...');
+            showLoadingModal();
+            
+            // Simular que el examen se genera después de 8 segundos
+            setTimeout(() => {
+                hideLoadingModal();
+                alert('✅ Test de progreso completado! El modal se cerró automáticamente.');
+            }, 8500);
+        }
+
+        async function testRealGeneration() {
+            console.log('🧪 Iniciando test de generación real...');
+            showLoadingModal();
+            
+            try {
+                // Simular llamada a la API
+                await new Promise(resolve => setTimeout(resolve, 8000));
+                
+                // Simular resultado
+                const examData = {
+                    title: 'Examen de Prueba',
+                    subject: 'Matemáticas',
+                    numQuestions: 5,
+                    difficulty: 'básico',
+                    questions: [
+                        {
+                            question: '¿Cuánto es 2 + 2?',
+                            options: ['3', '4', '5', '6'],
+                            correct: 1
+                        }
+                    ]
+                };
+                
+                hideLoadingModal();
+                alert(`✅ Examen generado exitosamente!\n\nTítulo: ${examData.title}\nPreguntas: ${examData.numQuestions}\nMateria: ${examData.subject}`);
+                
+            } catch (error) {
+                hideLoadingModal();
+                alert('❌ Error en la generación: ' + error.message);
+            }
+        }
+
+        console.log('🧪 Test de progreso cargado');
+    </script>
+</body>
+</html>
