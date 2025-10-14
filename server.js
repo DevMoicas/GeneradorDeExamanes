@@ -5,7 +5,7 @@ const path = require('path');
 const { createExamXML, createAnswersXML, parseExamXMLToJson } = require('./xml-utils');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -258,8 +258,10 @@ app.post('/exam/answers', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Exam temp backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor de exámenes ejecutándose en puerto ${PORT}`);
+    console.log(`📱 Accede a: http://localhost:${PORT}`);
+    console.log(`🌐 En Railway: https://tu-app.railway.app`);
 });
 
 

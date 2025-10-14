@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 savedAt: new Date().toISOString()
             };
 
-            const resp = await fetch('http://localhost:3001/exam', {
+            const resp = await fetch('/exam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(examToPublish)

@@ -1,0 +1,11 @@
+# Railway Configuration
+# Este archivo configura el despliegue automático en Railway
+
+# Variables de entorno requeridas
+# GEMINI_API_KEY=tu_clave_de_gemini_aqui
+
+# Puerto será asignado automáticamente por Railway
+# PORT se configura automáticamente
+
+# Configuración de Node.js
+NODE_ENV=production

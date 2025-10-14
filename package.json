@@ -1,4 +1,18 @@
 {
+  "name": "generador-examenes",
+  "version": "1.0.0",
+  "description": "Sistema de generación y gestión de exámenes con IA",
+  "main": "server.js",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["examenes", "educacion", "ia", "nodejs"],
+  "author": "Tu Nombre",
+  "license": "MIT",
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
