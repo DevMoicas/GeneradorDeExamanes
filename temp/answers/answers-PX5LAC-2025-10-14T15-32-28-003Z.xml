@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<answers>
+  <submittedAt>2025-10-14T15:32:28.013Z</submittedAt>
+  <student>
+    <name>María González</name>
+    <id/>
+  </student>
+  <responses>
+    <response>
+      <questionId>1</questionId>
+      <selected>A</selected>
+    </response>
+    <response>
+      <questionId>2</questionId>
+      <selected>B</selected>
+    </response>
+    <response>
+      <questionId>3</questionId>
+      <selected>C</selected>
+    </response>
+    <response>
+      <questionId>4</questionId>
+      <selected>B</selected>
+    </response>
+    <response>
+      <questionId>5</questionId>
+      <selected>D</selected>
+    </response>
+    <response>
+      <questionId>6</questionId>
+      <selected>B</selected>
+    </response>
+    <response>
+      <questionId>7</questionId>
+      <selected>D</selected>
+    </response>
+    <response>
+      <questionId>8</questionId>
+      <selected>C</selected>
+    </response>
+    <response>
+      <questionId>9</questionId>
+      <selected>D</selected>
+    </response>
+    <response>
+      <questionId>10</questionId>
+      <selected>B</selected>
+    </response>
+  </responses>
+</answers>

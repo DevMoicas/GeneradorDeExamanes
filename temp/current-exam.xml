@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exam>
+  <id>EXAM_1760455821333</id>
+  <title>Examen de Programacion</title>
+  <subject>POO</subject>
+  <difficulty>intermedio</difficulty>
+  <numQuestions>10</numQuestions>
+  <createdAt>2025-10-14T15:30:21.333Z</createdAt>
+  <status>active</status>
+  <questions>
+    <question>
+      <id>1</id>
+      <text>Cuál de los siguientes principios de la Programación Orientada a Objetos (POO) se refiere a la capacidad de un objeto para ocultar sus detalles internos y exponer solo una interfaz para interactuar con él?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Herencia</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Polimorfismo</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Encapsulamiento</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Abstracción</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>2</id>
+      <text>En POO, ¿qué concepto permite que una clase adquiera las propiedades y comportamientos de otra clase existente?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Abstracción</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Herencia</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Encapsulamiento</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Polimorfismo</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>3</id>
+      <text>¿Qué es un objeto en el contexto de la Programación Orientada a Objetos?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Una plantilla para crear clases</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Un tipo de dato primitivo</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Una instancia de una clase</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Una función independiente</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>4</id>
+      <text>El polimorfismo en POO se refiere a:</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>La capacidad de una clase para tener múltiples constructores.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>La capacidad de un objeto para tomar muchas formas.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>La capacidad de ocultar la implementación interna de los métodos.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>La capacidad de una clase para heredar de múltiples clases.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>5</id>
+      <text>¿Cuál es la función principal de un constructor en una clase?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Destruir un objeto cuando ya no es necesario.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Inicializar el estado de un nuevo objeto.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Definir los métodos públicos de la clase.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Controlar el acceso a los atributos privados.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>6</id>
+      <text>Si un atributo de una clase se declara como 'private', ¿quién puede acceder a él directamente?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Cualquier otra clase en el mismo paquete.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Solo la propia clase donde está definido.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Clases hijas que heredan de ella.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Cualquier clase en el programa.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>7</id>
+      <text>¿Qué representa una 'clase' en POO?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Un objeto concreto y específico.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Un valor de una variable.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Un plano o plantilla para crear objetos.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Un método que realiza una acción.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>8</id>
+      <text>¿Cuál de los siguientes NO es un pilar fundamental de la Programación Orientada a Objetos?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Abstracción</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Modularidad</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Herencia</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Polimorfismo</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>9</id>
+      <text>¿Qué término se usa para describir las características o datos que un objeto posee?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Métodos</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Funciones</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Atributos</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Eventos</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>10</id>
+      <text>En POO, ¿qué significa 'sobrecarga de métodos' (method overloading)?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Un método en una subclase que redefine un método de su superclase.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Tener múltiples métodos con el mismo nombre pero diferente lista de parámetros en la misma clase.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>La capacidad de un objeto para cambiar su tipo en tiempo de ejecución.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Un método que puede aceptar un número variable de argumentos.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+  </questions>
+</exam>

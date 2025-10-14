@@ -1,0 +1,115 @@
+{
+  "code": "S3269S",
+  "student": {
+    "name": "María González",
+    "id": ""
+  },
+  "answers": [
+    {
+      "questionId": 1,
+      "selected": "B"
+    },
+    {
+      "questionId": 2,
+      "selected": "A"
+    },
+    {
+      "questionId": 3,
+      "selected": "A"
+    },
+    {
+      "questionId": 4,
+      "selected": null
+    },
+    {
+      "questionId": 5,
+      "selected": "A"
+    },
+    {
+      "questionId": 6,
+      "selected": "D"
+    },
+    {
+      "questionId": 7,
+      "selected": "B"
+    },
+    {
+      "questionId": 8,
+      "selected": "B"
+    },
+    {
+      "questionId": 9,
+      "selected": "B"
+    },
+    {
+      "questionId": 10,
+      "selected": "A"
+    }
+  ],
+  "results": [
+    {
+      "questionId": 1,
+      "correct": false,
+      "selected": "B",
+      "correctAnswer": "C"
+    },
+    {
+      "questionId": 2,
+      "correct": false,
+      "selected": "A",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 3,
+      "correct": false,
+      "selected": "A",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 4,
+      "correct": false,
+      "selected": null,
+      "correctAnswer": "C"
+    },
+    {
+      "questionId": 5,
+      "correct": false,
+      "selected": "A",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 6,
+      "correct": false,
+      "selected": "D",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 7,
+      "correct": true,
+      "selected": "B",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 8,
+      "correct": true,
+      "selected": "B",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 9,
+      "correct": true,
+      "selected": "B",
+      "correctAnswer": "B"
+    },
+    {
+      "questionId": 10,
+      "correct": false,
+      "selected": "A",
+      "correctAnswer": "C"
+    }
+  ],
+  "score": {
+    "correct": 3,
+    "total": 10
+  }
+}

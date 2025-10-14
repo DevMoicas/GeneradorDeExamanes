@@ -168,56 +168,62 @@ Genera el examen completo siguiendo exactamente este formato.`;
         try {
             console.log('Parseando respuesta:', text);
             
-            const questions = [];
-            const lines = text.split('\n').filter(line => line.trim());
-            
-            let currentQuestion = null;
-            let questionNumber = 0;
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                
-                // Detectar nueva pregunta
-                if (line.match(/^\d+\./)) {
-                    if (currentQuestion) {
-                        questions.push(currentQuestion);
-                    }
-                    
-                    questionNumber++;
-                    currentQuestion = {
-                        id: questionNumber,
-                        question: line.replace(/^\d+\.\s*/, ''),
-                        options: [],
-                        correctAnswer: null,
-                        explanation: ''
-                    };
+            // 1) Intentar interpretar como JSON del formato alterno que recibes
+            let questions = [];
+            try {
+                const maybeJson = JSON.parse(text);
+                if (maybeJson && maybeJson.questions && Array.isArray(maybeJson.questions)) {
+                    questions = maybeJson.questions.map((q, idx) => ({
+                        id: q.questionNumber || idx + 1,
+                        question: q.enunciado || q.question || '',
+                        options: (q.options || []).map(o => ({
+                            letter: o.letter,
+                            text: o.text,
+                            isCorrect: (q.correctAnswerLetter || '').toUpperCase() === (o.letter || '').toUpperCase()
+                        })),
+                        correctAnswer: q.correctAnswerLetter || null,
+                        explanation: q.explanation || ''
+                    }));
                 }
-                // Detectar opciones de respuesta
-                else if (line.match(/^[A-D]\)/)) {
-                    if (currentQuestion) {
-                        const isCorrect = line.includes('[CORRECTA]') || line.includes('(CORRECTA)') || line.includes('CORRECTA');
-                        const optionText = line.replace(/^[A-D]\)\s*/, '').replace(/\s*\[CORRECTA\]/g, '').replace(/\s*\(CORRECTA\)/g, '').replace(/\s*CORRECTA/g, '');
-                        const optionLetter = line.match(/^([A-D])/)[1];
-                        
-                        currentQuestion.options.push({
-                            letter: optionLetter,
-                            text: optionText,
-                            isCorrect: isCorrect
-                        });
-                        
-                        if (isCorrect) {
-                            currentQuestion.correctAnswer = optionLetter;
+            } catch (_) {
+                // no JSON, seguimos al parser por líneas
+            }
+
+            // 2) Si no se llenó desde JSON, usar parser por líneas (formato textual)
+            if (questions.length === 0) {
+                const lines = text.split('\n').filter(line => line.trim());
+                let currentQuestion = null;
+                let questionNumber = 0;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.match(/^\d+\./)) {
+                        if (currentQuestion) questions.push(currentQuestion);
+                        questionNumber++;
+                        currentQuestion = {
+                            id: questionNumber,
+                            question: line.replace(/^\d+\.\s*/, ''),
+                            options: [],
+                            correctAnswer: null,
+                            explanation: ''
+                        };
+                    } else if (line.match(/^[A-D]\)/)) {
+                        if (currentQuestion) {
+                            const isCorrect = line.includes('[CORRECTA]') || line.includes('(CORRECTA)') || line.includes('CORRECTA');
+                            const optionText = line.replace(/^[A-D]\)\s*/, '').replace(/\s*\[CORRECTA\]/g, '').replace(/\s*\(CORRECTA\)/g, '').replace(/\s*CORRECTA/g, '');
+                            const optionLetter = line.match(/^([A-D])/)[1];
+                            currentQuestion.options.push({
+                                letter: optionLetter,
+                                text: optionText,
+                                isCorrect
+                            });
+                            if (isCorrect) currentQuestion.correctAnswer = optionLetter;
                         }
                     }
                 }
+                if (currentQuestion) questions.push(currentQuestion);
             }
-            
-            // Agregar la última pregunta
-            if (currentQuestion) {
-                questions.push(currentQuestion);
-            }
-            
-            // Si no se encontraron preguntas, crear un examen de ejemplo
+
+            // 3) Fallback si aún no hay preguntas
             if (questions.length === 0) {
                 console.log('No se encontraron preguntas, creando examen de ejemplo');
                 questions.push({
@@ -232,18 +238,27 @@ Genera el examen completo siguiendo exactamente este formato.`;
                     correctAnswer: "B"
                 });
             }
-            
-            console.log('Preguntas parseadas:', questions);
-            
+
+            // Normalizar consistencia
+            const normalized = questions.map((q, idx) => ({
+                id: q.id || idx + 1,
+                question: q.question || '',
+                options: (q.options || []).map(o => ({ letter: o.letter, text: o.text, isCorrect: !!o.isCorrect })),
+                correctAnswer: q.correctAnswer || (q.options || []).find(o => o.isCorrect)?.letter || null,
+                explanation: q.explanation || ''
+            }));
+
+            console.log('Preguntas parseadas:', normalized);
+
             return {
                 success: true,
                 exam: {
                     id: this.generateExamId(),
-                    title: examData.title,
-                    subject: examData.subject,
-                    difficulty: examData.difficulty,
-                    numQuestions: questions.length,
-                    questions: questions,
+                    title: examData.title || maybeJson?.examTitle || 'Examen',
+                    subject: examData.subject || maybeJson?.subject || 'General',
+                    difficulty: examData.difficulty || 'intermedio',
+                    numQuestions: normalized.length,
+                    questions: normalized,
                     createdAt: new Date().toISOString(),
                     professorId: examData.professorId || null,
                     status: 'generated'

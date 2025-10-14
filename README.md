@@ -33,6 +33,34 @@ GeneradorDeExamanes/
 2. **Abrir** `index.html` en un navegador web moderno
 3. **No requiere servidor** para la funcionalidad básica de la interfaz
 
+## Backend temporal (Node.js + XML)
+
+Este proyecto incluye un backend ligero en Node.js para publicar temporalmente el examen generado por IA como XML y recibir respuestas de alumnos.
+
+### Requisitos
+- Node.js 18+
+
+### Instalación
+1. Instala dependencias:
+   ```bash
+   npm install express cors body-parser xmlbuilder2 fast-xml-parser --save
+   ```
+2. Ejecuta el servidor:
+   ```bash
+   node server.js
+   ```
+   El servidor corre en `http://localhost:3001`.
+
+### Endpoints
+- `POST /exam`: Publica/actualiza el examen actual. Cuerpo esperado: JSON del examen (título, materia, preguntas, etc.). Persiste `temp/current-exam.xml` y `temp/current-exam.json`.
+- `GET /exam/current`: Devuelve el examen actual en XML.
+- `GET /exam/current/json`: Devuelve el examen actual en JSON.
+- `POST /exam/answers`: Recibe respuestas del alumno y guarda `temp/answers/answers-<timestamp>.xml` y `.json`.
+
+### Frontend
+- El panel del profesor publica el examen al backend al presionar "Guardar".
+- El panel del alumno consulta el examen actual del backend por código y permite unirse.
+
 ## Credenciales de Prueba
 
 Para probar la funcionalidad de inicio de sesión, utiliza estas credenciales:

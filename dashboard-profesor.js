@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const examModal = document.getElementById('examModal');
     const closeExamModal = document.getElementById('closeExamModal');
     const saveExamBtn = document.getElementById('saveExamBtn');
+    const examCodeDisplay = document.getElementById('examCodeDisplay');
     const exportExamBtn = document.getElementById('exportExamBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userName = document.getElementById('userName');
@@ -334,6 +335,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showExamModal(exam) {
+        // Asegurar/mostrar código
+        if (!exam.examCode) {
+            exam.examCode = window.geminiAPI.generateExamCode();
+        }
+        if (examCodeDisplay) {
+            examCodeDisplay.textContent = exam.examCode;
+        }
         examContent.innerHTML = formatExamForDisplay(exam);
         examModal.classList.remove('hidden');
     }
@@ -391,19 +399,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Guardar en la base de datos local
-            const examToSave = {
+            // Publicar examen en backend temporal (Node)
+            const examToPublish = {
                 ...currentExam,
                 examCode: window.geminiAPI.generateExamCode(),
-                status: 'saved',
+                status: 'active',
                 savedAt: new Date().toISOString()
             };
 
-            // Simular guardado (en una implementación real, se guardaría en la base de datos)
-            generatedExams.push(examToSave);
+            const resp = await fetch('http://localhost:3001/exam', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(examToPublish)
+            });
+
+            if (!resp.ok) {
+                throw new Error('No se pudo publicar el examen en el backend');
+            }
+
+            // También persistimos localmente para la lista del profesor
+            generatedExams.push(examToPublish);
             localStorage.setItem('generatedExams', JSON.stringify(generatedExams));
 
-            showMessage('Examen guardado exitosamente', 'success');
+            showMessage('Examen publicado y guardado exitosamente', 'success');
             await loadExams();
             closeExamModalHandler();
 
@@ -500,6 +518,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function handleLogout() {
         try {
+            if (!window.logout) {
+                window.logout = async function() {
+                    try {
+                        sessionStorage.clear();
+                        localStorage.removeItem('sessionToken');
+                    } catch (_) {}
+                    return true;
+                };
+            }
             await window.logout();
             redirectToLogin();
         } catch (error) {

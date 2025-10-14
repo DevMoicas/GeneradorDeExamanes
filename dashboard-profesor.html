@@ -188,68 +188,71 @@
                     throw new Error("Respuesta de la API incompleta o vacía.");
                 }
 
-                // --- LÓGICA DE LIMPIEZA Y FAIL-SAFE (Senior Programmer Approach) ---
-                let cleanedText = jsonText.trim();
-                
-                // 1. Limpieza inicial: Eliminar bloques de código Markdown comunes (```json o ```)
-                cleanedText = cleanedText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
+                // --- Parser robusto: intenta múltiples estrategias ---
+                const smartToAscii = (s) => s
+                    .replace(/[“”]/g, '"')
+                    .replace(/[‘’]/g, "'");
+                const stripCodeFences = (s) => s.replace(/```json\s*/gi, '').replace(/```/g, '');
+                const stripBOM = (s) => s.replace(/^\uFEFF/, '');
+                const removeTrailingCommas = (s) => s.replace(/,\s*([}\]])/g, '$1');
 
+                // 0) Intento directo sin limpiar
                 try {
-                    return JSON.parse(cleanedText);
-                } catch (e) {
-                    console.warn("Intentando limpieza JSON agresiva debido a error de parseo:", e.message);
+                    return JSON.parse(jsonText);
+                } catch (_) {}
 
-                    // 2. BUSCAR DELIMITADORES '{' y '}' de forma segura
-                    const start = cleanedText.indexOf('{');
-                    const end = cleanedText.lastIndexOf('}');
+                let cleanedText = stripBOM(stripCodeFences(smartToAscii(jsonText.trim())));
 
-                    if (start !== -1 && end !== -1 && end > start) {
-                        let finalCleanedJsonText = cleanedText.substring(start, end + 1);
-                        
-                        // 3. Reemplazar saltos de línea, tabulaciones y retornos de carro por sus escapes JSON.
-                        finalCleanedJsonText = finalCleanedJsonText
-                            .replace(/\n/g, '\\n')
-                            .replace(/\r/g, '\\r')
-                            .replace(/\t/g, '\\t');
-                        
-                        // 4. Último intento de parseo.
-                        try {
-                            return JSON.parse(finalCleanedJsonText);
-                        } catch (innerError) {
-                            // --- LÓGICA DE REPARACIÓN DE ÚLTIMO RECURSO (Solución a JSON Roto/Truncado) ---
-                            console.warn("Intentando reparación de JSON truncado...");
-                            
-                            let repairedJson = finalCleanedJsonText;
-                            
-                            // 4a. Eliminar posibles comas colgantes al final del último elemento del array
-                            repairedJson = repairedJson.replace(/,\s*$/, '');
-                            
-                            // 4b. Asegurar el cierre del objeto más interno (la última pregunta)
-                            if (!repairedJson.endsWith('}}]}') && repairedJson.endsWith(']')) {
-                                repairedJson += '}}'; 
-                            }
-                            
-                            // 4c. Asegurar el cierre del objeto principal
-                            if (!repairedJson.endsWith('}')) {
-                                repairedJson += '}';
-                            }
+                const tryParsers = [
+                    (t) => JSON.parse(t),
+                    (t) => JSON.parse(removeTrailingCommas(t)),
+                    (t) => {
+                        // Extraer bloque entre primeras llaves
+                        const start = t.indexOf('{');
+                        const end = t.lastIndexOf('}');
+                        if (start !== -1 && end > start) return JSON.parse(removeTrailingCommas(t.substring(start, end + 1)));
+                        throw new Error('no-braces');
+                    },
+                    (t) => {
+                        // Doble decodificación si viene como string JSON dentro de otro JSON
+                        const once = JSON.parse(removeTrailingCommas(t));
+                        if (typeof once === 'string') return JSON.parse(removeTrailingCommas(stripCodeFences(once)));
+                        return once;
+                    }
+                ];
 
-                            try {
-                                return JSON.parse(repairedJson);
-                            } catch (repairError) {
-                                // --- FALLO CRÍTICO CONTROLADO (FAIL-SAFE 1) ---
-                                const rawJsonError = new Error(`Formato JSON inválido de la IA. No se pudo parsear incluso después de la limpieza. Error: ${repairError.message}`);
-                                rawJsonError.rawJson = repairedJson; // Adjuntamos el JSON limpio pero fallido
-                                throw rawJsonError;
-                            }
+                for (const p of tryParsers) {
+                    try { return p(cleanedText); } catch (_) {}
+                }
+
+                // 3) Reparación para JSON truncado en questions
+                try {
+                    const titleMatch = cleanedText.match(/"examTitle"\s*:\s*"([\s\S]*?)"/);
+                    const subjectMatch = cleanedText.match(/"subject"\s*:\s*"([\s\S]*?)"/);
+                    const qStart = cleanedText.indexOf('"questions"');
+                    const arrStart = qStart > -1 ? cleanedText.indexOf('[', qStart) : -1;
+                    if (arrStart > -1) {
+                        // Tomar hasta el último cierre de objeto '}' antes de un posible corte
+                        let lastObjEnd = cleanedText.lastIndexOf('}');
+                        if (lastObjEnd > arrStart) {
+                            // Asegurar que no cortemos antes del inicio
+                            const questionsArrayText = cleanedText.substring(arrStart, lastObjEnd + 1);
+                            // Intentar cerrar el array si no está
+                            const closedArray = questionsArrayText.endsWith(']') ? questionsArrayText : (questionsArrayText + ']');
+                            const repaired = {
+                                examTitle: titleMatch ? titleMatch[1] : 'Examen',
+                                subject: subjectMatch ? subjectMatch[1] : 'General',
+                                questions: JSON.parse(closedArray.replace(/,\s*\]/g, ']'))
+                            };
+                            return repaired;
                         }
                     }
-                    // --- FALLO CRÍTICO CONTROLADO (FAIL-SAFE 2) ---
-                    // Si no encontramos los delimitadores '{}', lanzamos el error con el texto crudo inicial
-                    const rawJsonError = new Error(`Formato JSON inválido de la IA. No se encontró estructura JSON válida. Error original: ${e.message}`);
-                    rawJsonError.rawJson = cleanedText; 
-                    throw rawJsonError;
-                }
+                } catch (_) { /* ignore and fallthrough */ }
+
+                // Si todo falla, devolvemos error con crudo
+                const rawJsonError = new Error('Formato JSON inválido de la IA (todas las estrategias fallaron).');
+                rawJsonError.rawJson = cleanedText;
+                throw rawJsonError;
             }
         }
 
@@ -271,6 +274,9 @@
         const exportExamBtn = document.getElementById('exportExamBtn');
         const apiStatus = document.getElementById('apiStatus');
         const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const saveExamBtn = document.getElementById('saveExamBtn');
+        const examCodeDisplay = document.getElementById('examCodeDisplay');
 
         let lastGeneratedExam = null; 
 
@@ -484,6 +490,90 @@
             examModal.classList.add('hidden');
         });
         
+        // Cerrar sesión
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    sessionStorage.clear();
+                    localStorage.removeItem('sessionToken');
+                } catch (_) {}
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Publicar examen (guardar temporal y exponer para alumno)
+        function generateExamCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+            return result;
+        }
+
+        function transformExamForBackend(src, meta) {
+            const questions = (src.questions || []).map((q, idx) => ({
+                id: q.questionNumber || idx + 1,
+                question: q.enunciado || '',
+                options: (q.options || []).map(o => ({
+                    letter: o.letter,
+                    text: o.text,
+                    isCorrect: (q.correctAnswerLetter || '').toUpperCase() === (o.letter || '').toUpperCase()
+                })),
+                correctAnswer: q.correctAnswerLetter || null
+            }));
+            return {
+                id: 'EXAM_' + Date.now(),
+                title: src.examTitle || meta.title || 'Examen',
+                subject: src.subject || meta.subject || 'General',
+                difficulty: meta.difficulty || 'intermedio',
+                numQuestions: questions.length,
+                questions,
+                createdAt: new Date().toISOString(),
+                professorId: null,
+                status: 'active'
+            };
+        }
+
+        if (saveExamBtn) {
+            saveExamBtn.addEventListener('click', async () => {
+                try {
+                    if (!lastGeneratedExam) {
+                        showMessage('No hay examen para publicar.', true);
+                        return;
+                    }
+                    const meta = {
+                        title: document.getElementById('examTitle').value,
+                        subject: document.getElementById('subject').value,
+                        difficulty: document.getElementById('difficulty').value
+                    };
+                    // Mantener un único código por sesión de generación
+                    if (!window.__currentExamCode) {
+                        window.__currentExamCode = generateExamCode();
+                    }
+                    const examToPublish = transformExamForBackend(lastGeneratedExam, meta);
+                    examToPublish.examCode = window.__currentExamCode;
+
+                    // Mostrar código en el modal
+                    if (examCodeDisplay) examCodeDisplay.textContent = examToPublish.examCode;
+
+                    // Guardar temporal en backend
+                    const resp = await fetch('http://localhost:3001/exam', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(examToPublish)
+                    });
+                    if (!resp.ok) throw new Error('Fallo al publicar en el backend.');
+
+                    // Guardar también localmente reemplazando cualquier examen previo: solo el último
+                    localStorage.setItem('generatedExams', JSON.stringify([{ ...examToPublish }]));
+
+                    showMessage('Examen publicado. Código disponible para alumnos.', false);
+                } catch (err) {
+                    console.error('Error al publicar:', err);
+                    showMessage('Error al publicar el examen.', true);
+                }
+            });
+        }
+
         // Exportar a TXT
         exportExamBtn.addEventListener('click', () => {
              if (!lastGeneratedExam) {
@@ -564,6 +654,10 @@
                         </span>
                     </div>
                     <span id="userName" class="text-white text-sm">Cargando usuario...</span>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Cerrar Sesión
+                    </button>
                 </div>
             </div>
         </div>
@@ -764,12 +858,21 @@
                 <!-- El contenido del examen se mostrará aquí -->
             </div>
             
-            <div class="flex justify-end space-x-4 mt-8">
-                <!-- Botón de Guardar Eliminado/Ocultado -->
+            <div class="flex justify-between items-center mt-8">
+                <div class="text-green-300 text-sm">
+                    <span class="opacity-80">Código del examen:</span>
+                    <span id="examCodeDisplay" class="font-mono font-semibold ml-2">—</span>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button id="saveExamBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-bullhorn mr-2"></i>
+                        Publicar Examen
+                    </button>
                 <button id="exportExamBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
                     <i class="fas fa-download mr-2"></i>
                     Exportar TXT
                 </button>
+                </div>
             </div>
         </div>
     </div>
