@@ -1,7 +1,7 @@
 // Configuración automática de URLs
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-// In Vercel, all backend endpoints live under /api
-const API_BASE_URL = isLocal ? 'http://localhost:3000' : '/api';
+// On Render we serve API from the same origin root
+const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
 
 // Función para construir URLs de API
 function getApiUrl(endpoint) {
