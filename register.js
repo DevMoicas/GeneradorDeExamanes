@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     const passwordIcon = document.getElementById('passwordIcon');
-    const acceptTermsCheckbox = document.getElementById('acceptTerms');
-    const acceptTermsDiv = document.querySelector('.remember-checkbox');
+    const professorCodeField = document.getElementById('professorCodeField');
+    const professorCodeInput = document.getElementById('professorCode');
     const messageContainer = document.getElementById('messageContainer');
     const message = document.getElementById('message');
 
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Aplicar estilos iniciales
         updateUserTypeSelection();
-        updateAcceptTermsCheckbox();
+        toggleProfessorCode();
     }
 
     function setupEventListeners() {
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Evento para mostrar/ocultar contraseña
         togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
         
-        // Evento para términos y condiciones
-        acceptTermsCheckbox.addEventListener('change', updateAcceptTermsCheckbox);
+        // Mostrar/ocultar código de profesor
+        userTypeRadios.forEach(r => r.addEventListener('change', toggleProfessorCode));
         
         // Eventos para validación en tiempo real
         document.getElementById('email').addEventListener('blur', validateEmail);
@@ -62,15 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function updateAcceptTermsCheckbox() {
-        const checkIcon = acceptTermsDiv.querySelector('i');
-        if (acceptTermsCheckbox.checked) {
-            acceptTermsDiv.classList.add('bg-green-500', 'border-green-400');
-            checkIcon.classList.remove('opacity-0');
-        } else {
-            acceptTermsDiv.classList.remove('bg-green-500', 'border-green-400');
-            checkIcon.classList.add('opacity-0');
-        }
+    function toggleProfessorCode() {
+        const selected = [...userTypeRadios].find(r => r.checked)?.value;
+        professorCodeField.classList.toggle('hidden', selected !== 'profesor');
     }
 
     function togglePasswordVisibility() {
@@ -145,52 +139,53 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = formData.get('email').trim();
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
-        const acceptTerms = formData.get('acceptTerms') === 'on';
+        const acceptTerms = true; // removed requirement
+
+        // Validación adicional según tipo
+        if (userType === 'profesor') {
+            const code = (professorCodeInput?.value || '').trim();
+            if (code !== 'telematica2025tesis') {
+                showMessage('Código de docente inválido.', 'error');
+                return;
+            }
+        }
+        if (userType === 'alumno') {
+            if (!/@ucol\.mx$/i.test(email)) {
+                showMessage('El correo del alumno debe terminar en @ucol.mx', 'error');
+                return;
+            }
+        }
 
         // Validar datos
         if (!validateForm(nombre, apellido, email, password, confirmPassword, acceptTerms)) {
             return;
         }
 
-        // Verificar si la base de datos está lista
-        if (!window.isDatabaseReady()) {
-            showMessage('Base de datos no disponible. Intenta recargar la página.', 'error');
-            return;
-        }
-
-        // Proceso de registro
+        // Proceso de registro (backend JSON)
         showMessage('Registrando usuario...', 'info');
-        
         try {
-            const dbManager = window.getDatabaseManager();
-            if (!dbManager) {
-                showMessage('Error de conexión con la base de datos.', 'error');
-                return;
-            }
-
-            const userData = {
-                nombre: nombre,
-                apellido: apellido,
-                email: email,
-                password: password,
-                tipo_usuario: userType
+            const payload = {
+                nombre,
+                apellido,
+                email,
+                password,
+                tipo_usuario: userType,
+                profesor_codigo: userType === 'profesor' ? 'telematica2025tesis' : undefined
             };
-
-            const result = await dbManager.registerUser(userData);
-            
-            if (result.success) {
-                showMessage('¡Usuario registrado exitosamente! Redirigiendo al inicio de sesión...', 'success');
-                
-                // Redirigir al login después de 2 segundos
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
-            } else {
-                showMessage(result.message, 'error');
+            const resp = await fetch((window.getApiUrl ? window.getApiUrl('/users/register') : '/users/register'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                throw new Error(data.error || 'Registro fallido');
             }
+            showMessage('¡Usuario registrado exitosamente! Redirigiendo al inicio de sesión...', 'success');
+            setTimeout(() => { window.location.href = 'index.html'; }, 1500);
         } catch (error) {
             console.error('Error en el registro:', error);
-            showMessage('Error del sistema. Intenta nuevamente.', 'error');
+            showMessage(error.message || 'Error del sistema. Intenta nuevamente.', 'error');
         }
     }
 

@@ -4,13 +4,18 @@
   "description": "Sistema de generación y gestión de exámenes con IA",
   "main": "server.js",
   "scripts": {
-    "start": "node start.js",
+    "start": "node server.js",
     "dev": "node server.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["examenes", "educacion", "ia", "nodejs"],
+  "keywords": [
+    "examenes",
+    "educacion",
+    "ia",
+    "nodejs"
+  ],
   "author": "Tu Nombre",
   "license": "MIT",
   "dependencies": {

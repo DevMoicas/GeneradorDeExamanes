@@ -20,18 +20,20 @@ const CURRENT_EXAM_XML = path.join(TEMP_DIR, 'current-exam.xml');
 const CURRENT_EXAM_JSON = path.join(TEMP_DIR, 'current-exam.json');
 const EXAMS_DIR = path.join(TEMP_DIR, 'exams');
 const ANSWERS_DIR = path.join(TEMP_DIR, 'answers');
+const USERS_JSON = path.join(TEMP_DIR, 'users.json');
 
 function ensureDirs() {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
     if (!fs.existsSync(ANSWERS_DIR)) fs.mkdirSync(ANSWERS_DIR);
     if (!fs.existsSync(EXAMS_DIR)) fs.mkdirSync(EXAMS_DIR);
+    if (!fs.existsSync(USERS_JSON)) fs.writeFileSync(USERS_JSON, JSON.stringify({ users: [] }, null, 2), 'utf8');
 }
 
 ensureDirs();
 
 // Health check
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', platform: 'local' });
 });
 
 // Friendly root route
@@ -45,7 +47,41 @@ app.get('/', (req, res) => {
     res.send('Servidor de exámenes activo. Abre /index.html para la app.');
 });
 
-// Publish or update the current exam (expects JSON exam structure similar to frontend)
+// Update the current exam (overwrite temp and code files)
+app.put('/exam', (req, res) => {
+    try {
+        const exam = req.body;
+        if (!exam || !exam.title || !Array.isArray(exam.questions)) {
+            return res.status(400).json({ error: 'Invalid exam payload' });
+        }
+
+        // examCode is required to know which exam file to overwrite
+        if (!exam.examCode || typeof exam.examCode !== 'string') {
+            return res.status(400).json({ error: 'examCode is required to update' });
+        }
+
+        // Keep status active by default
+        if (!exam.status) exam.status = 'active';
+
+        const xml = createExamXML(exam);
+
+        // Overwrite current files
+        fs.writeFileSync(CURRENT_EXAM_XML, xml, 'utf8');
+        fs.writeFileSync(CURRENT_EXAM_JSON, JSON.stringify(exam, null, 2), 'utf8');
+
+        // Overwrite by code
+        const codeBase = path.join(EXAMS_DIR, `${exam.examCode.toUpperCase()}`);
+        fs.writeFileSync(`${codeBase}.xml`, xml, 'utf8');
+        fs.writeFileSync(`${codeBase}.json`, JSON.stringify(exam, null, 2), 'utf8');
+
+        return res.json({ success: true, message: 'Exam updated', code: exam.examCode.toUpperCase() });
+    } catch (err) {
+        console.error('Error updating exam:', err);
+        return res.status(500).json({ error: 'Failed to update exam' });
+    }
+});
+
+// Publish or update the current exam
 app.post('/exam', (req, res) => {
     try {
         const exam = req.body;
@@ -72,14 +108,7 @@ app.post('/exam', (req, res) => {
         fs.writeFileSync(CURRENT_EXAM_XML, xml, 'utf8');
         fs.writeFileSync(CURRENT_EXAM_JSON, JSON.stringify(exam, null, 2), 'utf8');
 
-        // Also persist by code; enforce only one active exam by clearing folder
-        try {
-            if (fs.existsSync(EXAMS_DIR)) {
-                for (const f of fs.readdirSync(EXAMS_DIR)) {
-                    try { fs.unlinkSync(path.join(EXAMS_DIR, f)); } catch (_) {}
-                }
-            }
-        } catch (_) {}
+        // Also persist by code; keep history (do not clear folder)
 
         const codeBase = path.join(EXAMS_DIR, `${exam.examCode.toUpperCase()}`);
         fs.writeFileSync(`${codeBase}.xml`, xml, 'utf8');
@@ -202,6 +231,170 @@ app.get('/exams/active/public', (req, res) => {
     }
 });
 
+// Delete exam by code
+app.delete('/exam/code/:code', (req, res) => {
+    try {
+        const code = (req.params.code || '').toUpperCase();
+        if (!code) return res.status(400).json({ error: 'Código requerido' });
+
+        const jsonPath = path.join(EXAMS_DIR, `${code}.json`);
+        const xmlPath = path.join(EXAMS_DIR, `${code}.xml`);
+        let deleted = false;
+        try { if (fs.existsSync(jsonPath)) { fs.unlinkSync(jsonPath); deleted = true; } } catch (_) {}
+        try { if (fs.existsSync(xmlPath)) { fs.unlinkSync(xmlPath); deleted = true; } } catch (_) {}
+
+        if (!deleted) return res.status(404).json({ error: 'Código no encontrado' });
+        return res.json({ success: true, message: 'Examen eliminado', code });
+    } catch (err) {
+        console.error('Error deleting exam:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// List exams by professor id (full info summary)
+app.get('/exams/by-professor/:profId', (req, res) => {
+    try {
+        const profId = String(req.params.profId || '');
+        if (!fs.existsSync(EXAMS_DIR)) return res.json([]);
+        const files = fs.readdirSync(EXAMS_DIR).filter(f => f.toLowerCase().endsWith('.json'));
+        const items = [];
+        for (const f of files) {
+            try {
+                const exam = JSON.parse(fs.readFileSync(path.join(EXAMS_DIR, f), 'utf8'));
+                if (String(exam.professorId || '') === profId) {
+                    items.push({
+                        examCode: (exam.examCode || path.basename(f, path.extname(f))).toUpperCase(),
+                        id: exam.id,
+                        title: exam.title,
+                        subject: exam.subject,
+                        difficulty: exam.difficulty,
+                        numQuestions: exam.numQuestions,
+                        createdAt: exam.createdAt,
+                        status: exam.status || 'active'
+                    });
+                }
+            } catch (_) {}
+        }
+        return res.json(items);
+    } catch (err) {
+        console.error('Error listing by professor:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// List results (submissions) for exam code
+app.get('/exam/code/:code/results', (req, res) => {
+    try {
+        const code = (req.params.code || '').toUpperCase();
+        if (!fs.existsSync(ANSWERS_DIR)) return res.json([]);
+        const prefix = `answers-${code}-`;
+        const items = [];
+        for (const f of fs.readdirSync(ANSWERS_DIR)) {
+            if (!f.endsWith('.json')) continue;
+            if (!f.startsWith(prefix)) continue;
+            try {
+                const data = JSON.parse(fs.readFileSync(path.join(ANSWERS_DIR, f), 'utf8'));
+                items.push({
+                    file: f,
+                    timestamp: f.replace(/^answers-[^-]+-/, '').replace(/\.json$/,'').replace(/-/g, ':'),
+                    student: data.student || {},
+                    score: data.score || null,
+                    answersCount: Array.isArray(data.answers) ? data.answers.length : 0
+                });
+            } catch (_) {}
+        }
+        return res.json(items.sort((a,b)=> (a.file<b.file?-1:1)));
+    } catch (err) {
+        console.error('Error listing results:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// Get a specific submission detail for exam code
+app.get('/exam/code/:code/results/:file', (req, res) => {
+    try {
+        const code = (req.params.code || '').toUpperCase();
+        const fileParam = String(req.params.file || '');
+        const filename = fileParam.endsWith('.json') ? fileParam : `${fileParam}.json`;
+        const full = path.join(ANSWERS_DIR, filename);
+        if (!full.includes(`answers-${code}-`)) return res.status(400).json({ error: 'Archivo inválido' });
+        if (!fs.existsSync(full)) return res.status(404).json({ error: 'No encontrado' });
+        const data = JSON.parse(fs.readFileSync(full, 'utf8'));
+        return res.json(data);
+    } catch (err) {
+        console.error('Error getting result detail:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+// Users API (JSON file storage)
+app.get('/users', (req, res) => {
+    try {
+        if (!fs.existsSync(USERS_JSON)) {
+            return res.json({ users: [] });
+        }
+        const data = JSON.parse(fs.readFileSync(USERS_JSON, 'utf8'));
+        return res.json(data);
+    } catch (err) {
+        console.error('Error reading users:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+app.post('/users/register', (req, res) => {
+    try {
+        const { nombre, apellido, email, password, tipo_usuario, profesor_codigo } = req.body || {};
+        if (!nombre || !apellido || !email || !password || !tipo_usuario) {
+            return res.status(400).json({ error: 'Datos incompletos' });
+        }
+        if (tipo_usuario === 'profesor') {
+            if ((profesor_codigo || '') !== 'telematica2025tesis') {
+                return res.status(400).json({ error: 'Código de docente inválido' });
+            }
+        } else if (tipo_usuario === 'alumno') {
+            if (!/@ucol\.mx$/i.test(email)) {
+                return res.status(400).json({ error: 'El correo del alumno debe terminar en @ucol.mx' });
+            }
+        }
+
+        const store = fs.existsSync(USERS_JSON) ? JSON.parse(fs.readFileSync(USERS_JSON, 'utf8')) : { users: [] };
+        const exists = (store.users || []).some(u => String(u.email).toLowerCase() === String(email).toLowerCase());
+        if (exists) return res.status(409).json({ error: 'Email ya registrado' });
+
+        const user = {
+            id: 'U_' + Date.now(),
+            nombre,
+            apellido,
+            email,
+            password, // NOTE: for demo; in prod use hashing
+            tipo_usuario,
+            createdAt: new Date().toISOString(),
+            active: true
+        };
+        store.users.push(user);
+        fs.writeFileSync(USERS_JSON, JSON.stringify(store, null, 2), 'utf8');
+        return res.json({ success: true, user: { id: user.id, nombre, apellido, email, tipo_usuario, createdAt: user.createdAt } });
+    } catch (err) {
+        console.error('Error registering user:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+app.delete('/users/:id', (req, res) => {
+    try {
+        const id = String(req.params.id || '');
+        const store = fs.existsSync(USERS_JSON) ? JSON.parse(fs.readFileSync(USERS_JSON, 'utf8')) : { users: [] };
+        const before = (store.users || []).length;
+        store.users = (store.users || []).filter(u => String(u.id) !== id);
+        if (store.users.length === before) return res.status(404).json({ error: 'Usuario no encontrado' });
+        fs.writeFileSync(USERS_JSON, JSON.stringify(store, null, 2), 'utf8');
+        return res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        return res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
 // Grade student answers by exam code
 app.post('/exam/code/:code/grade', (req, res) => {
     try {
@@ -261,7 +454,6 @@ app.post('/exam/answers', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor de exámenes ejecutándose en puerto ${PORT}`);
     console.log(`📱 Accede a: http://localhost:${PORT}`);
-    console.log(`🌐 En Railway: https://tu-app.railway.app`);
+    console.log(`🌐 En Vercel: https://tu-app.vercel.app`);
 });
-
 

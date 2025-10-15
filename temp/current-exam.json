@@ -1,59 +1,59 @@
 {
-  "id": "EXAM_1760455821333",
-  "title": "Examen de Programacion",
-  "subject": "POO",
-  "difficulty": "intermedio",
-  "numQuestions": 10,
+  "id": "EXAM_1760550726601",
+  "title": "Examen de programacion de videojuegos",
+  "subject": "programacion de videojuegos",
+  "difficulty": "avanzado",
+  "numQuestions": 15,
   "questions": [
     {
       "id": 1,
-      "question": "Cuál de los siguientes principios de la Programación Orientada a Objetos (POO) se refiere a la capacidad de un objeto para ocultar sus detalles internos y exponer solo una interfaz para interactuar con él?",
+      "question": "¿Cuál fue el estudio principal de Rockstar Games responsable del desarrollo de Grand Theft Auto V?",
       "options": [
         {
           "letter": "A",
-          "text": "Herencia",
+          "text": "Rockstar San Diego",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Polimorfismo",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Encapsulamiento",
+          "text": "Rockstar North",
           "isCorrect": true
         },
         {
+          "letter": "C",
+          "text": "Rockstar Leeds",
+          "isCorrect": false
+        },
+        {
           "letter": "D",
-          "text": "Abstracción",
+          "text": "Rockstar Toronto",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "B"
     },
     {
       "id": 2,
-      "question": "En POO, ¿qué concepto permite que una clase adquiera las propiedades y comportamientos de otra clase existente?",
+      "question": "¿En qué año fue anunciado oficialmente Grand Theft Auto V por primera vez?",
       "options": [
         {
           "letter": "A",
-          "text": "Abstracción",
+          "text": "2010",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Herencia",
+          "text": "2011",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Encapsulamiento",
+          "text": "2012",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Polimorfismo",
+          "text": "2013",
           "isCorrect": false
         }
       ],
@@ -61,134 +61,134 @@
     },
     {
       "id": 3,
-      "question": "¿Qué es un objeto en el contexto de la Programación Orientada a Objetos?",
+      "question": "¿Cuál fue la fecha de lanzamiento inicial de Grand Theft Auto V para PlayStation 3 y Xbox 360?",
       "options": [
         {
           "letter": "A",
-          "text": "Una plantilla para crear clases",
+          "text": "17 de mayo de 2013",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Un tipo de dato primitivo",
+          "text": "17 de septiembre de 2013",
+          "isCorrect": true
+        },
+        {
+          "letter": "C",
+          "text": "17 de noviembre de 2013",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "17 de enero de 2014",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "id": 4,
+      "question": "¿Cuál fue el costo estimado de desarrollo y marketing de Grand Theft Auto V, convirtiéndolo en uno de los juegos más caros de la historia?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "$100 millones",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "$150 millones",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Una instancia de una clase",
+          "text": "$265 millones",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Una función independiente",
+          "text": "$350 millones",
           "isCorrect": false
         }
       ],
       "correctAnswer": "C"
     },
     {
-      "id": 4,
-      "question": "El polimorfismo en POO se refiere a:",
-      "options": [
-        {
-          "letter": "A",
-          "text": "La capacidad de una clase para tener múltiples constructores.",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "La capacidad de un objeto para tomar muchas formas.",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "La capacidad de ocultar la implementación interna de los métodos.",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "La capacidad de una clase para heredar de múltiples clases.",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B"
-    },
-    {
       "id": 5,
-      "question": "¿Cuál es la función principal de un constructor en una clase?",
+      "question": "¿Qué motor de juego propietario de Rockstar Games se utilizó para el desarrollo de Grand Theft Auto V?",
       "options": [
         {
           "letter": "A",
-          "text": "Destruir un objeto cuando ya no es necesario.",
+          "text": "Unreal Engine 3",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Inicializar el estado de un nuevo objeto.",
-          "isCorrect": true
+          "text": "CryEngine 3",
+          "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Definir los métodos públicos de la clase.",
-          "isCorrect": false
+          "text": "RAGE Engine",
+          "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Controlar el acceso a los atributos privados.",
+          "text": "Unity Engine",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "C"
     },
     {
       "id": 6,
-      "question": "Si un atributo de una clase se declara como 'private', ¿quién puede acceder a él directamente?",
+      "question": "¿En qué se inspiró principalmente la ciudad ficticia de Los Santos en Grand Theft Auto V?",
       "options": [
         {
           "letter": "A",
-          "text": "Cualquier otra clase en el mismo paquete.",
+          "text": "Nueva York",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Solo la propia clase donde está definido.",
-          "isCorrect": true
+          "text": "Miami",
+          "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Clases hijas que heredan de ella.",
+          "text": "San Francisco",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Cualquier clase en el programa.",
-          "isCorrect": false
+          "text": "Los Ángeles",
+          "isCorrect": true
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "D"
     },
     {
       "id": 7,
-      "question": "¿Qué representa una 'clase' en POO?",
+      "question": "¿Cuándo se lanzó la versión mejorada de Grand Theft Auto V para PlayStation 4 y Xbox One?",
       "options": [
         {
           "letter": "A",
-          "text": "Un objeto concreto y específico.",
+          "text": "Noviembre de 2013",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Un valor de una variable.",
+          "text": "Abril de 2014",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Un plano o plantilla para crear objetos.",
+          "text": "Noviembre de 2014",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Un método que realiza una acción.",
+          "text": "Abril de 2015",
           "isCorrect": false
         }
       ],
@@ -196,53 +196,58 @@
     },
     {
       "id": 8,
-      "question": "¿Cuál de los siguientes NO es un pilar fundamental de la Programación Orientada a Objetos?",
+      "question": "¿Cuándo se lanzó la versión de Grand Theft Auto V para PC?",
       "options": [
         {
           "letter": "A",
-          "text": "Abstracción",
+          "text": "Noviembre de 2014",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Modularidad",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Herencia",
+          "text": "Enero de 2015",
           "isCorrect": false
         },
         {
+          "letter": "C",
+          "text": "Abril de 2015",
+          "isCorrect": true
+        },
+        {
           "letter": "D",
-          "text": "Polimorfismo",
+          "text": "Junio de 2015",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "C"
     },
     {
       "id": 9,
-      "question": "¿Qué término se usa para describir las características o datos que un objeto posee?",
+      "question": "¿Qué hito de ventas importante logró Grand Theft Auto V en sus primeros tres días de lanzamiento?",
       "options": [
         {
           "letter": "A",
-          "text": "Métodos",
+          "text": "Alcanzó los $500 millones en ventas",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Funciones",
+          "text": "Se convirtió en el juego más vendido del año",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Atributos",
+          "text": "Superó los $1 mil millones en ventas",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Eventos",
+          "text": "Vendió 10 millones de unidades",
+          "isCorrect": false
+        },
+        {
+          "letter": "E",
+          "text": "Recibió el premio al Juego del Año",
           "isCorrect": false
         }
       ],
@@ -250,34 +255,169 @@
     },
     {
       "id": 10,
-      "question": "En POO, ¿qué significa 'sobrecarga de métodos' (method overloading)?",
+      "question": "¿Quiénes son los tres protagonistas principales de Grand Theft Auto V?",
       "options": [
         {
           "letter": "A",
-          "text": "Un método en una subclase que redefine un método de su superclase.",
+          "text": "Niko, Claude y Carl",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Tener múltiples métodos con el mismo nombre pero diferente lista de parámetros en la misma clase.",
+          "text": "Franklin, Trevor y Lamar",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "Michael, Franklin y Trevor",
+          "isCorrect": true
+        },
+        {
+          "letter": "D",
+          "text": "Johnny, Luis y Tony",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 11,
+      "question": "¿Qué componente multijugador masivo en línea se lanzó poco después del juego principal?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "GTA Battle Royale",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "GTA Racing Arena",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "GTA Online",
+          "isCorrect": true
+        },
+        {
+          "letter": "D",
+          "text": "Los Santos Stories",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 12,
+      "question": "¿Qué característica clave de diseño permitió a los jugadores cambiar entre los tres protagonistas en tiempo real?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Un sistema de teletransporte",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "El sistema de 'Cambio Rápido'",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "La capacidad de un objeto para cambiar su tipo en tiempo de ejecución.",
+          "text": "Puntos de control específicos",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Un método que puede aceptar un número variable de argumentos.",
+          "text": "Solo al completar misiones",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "id": 13,
+      "question": "¿Qué tipo de contenido posterior al lanzamiento se convirtió en el foco principal de Rockstar para GTA V, en lugar de grandes expansiones de historia como en juegos anteriores?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Remakes de ciudades antiguas",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "Paquetes de expansión de un solo jugador",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "Actualizaciones continuas para GTA Online",
+          "isCorrect": true
+        },
+        {
+          "letter": "D",
+          "text": "Secuelas directas de la historia principal",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 14,
+      "question": "¿Quiénes fueron algunos de los compositores principales que contribuyeron a la banda sonora original de Grand Theft Auto V?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Hans Zimmer y John Williams",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "Daft Punk y Skrillex",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "Tangerine Dream, Woody Jackson, Alchemist y Oh No",
+          "isCorrect": true
+        },
+        {
+          "letter": "D",
+          "text": "Trent Reznor y Atticus Ross",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "id": 15,
+      "question": "¿Cuál de las siguientes afirmaciones sobre el desarrollo de GTA V es INCORRECTA?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Fue el primer juego de la serie GTA en presentar tres protagonistas jugables simultáneamente.",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "Se lanzó inicialmente solo para PC antes de llegar a consolas.",
+          "isCorrect": true
+        },
+        {
+          "letter": "C",
+          "text": "El mapa del juego era más grande que los de Red Dead Redemption, Grand Theft Auto IV y Grand Theft Auto: San Andreas combinados.",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "El desarrollo comenzó poco después del lanzamiento de Grand Theft Auto IV.",
           "isCorrect": false
         }
       ],
       "correctAnswer": "B"
     }
   ],
-  "createdAt": "2025-10-14T15:30:21.333Z",
-  "professorId": null,
+  "createdAt": "2025-10-15T17:52:06.601Z",
+  "professorId": "U_1760550620800",
   "status": "active",
-  "examCode": "PX5LAC"
+  "examCode": "7YKVH0"
 }

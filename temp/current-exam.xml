@@ -1,279 +1,419 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <exam>
-  <id>EXAM_1760455821333</id>
-  <title>Examen de Programacion</title>
-  <subject>POO</subject>
-  <difficulty>intermedio</difficulty>
-  <numQuestions>10</numQuestions>
-  <createdAt>2025-10-14T15:30:21.333Z</createdAt>
+  <id>EXAM_1760550726601</id>
+  <title>Examen de programacion de videojuegos</title>
+  <subject>programacion de videojuegos</subject>
+  <difficulty>avanzado</difficulty>
+  <numQuestions>15</numQuestions>
+  <createdAt>2025-10-15T17:52:06.601Z</createdAt>
   <status>active</status>
   <questions>
     <question>
       <id>1</id>
-      <text>Cuál de los siguientes principios de la Programación Orientada a Objetos (POO) se refiere a la capacidad de un objeto para ocultar sus detalles internos y exponer solo una interfaz para interactuar con él?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>¿Cuál fue el estudio principal de Rockstar Games responsable del desarrollo de Grand Theft Auto V?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Herencia</text>
+          <text>Rockstar San Diego</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Polimorfismo</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Encapsulamiento</text>
+          <text>Rockstar North</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Rockstar Leeds</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Abstracción</text>
+          <text>Rockstar Toronto</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>2</id>
-      <text>En POO, ¿qué concepto permite que una clase adquiera las propiedades y comportamientos de otra clase existente?</text>
+      <text>¿En qué año fue anunciado oficialmente Grand Theft Auto V por primera vez?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Abstracción</text>
+          <text>2010</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Herencia</text>
+          <text>2011</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Encapsulamiento</text>
+          <text>2012</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Polimorfismo</text>
+          <text>2013</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>3</id>
-      <text>¿Qué es un objeto en el contexto de la Programación Orientada a Objetos?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>¿Cuál fue la fecha de lanzamiento inicial de Grand Theft Auto V para PlayStation 3 y Xbox 360?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Una plantilla para crear clases</text>
+          <text>17 de mayo de 2013</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Un tipo de dato primitivo</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Una instancia de una clase</text>
+          <text>17 de septiembre de 2013</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>17 de noviembre de 2013</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Una función independiente</text>
+          <text>17 de enero de 2014</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>4</id>
-      <text>El polimorfismo en POO se refiere a:</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿Cuál fue el costo estimado de desarrollo y marketing de Grand Theft Auto V, convirtiéndolo en uno de los juegos más caros de la historia?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>La capacidad de una clase para tener múltiples constructores.</text>
+          <text>$100 millones</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>La capacidad de un objeto para tomar muchas formas.</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>La capacidad de ocultar la implementación interna de los métodos.</text>
+          <text>$150 millones</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>$265 millones</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>La capacidad de una clase para heredar de múltiples clases.</text>
+          <text>$350 millones</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>5</id>
-      <text>¿Cuál es la función principal de un constructor en una clase?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿Qué motor de juego propietario de Rockstar Games se utilizó para el desarrollo de Grand Theft Auto V?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Destruir un objeto cuando ya no es necesario.</text>
+          <text>Unreal Engine 3</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Inicializar el estado de un nuevo objeto.</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Definir los métodos públicos de la clase.</text>
+          <text>CryEngine 3</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>RAGE Engine</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Controlar el acceso a los atributos privados.</text>
+          <text>Unity Engine</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>6</id>
-      <text>Si un atributo de una clase se declara como 'private', ¿quién puede acceder a él directamente?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿En qué se inspiró principalmente la ciudad ficticia de Los Santos en Grand Theft Auto V?</text>
+      <correctAnswer>D</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Cualquier otra clase en el mismo paquete.</text>
+          <text>Nueva York</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Solo la propia clase donde está definido.</text>
-          <isCorrect>true</isCorrect>
+          <text>Miami</text>
+          <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Clases hijas que heredan de ella.</text>
+          <text>San Francisco</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Cualquier clase en el programa.</text>
-          <isCorrect>false</isCorrect>
+          <text>Los Ángeles</text>
+          <isCorrect>true</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>7</id>
-      <text>¿Qué representa una 'clase' en POO?</text>
+      <text>¿Cuándo se lanzó la versión mejorada de Grand Theft Auto V para PlayStation 4 y Xbox One?</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Un objeto concreto y específico.</text>
+          <text>Noviembre de 2013</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Un valor de una variable.</text>
+          <text>Abril de 2014</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Un plano o plantilla para crear objetos.</text>
+          <text>Noviembre de 2014</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Un método que realiza una acción.</text>
+          <text>Abril de 2015</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>8</id>
-      <text>¿Cuál de los siguientes NO es un pilar fundamental de la Programación Orientada a Objetos?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿Cuándo se lanzó la versión de Grand Theft Auto V para PC?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Abstracción</text>
+          <text>Noviembre de 2014</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Modularidad</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Herencia</text>
+          <text>Enero de 2015</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Abril de 2015</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Polimorfismo</text>
+          <text>Junio de 2015</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>9</id>
-      <text>¿Qué término se usa para describir las características o datos que un objeto posee?</text>
+      <text>¿Qué hito de ventas importante logró Grand Theft Auto V en sus primeros tres días de lanzamiento?</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Métodos</text>
+          <text>Alcanzó los $500 millones en ventas</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Funciones</text>
+          <text>Se convirtió en el juego más vendido del año</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Atributos</text>
+          <text>Superó los $1 mil millones en ventas</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Eventos</text>
+          <text>Vendió 10 millones de unidades</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>E</letter>
+          <text>Recibió el premio al Juego del Año</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>10</id>
-      <text>En POO, ¿qué significa 'sobrecarga de métodos' (method overloading)?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿Quiénes son los tres protagonistas principales de Grand Theft Auto V?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Un método en una subclase que redefine un método de su superclase.</text>
+          <text>Niko, Claude y Carl</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Tener múltiples métodos con el mismo nombre pero diferente lista de parámetros en la misma clase.</text>
+          <text>Franklin, Trevor y Lamar</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Michael, Franklin y Trevor</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Johnny, Luis y Tony</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>11</id>
+      <text>¿Qué componente multijugador masivo en línea se lanzó poco después del juego principal?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>GTA Battle Royale</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>GTA Racing Arena</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>GTA Online</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Los Santos Stories</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>12</id>
+      <text>¿Qué característica clave de diseño permitió a los jugadores cambiar entre los tres protagonistas en tiempo real?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Un sistema de teletransporte</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>El sistema de 'Cambio Rápido'</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>La capacidad de un objeto para cambiar su tipo en tiempo de ejecución.</text>
+          <text>Puntos de control específicos</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Un método que puede aceptar un número variable de argumentos.</text>
+          <text>Solo al completar misiones</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>13</id>
+      <text>¿Qué tipo de contenido posterior al lanzamiento se convirtió en el foco principal de Rockstar para GTA V, en lugar de grandes expansiones de historia como en juegos anteriores?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Remakes de ciudades antiguas</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Paquetes de expansión de un solo jugador</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Actualizaciones continuas para GTA Online</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Secuelas directas de la historia principal</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>14</id>
+      <text>¿Quiénes fueron algunos de los compositores principales que contribuyeron a la banda sonora original de Grand Theft Auto V?</text>
+      <correctAnswer>C</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Hans Zimmer y John Williams</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Daft Punk y Skrillex</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>Tangerine Dream, Woody Jackson, Alchemist y Oh No</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>Trent Reznor y Atticus Ross</text>
+          <isCorrect>false</isCorrect>
+        </option>
+      </options>
+    </question>
+    <question>
+      <id>15</id>
+      <text>¿Cuál de las siguientes afirmaciones sobre el desarrollo de GTA V es INCORRECTA?</text>
+      <correctAnswer>B</correctAnswer>
+      <options>
+        <option>
+          <letter>A</letter>
+          <text>Fue el primer juego de la serie GTA en presentar tres protagonistas jugables simultáneamente.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>B</letter>
+          <text>Se lanzó inicialmente solo para PC antes de llegar a consolas.</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
+          <letter>C</letter>
+          <text>El mapa del juego era más grande que los de Red Dead Redemption, Grand Theft Auto IV y Grand Theft Auto: San Andreas combinados.</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
+          <letter>D</letter>
+          <text>El desarrollo comenzó poco después del lanzamiento de Grand Theft Auto IV.</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>

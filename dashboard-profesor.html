@@ -6,6 +6,7 @@
     <title>Panel Profesor - Generador de Exámenes UCOL</title>
     <!-- CORRECCIÓN CRÍTICA DE SINTAXIS: URLs limpias para 404/Diseño -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
     <!-- Icons for UI -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Lógica de la Aplicación -->
@@ -231,11 +232,43 @@
                     const subjectMatch = cleanedText.match(/"subject"\s*:\s*"([\s\S]*?)"/);
                     const qStart = cleanedText.indexOf('"questions"');
                     const arrStart = qStart > -1 ? cleanedText.indexOf('[', qStart) : -1;
+                    
                     if (arrStart > -1) {
-                        // Tomar hasta el último cierre de objeto '}' antes de un posible corte
+                        // Buscar todas las preguntas completas (que tengan correctAnswerLetter)
+                        const questionMatches = cleanedText.match(/"questionNumber"\s*:\s*\d+[\s\S]*?"correctAnswerLetter"\s*:\s*"[A-D]"/g);
+                        
+                        if (questionMatches && questionMatches.length > 0) {
+                            // Construir un JSON válido con las preguntas completas encontradas
+                            const validQuestions = questionMatches.map((q, idx) => {
+                                try {
+                                    // Extraer el objeto de pregunta completo
+                                    const qStart = cleanedText.indexOf(q);
+                                    const qEnd = cleanedText.indexOf('}', qStart + q.length);
+                                    if (qEnd > qStart) {
+                                        const questionText = cleanedText.substring(qStart - 50, qEnd + 1);
+                                        const objStart = questionText.indexOf('{');
+                                        if (objStart >= 0) {
+                                            const questionObj = questionText.substring(objStart);
+                                            return JSON.parse(questionObj);
+                                        }
+                                    }
+                                } catch (_) {}
+                                return null;
+                            }).filter(q => q !== null);
+
+                            if (validQuestions.length > 0) {
+                                const repaired = {
+                                    examTitle: titleMatch ? titleMatch[1] : 'Examen',
+                                    subject: subjectMatch ? subjectMatch[1] : 'General',
+                                    questions: validQuestions
+                                };
+                                return repaired;
+                            }
+                        }
+
+                        // Fallback: tomar hasta el último cierre de objeto '}' antes de un posible corte
                         let lastObjEnd = cleanedText.lastIndexOf('}');
                         if (lastObjEnd > arrStart) {
-                            // Asegurar que no cortemos antes del inicio
                             const questionsArrayText = cleanedText.substring(arrStart, lastObjEnd + 1);
                             // Intentar cerrar el array si no está
                             const closedArray = questionsArrayText.endsWith(']') ? questionsArrayText : (questionsArrayText + ']');
@@ -246,6 +279,56 @@
                             };
                             return repaired;
                         }
+                    }
+                } catch (_) { /* ignore and fallthrough */ }
+
+                // 4) Estrategia final: extraer preguntas individuales y reconstruir
+                try {
+                    const titleMatch = cleanedText.match(/"examTitle"\s*:\s*"([\s\S]*?)"/);
+                    const subjectMatch = cleanedText.match(/"subject"\s*:\s*"([\s\S]*?)"/);
+                    
+                    // Buscar todas las preguntas por patrón más flexible
+                    const questionPattern = /"questionNumber"\s*:\s*(\d+)[\s\S]*?"enunciado"\s*:\s*"([\s\S]*?)"[\s\S]*?"options"\s*:\s*\[([\s\S]*?)\][\s\S]*?"correctAnswerLetter"\s*:\s*"([A-D])"/g;
+                    const questions = [];
+                    let match;
+                    
+                    while ((match = questionPattern.exec(cleanedText)) !== null) {
+                        try {
+                            const questionNumber = parseInt(match[1]);
+                            const enunciado = match[2];
+                            const optionsText = match[3];
+                            const correctAnswer = match[4];
+                            
+                            // Extraer opciones
+                            const optionPattern = /"letter"\s*:\s*"([A-D])"[\s\S]*?"text"\s*:\s*"([\s\S]*?)"/g;
+                            const options = [];
+                            let optionMatch;
+                            
+                            while ((optionMatch = optionPattern.exec(optionsText)) !== null) {
+                                options.push({
+                                    letter: optionMatch[1],
+                                    text: optionMatch[2]
+                                });
+                            }
+                            
+                            if (options.length >= 2) {
+                                questions.push({
+                                    questionNumber: questionNumber,
+                                    enunciado: enunciado,
+                                    options: options,
+                                    correctAnswerLetter: correctAnswer,
+                                    explanation: "Respuesta correcta extraída del JSON."
+                                });
+                            }
+                        } catch (_) {}
+                    }
+                    
+                    if (questions.length > 0) {
+                        return {
+                            examTitle: titleMatch ? titleMatch[1] : 'Examen',
+                            subject: subjectMatch ? subjectMatch[1] : 'General',
+                            questions: questions
+                        };
                     }
                 } catch (_) { /* ignore and fallthrough */ }
 
@@ -309,17 +392,19 @@
             examModal.classList.remove('hidden');
         }
 
-        // Función para mostrar el examen en el modal (Formato legible)
-        function showExamInModal(examContentData) {
+        // Estado de edición y borrador
+        let isEditing = false;
+        let editDraft = null;
+
+        // Render: modo vista
+        function renderExamView(examContentData) {
             let html = `<h2 class="text-3xl font-bold text-white mb-2">${examContentData.examTitle || 'Examen Generado'}</h2>
                         <p class="text-green-300 text-lg mb-6">Materia: ${examContentData.subject || 'N/A'}</p>`;
 
-            // Verifica si las preguntas existen y son un array
             if (!examContentData.questions || !Array.isArray(examContentData.questions)) {
                 html += '<p class="text-red-400">Error: No se pudieron generar preguntas o el formato es incorrecto.</p>';
             } else {
                 examContentData.questions.forEach((q, index) => {
-                    // Usamos q.questionNumber si existe, si no, usamos el índice + 1
                     const questionNumber = q.questionNumber !== undefined ? q.questionNumber : index + 1;
                     html += `
                         <div class="bg-gray-700 bg-opacity-50 p-4 rounded-lg mb-4">
@@ -327,7 +412,7 @@
                             <ul class="text-sm space-y-1 text-gray-200 pl-4">
                                 ${q.options.map(opt => `
                                     <li class="${opt.letter === q.correctAnswerLetter ? 'font-semibold text-yellow-400' : ''}">
-                                        ${opt.letter}) ${opt.text} 
+                                        ${opt.letter}) ${opt.text}
                                         ${opt.letter === q.correctAnswerLetter ? '<i class="fas fa-check-circle ml-2"></i> [CORRECTA]' : ''}
                                     </li>
                                 `).join('')}
@@ -337,9 +422,88 @@
                     `;
                 });
             }
-            
             examContent.innerHTML = html;
+        }
+
+        // Render: modo edición
+        function renderExamEdit(examContentData) {
+            let html = `
+                <div class="mb-6 space-y-2">
+                    <label class="block text-sm font-medium text-white">Título</label>
+                    <input id="edit-title" type="text" class="w-full px-3 py-2 rounded bg-white/20 border border-white/30 text-white" value="${(examContentData.examTitle || '').replace(/"/g,'&quot;')}" />
+                    <label class="block text-sm font-medium text-white mt-3">Materia</label>
+                    <input id="edit-subject" type="text" class="w-full px-3 py-2 rounded bg-white/20 border border-white/30 text-white" value="${(examContentData.subject || '').replace(/"/g,'&quot;')}" />
+                </div>
+            `;
+
+            (examContentData.questions || []).forEach((q, qIdx) => {
+                const questionNumber = q.questionNumber !== undefined ? q.questionNumber : qIdx + 1;
+                html += `
+                    <div class="bg-gray-700 bg-opacity-50 p-4 rounded-lg mb-4">
+                        <label class="block text-sm font-medium text-white mb-2">Pregunta ${questionNumber}</label>
+                        <textarea data-qidx="${qIdx}" class="edit-question w-full px-3 py-2 rounded bg-white/20 border border-white/30 text-white mb-3" rows="2">${(q.enunciado || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+                        <div class="space-y-2">
+                            ${(q.options || []).map((opt, oIdx) => {
+                                const idBase = `q${qIdx}-opt${oIdx}`;
+                                const checked = (opt.letter === q.correctAnswerLetter) ? 'checked' : '';
+                                return `
+                                <div class="flex items-center gap-3">
+                                    <input type="radio" name="radio-${qIdx}" class="edit-correct" data-qidx="${qIdx}" data-letter="${opt.letter}" ${checked} />
+                                    <span class="text-white w-6">${opt.letter})</span>
+                                    <input data-qidx="${qIdx}" data-oidx="${oIdx}" type="text" class="edit-option flex-1 px-3 py-2 rounded bg-white/20 border border-white/30 text-white" value="${(opt.text || '').replace(/"/g,'&quot;')}" />
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            examContent.innerHTML = html;
+
+            // Bind edits
+            examContent.querySelectorAll('.edit-question').forEach(el => {
+                el.addEventListener('input', (e) => {
+                    const qidx = Number(e.target.getAttribute('data-qidx'));
+                    editDraft.questions[qidx].enunciado = e.target.value;
+                });
+            });
+            examContent.querySelectorAll('.edit-option').forEach(el => {
+                el.addEventListener('input', (e) => {
+                    const qidx = Number(e.target.getAttribute('data-qidx'));
+                    const oidx = Number(e.target.getAttribute('data-oidx'));
+                    editDraft.questions[qidx].options[oidx].text = e.target.value;
+                });
+            });
+            examContent.querySelectorAll('.edit-correct').forEach(el => {
+                el.addEventListener('change', (e) => {
+                    const qidx = Number(e.target.getAttribute('data-qidx'));
+                    const letter = String(e.target.getAttribute('data-letter'));
+                    editDraft.questions[qidx].correctAnswerLetter = letter;
+                });
+            });
+
+            const titleEl = document.getElementById('edit-title');
+            const subjectEl = document.getElementById('edit-subject');
+            if (titleEl) titleEl.addEventListener('input', (e) => { editDraft.examTitle = e.target.value; });
+            if (subjectEl) subjectEl.addEventListener('input', (e) => { editDraft.subject = e.target.value; });
+        }
+
+        // Controlador principal para mostrar modal según estado
+        function showExamInModal(examContentData) {
+            if (isEditing) {
+                renderExamEdit(examContentData);
+            } else {
+                renderExamView(examContentData);
+            }
             examModal.classList.remove('hidden');
+            // Toggle botones del pie del modal
+            const editBtn = document.getElementById('editExamBtn');
+            const applyBtn = document.getElementById('applyChangesBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (editBtn && applyBtn && cancelBtn) {
+                editBtn.classList.toggle('hidden', isEditing);
+                applyBtn.classList.toggle('hidden', !isEditing);
+                cancelBtn.classList.toggle('hidden', !isEditing);
+            }
         }
 
         // Función para simular el progreso
@@ -386,7 +550,16 @@
         // Función de inicialización SIMPLIFICADA (sin Firebase)
         async function initApp() {
             // Configuración de UI simple
-            userName.textContent = `Profesor Invitado`;
+            try {
+                const cu = JSON.parse(sessionStorage.getItem('currentUser'));
+                if (cu && cu.nombre) {
+                    userName.textContent = `${cu.nombre} ${cu.apellido || ''}`.trim();
+                } else {
+                    userName.textContent = `Profesor`;
+                }
+            } catch (_) {
+                userName.textContent = `Profesor`;
+            }
             examCountElement.textContent = 0; 
             apiStatus.innerHTML = '<div class="w-2 h-2 bg-green-500 rounded-full"></div><span class="text-xs text-green-500">Conectado (API)</span>';
             showMessage("Sistema listo. Genera tu primer examen.", false);
@@ -490,6 +663,55 @@
             examModal.classList.add('hidden');
         });
         
+        // Botones de edición
+        document.addEventListener('click', async (e) => {
+            const target = e.target;
+            if (target && target.id === 'editExamBtn') {
+                // Entrar en modo edición
+                isEditing = true;
+                editDraft = JSON.parse(JSON.stringify(lastGeneratedExam || {}));
+                showExamInModal(editDraft);
+            }
+            if (target && target.id === 'cancelEditBtn') {
+                // Salir sin aplicar
+                isEditing = false;
+                editDraft = null;
+                showExamInModal(lastGeneratedExam || {});
+            }
+            if (target && target.id === 'applyChangesBtn') {
+                try {
+                    // Aplicar cambios al examen en memoria
+                    lastGeneratedExam = JSON.parse(JSON.stringify(editDraft));
+                    isEditing = false;
+
+                    // Si ya existe un código publicado en esta sesión, enviar PUT para sobrescribir archivo temporal
+                    const meta = {
+                        title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
+                        subject: document.getElementById('subject')?.value || lastGeneratedExam.subject,
+                        difficulty: document.getElementById('difficulty')?.value || 'intermedio'
+                    };
+                    const examToUpdate = transformExamForBackend(lastGeneratedExam, meta);
+                    if (window.__currentExamCode) {
+                        examToUpdate.examCode = window.__currentExamCode;
+                        const resp = await fetch(getApiUrl('/exam'), {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(examToUpdate)
+                        });
+                        if (!resp.ok) throw new Error('Fallo al actualizar el examen');
+                        showMessage('Cambios aplicados y guardados.', false);
+                    } else {
+                        // Aún no publicado: solo actualizar memoria
+                        showMessage('Cambios aplicados (no publicado).', false);
+                    }
+                    showExamInModal(lastGeneratedExam);
+                } catch (err) {
+                    console.error('Error al aplicar cambios:', err);
+                    showMessage('Error al aplicar cambios.', true);
+                }
+            }
+        });
+        
         // Cerrar sesión
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
@@ -540,23 +762,26 @@
                         showMessage('No hay examen para publicar.', true);
                         return;
                     }
+                    const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
                     const meta = {
                         title: document.getElementById('examTitle').value,
                         subject: document.getElementById('subject').value,
-                        difficulty: document.getElementById('difficulty').value
+                        difficulty: document.getElementById('difficulty').value,
+                        professorId: currentUser?.id || null
                     };
                     // Mantener un único código por sesión de generación
                     if (!window.__currentExamCode) {
                         window.__currentExamCode = generateExamCode();
                     }
                     const examToPublish = transformExamForBackend(lastGeneratedExam, meta);
+                    if (meta.professorId) examToPublish.professorId = meta.professorId;
                     examToPublish.examCode = window.__currentExamCode;
 
                     // Mostrar código en el modal
                     if (examCodeDisplay) examCodeDisplay.textContent = examToPublish.examCode;
 
                     // Guardar temporal en backend
-                    const resp = await fetch('/exam', {
+                    const resp = await fetch(getApiUrl('/exam'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(examToPublish)
@@ -612,6 +837,126 @@
             showMessage("Se ha iniciado la descarga del examen (Formato TXT).", false);
         });
 
+        // Mis exámenes (por profesor)
+        async function loadMyExams() {
+            try {
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                if (!currentUser?.id) return;
+                const resp = await fetch(getApiUrl(`/exams/by-professor/${currentUser.id}`));
+                const items = resp.ok ? await resp.json() : [];
+                const tbody = document.getElementById('tableMyExams');
+                tbody.innerHTML = items.map(ex => `
+                    <tr>
+                        <td class=\"py-2 pr-3\">${ex.examCode}</td>
+                        <td class=\"py-2 pr-3\">${ex.title}</td>
+                        <td class=\"py-2 pr-3\">${ex.subject}</td>
+                        <td class=\"py-2 pr-3\">${ex.numQuestions}</td>
+                        <td class=\"py-2\">
+                            <button data-view-results=\"${ex.examCode}\" class=\"bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-xs\">Ver resultados</button>
+                            <button data-delete-exam=\"${ex.examCode}\" class=\"bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs ml-2\">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('loadMyExams error', err);
+            }
+        }
+
+        const refreshMyExams = document.getElementById('refreshMyExams');
+        if (refreshMyExams) refreshMyExams.addEventListener('click', loadMyExams);
+        document.addEventListener('DOMContentLoaded', loadMyExams);
+
+        // Resultados modal
+        const resultsModal = document.getElementById('resultsModal');
+        const closeResultsModal = document.getElementById('closeResultsModal');
+        const resultsContent = document.getElementById('resultsContent');
+        if (closeResultsModal) closeResultsModal.addEventListener('click', () => resultsModal.classList.add('hidden'));
+
+        async function openResultsForExam(code) {
+            try {
+                const resp = await fetch(getApiUrl(`/exam/code/${code}/results`));
+                const items = resp.ok ? await resp.json() : [];
+                const rows = items.map(r => `
+                    <tr>
+                        <td class=\"py-2 pr-3\">${r.student?.name || r.student?.email || '-'}</td>
+                        <td class=\"py-2 pr-3\">${r.score ? (r.score.correct + '/' + r.score.total) : '-'}</td>
+                        <td class=\"py-2 pr-3\">${r.timestamp}</td>
+                        <td class=\"py-2\"><button data-view-sub=\"${code}::${r.file}\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs\">Ver detalle</button></td>
+                    </tr>
+                `).join('');
+                resultsContent.innerHTML = `
+                    <div class=\"text-sm\">Examen: <span class=\"font-mono\">${code}</span></div>
+                    <div class=\"overflow-auto\">
+                        <table class=\"min-w-full text-sm text-white/90\">
+                            <thead class=\"text-white/70\">
+                                <tr>
+                                    <th class=\"text-left py-2 pr-3\">Alumno</th>
+                                    <th class=\"text-left py-2 pr-3\">Puntaje</th>
+                                    <th class=\"text-left py-2 pr-3\">Fecha</th>
+                                    <th class=\"text-left py-2\">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows || ''}</tbody>
+                        </table>
+                    </div>
+                    <div id=\"submissionDetail\" class=\"mt-4\"></div>
+                `;
+                resultsModal.classList.remove('hidden');
+            } catch (err) {
+                console.error('openResultsForExam error', err);
+            }
+        }
+
+        async function openSubmissionDetail(code, file) {
+            try {
+                const resp = await fetch(getApiUrl(`/exam/code/${code}/results/${encodeURIComponent(file)}`));
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const detail = document.getElementById('submissionDetail');
+                const answersList = (data.results || []).map(r => `<li class=\"mb-1\">Q${r.questionId}: Seleccionado <span class=\"font-mono\">${r.selected || '-'}</span> ${r.correct ? '<span class=\"text-green-300\">(correcto)</span>' : `<span class=\"text-red-300\">(incorrecto, correcta ${r.correctAnswer || '-'})</span>`}</li>`).join('');
+                detail.innerHTML = `
+                    <div class=\"bg-white/10 rounded p-3\">
+                        <div class=\"mb-2\"><span class=\"font-semibold\">Alumno:</span> ${data.student?.name || data.student?.email || '-'}</div>
+                        <div class=\"mb-2\"><span class=\"font-semibold\">Puntaje:</span> ${data.score ? (data.score.correct + '/' + data.score.total) : '-'}</div>
+                        <ul class=\"text-sm\">${answersList}</ul>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('openSubmissionDetail error', err);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const t = e.target;
+            if (t && t.hasAttribute('data-view-results')) {
+                const code = t.getAttribute('data-view-results');
+                openResultsForExam(code);
+            }
+            if (t && t.hasAttribute('data-view-sub')) {
+                const val = t.getAttribute('data-view-sub');
+                const [code, file] = val.split('::');
+                openSubmissionDetail(code, file);
+            }
+            if (t && t.hasAttribute('data-delete-exam')) {
+                const code = t.getAttribute('data-delete-exam');
+                if (confirm(`¿Eliminar examen ${code}? Esta acción lo ocultará también para alumnos.`)) {
+                    (async () => {
+                        try {
+                            let resp = await fetch(getApiUrl(`/exam/code/${code}`), { method: 'DELETE' });
+                            if (!resp.ok) {
+                                resp = await fetch(getApiUrl(`/api/exam/code/${code}`), { method: 'DELETE' });
+                            }
+                            if (!resp.ok) throw new Error('Delete failed');
+                            showMessage('Examen eliminado', false);
+                            await loadMyExams();
+                        } catch (err) {
+                            console.error('delete exam error', err);
+                            showMessage('No se pudo eliminar el examen', true);
+                        }
+                    })();
+                }
+            }
+        });
     </script>
     <style>
         /* ESTILOS RESTAURADOS PARA EL DISEÑO GLASS-EFFECT Y DEGRADADO VERDE */
@@ -844,6 +1189,41 @@
         </div>
     </div>
 
+    <!-- Exámenes Generados Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="glass-effect rounded-2xl p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white"><i class="fas fa-list mr-2"></i>Exámenes generados</h3>
+                <button id="refreshMyExams" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded text-sm">Refrescar</button>
+            </div>
+            <div class="overflow-auto">
+                <table class="min-w-full text-sm text-white/90">
+                    <thead class="text-white/70">
+                        <tr>
+                            <th class="text-left py-2 pr-3">Código</th>
+                            <th class="text-left py-2 pr-3">Título</th>
+                            <th class="text-left py-2 pr-3">Materia</th>
+                            <th class="text-left py-2 pr-3">Preguntas</th>
+                            <th class="text-left py-2">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableMyExams"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados Modal -->
+    <div id="resultsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-white font-semibold">Resultados del Examen</h4>
+                <button id="closeResultsModal" class="text-white hover:text-red-300 text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="resultsContent" class="space-y-4 text-white"></div>
+        </div>
+    </div>
+
     <!-- Generated Exam Modal -->
     <div id="examModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="glass-effect rounded-2xl p-8 max-w-4xl mx-4 max-h-[90vh] overflow-y-auto w-full">
@@ -864,6 +1244,18 @@
                     <span id="examCodeDisplay" class="font-mono font-semibold ml-2">—</span>
                 </div>
                 <div class="flex justify-end space-x-2">
+                    <button id="editExamBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Examen
+                    </button>
+                    <button id="applyChangesBtn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-check mr-2"></i>
+                        Aplicar Cambios
+                    </button>
+                    <button id="cancelEditBtn" class="hidden bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
                     <button id="saveExamBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
                         <i class="fas fa-bullhorn mr-2"></i>
                         Publicar Examen

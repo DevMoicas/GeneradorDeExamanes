@@ -6,8 +6,7 @@
     <title>Generador de Exámenes - Universidad de Colima</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- SQL.js para base de datos SQLite -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="config.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
@@ -148,42 +147,7 @@
 
     <!-- Script principal simplificado -->
     <script>
-        // Credenciales de prueba (sin base de datos)
-        const validCredentials = {
-            'profesor@ucol.mx': { 
-                password: 'profesor123', 
-                type: 'profesor',
-                user: {
-                    id: 1,
-                    email: 'profesor@ucol.mx',
-                    nombre: 'Juan',
-                    apellido: 'Pérez',
-                    tipo_usuario: 'profesor'
-                }
-            },
-            'alumno@ucol.mx': { 
-                password: 'alumno123', 
-                type: 'alumno',
-                user: {
-                    id: 2,
-                    email: 'alumno@ucol.mx',
-                    nombre: 'María',
-                    apellido: 'González',
-                    tipo_usuario: 'alumno'
-                }
-            },
-            'admin@ucol.mx': { 
-                password: 'admin123', 
-                type: 'profesor',
-                user: {
-                    id: 3,
-                    email: 'admin@ucol.mx',
-                    nombre: 'Admin',
-                    apellido: 'Sistema',
-                    tipo_usuario: 'profesor'
-                }
-            }
-        };
+        // Backend users JSON auth
 
         // Función para seleccionar tipo de usuario
         function selectUserType(type) {
@@ -257,21 +221,24 @@
             }, 5000);
         }
 
-        // Función de autenticación
-        function authenticateUser(email, password, userType) {
-            console.log('Autenticando:', { email, userType });
-            
-            const user = validCredentials[email.toLowerCase()];
-            
-            if (user && user.password === password && user.type === userType) {
-                // Guardar información del usuario
-                sessionStorage.setItem('currentUser', JSON.stringify(user.user));
-                sessionStorage.setItem('sessionToken', 'token_' + Date.now());
-                console.log('Usuario autenticado:', user.user);
-                return true;
-            } else {
-                console.log('Credenciales incorrectas');
-                return false;
+        // Función de autenticación (contra /users JSON)
+        async function authenticateUser(email, password, userType) {
+            try {
+                const resp = await fetch((window.getApiUrl ? window.getApiUrl('/users') : '/users'));
+                if (!resp.ok) return { ok: false };
+                const data = await resp.json();
+                const users = data.users || [];
+                const u = users.find(x => String(x.email).toLowerCase() === String(email).toLowerCase() && String(x.tipo_usuario) === String(userType));
+                if (u && String(u.password) === String(password)) {
+                    const userPayload = { id: u.id, email: u.email, nombre: u.nombre, apellido: u.apellido, tipo_usuario: u.tipo_usuario };
+                    sessionStorage.setItem('currentUser', JSON.stringify(userPayload));
+                    sessionStorage.setItem('sessionToken', 'token_' + Date.now());
+                    return { ok: true, user: userPayload };
+                }
+                return { ok: false };
+            } catch (e) {
+                console.error('Auth error', e);
+                return { ok: false };
             }
         }
 
@@ -311,8 +278,10 @@
                 showMessage('Iniciando sesión...', 'info');
                 
                 // Autenticar usuario
-                if (authenticateUser(email, password, userType)) {
-                    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+                (async () => {
+                    const result = await authenticateUser(email, password, userType);
+                    if (result.ok) {
+                        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
                     const userName = currentUser ? `${currentUser.nombre} ${currentUser.apellido}` : 'Usuario';
                     
                     showMessage(`¡Bienvenido ${userName}! Redirigiendo...`, 'success');
@@ -321,9 +290,10 @@
                     setTimeout(() => {
                         redirectToDashboard(userType);
                     }, 2000);
-                } else {
-                    showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
-                }
+                    } else {
+                        showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
+                    }
+                })();
             });
             
             // Evento para mostrar/ocultar contraseña

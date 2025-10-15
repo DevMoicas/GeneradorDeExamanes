@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const code = (examCode || '').toUpperCase();
         // Backend: versión pública sin respuestas
         try {
-            const resp = await fetch(`/exam/code/${code}/public`);
+            const resp = await fetch(getApiUrl(`/exam/code/${code}/public`));
             if (resp.ok) return await resp.json();
         } catch (e) { console.warn('Backend no disponible', e); }
         // Respaldo local
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Enviar a backend para calificar por código
-            const resp = await fetch(`/exam/code/${(exam.examCode || '').toUpperCase()}/grade`, {
+            const resp = await fetch(getApiUrl(`/exam/code/${(exam.examCode || '').toUpperCase()}/grade`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ student: { name: session.studentName, id: session.studentId || '' }, answers })
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Preferir backend y deduplicar por código
             let list = [];
             try {
-                const resp = await fetch('/exams/active/public');
+                const resp = await fetch(getApiUrl('/exams/active/public'));
                 if (resp.ok) list = await resp.json();
             } catch (_) {}
             // Si backend devolvió al menos uno, limpia cache local para evitar residuos

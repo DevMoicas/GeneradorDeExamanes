@@ -407,6 +407,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 savedAt: new Date().toISOString()
             };
 
+            // Asegurar asociación con el profesor actual
+            try {
+                const cu = JSON.parse(sessionStorage.getItem('currentUser'));
+                if (cu && cu.id) {
+                    examToPublish.professorId = cu.id;
+                }
+            } catch (_) {}
+
             const resp = await fetch('/exam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -8,18 +8,6 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/dashboard-profesor.html",
-      "dest": "/dashboard-profesor.html"
-    },
-    {
-      "src": "/dashboard-alumno.html",
-      "dest": "/dashboard-alumno.html"
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
@@ -27,8 +15,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

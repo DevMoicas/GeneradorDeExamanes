@@ -6,8 +6,7 @@
     <title>Registro - Generador de Exámenes UCOL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- SQL.js para base de datos SQLite -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="config.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
@@ -55,6 +54,20 @@
                             </div>
                         </label>
                     </div>
+                </div>
+
+                <!-- Código de profesor -->
+                <div id="professorCodeField" class="space-y-2 hidden">
+                    <label for="professorCode" class="block text-sm font-medium text-white">Código de Docente</label>
+                    <div class="text-green-200 text-xs mb-1">Solo docentes con código institucional pueden registrarse.</div>
+                    <input 
+                        type="text" 
+                        id="professorCode" 
+                        name="professorCode" 
+                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="Ingresa tu código institucional"
+                    >
+                    <div class="text-xs text-green-200">El código válido actualmente es: <span class="font-mono">telematica2025tesis</span></div>
                 </div>
 
                 <!-- Nombre -->
@@ -157,21 +170,7 @@
                     </div>
                 </div>
 
-                <!-- Términos y condiciones -->
-                <div class="flex items-start">
-                    <label class="flex items-start cursor-pointer">
-                        <input type="checkbox" id="acceptTerms" class="sr-only">
-                        <div class="remember-checkbox w-5 h-5 border-2 border-white border-opacity-30 rounded flex items-center justify-center mr-3 mt-0.5 transition-all duration-200">
-                            <i class="fas fa-check text-white text-xs opacity-0"></i>
-                        </div>
-                        <span class="text-white text-sm">
-                            Acepto los 
-                            <a href="#" class="text-green-200 hover:text-white underline">términos y condiciones</a>
-                            y la 
-                            <a href="#" class="text-green-200 hover:text-white underline">política de privacidad</a>
-                        </span>
-                    </label>
-                </div>
+                <!-- Terms removed per requirements -->
 
                 <!-- Botón de registro -->
                 <button 
@@ -198,9 +197,6 @@
         </div>
     </div>
 
-    <!-- Scripts de base de datos -->
-    <script src="database.js"></script>
-    <script src="init-db.js"></script>
     <!-- Script de registro -->
     <script src="register.js"></script>
 </body>
