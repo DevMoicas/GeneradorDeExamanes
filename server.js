@@ -14,8 +14,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static frontend files from project root
 app.use(express.static(__dirname));
 
-// Temp directory setup
-const TEMP_DIR = path.join(__dirname, 'temp');
+// Storage directory (Render-friendly). Use DATA_DIR if provided, else /tmp on Render, else local ./temp
+const DATA_DIR = process.env.DATA_DIR || (process.env.RENDER ? '/tmp/gex' : path.join(__dirname, 'temp'));
+const TEMP_DIR = DATA_DIR;
 const CURRENT_EXAM_XML = path.join(TEMP_DIR, 'current-exam.xml');
 const CURRENT_EXAM_JSON = path.join(TEMP_DIR, 'current-exam.json');
 const EXAMS_DIR = path.join(TEMP_DIR, 'exams');
@@ -23,10 +24,10 @@ const ANSWERS_DIR = path.join(TEMP_DIR, 'answers');
 const USERS_JSON = path.join(TEMP_DIR, 'users.json');
 
 function ensureDirs() {
-    if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
-    if (!fs.existsSync(ANSWERS_DIR)) fs.mkdirSync(ANSWERS_DIR);
-    if (!fs.existsSync(EXAMS_DIR)) fs.mkdirSync(EXAMS_DIR);
-    if (!fs.existsSync(USERS_JSON)) fs.writeFileSync(USERS_JSON, JSON.stringify({ users: [] }, null, 2), 'utf8');
+    try { if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true }); } catch (_) {}
+    try { if (!fs.existsSync(ANSWERS_DIR)) fs.mkdirSync(ANSWERS_DIR, { recursive: true }); } catch (_) {}
+    try { if (!fs.existsSync(EXAMS_DIR)) fs.mkdirSync(EXAMS_DIR, { recursive: true }); } catch (_) {}
+    try { if (!fs.existsSync(USERS_JSON)) fs.writeFileSync(USERS_JSON, JSON.stringify({ users: [] }, null, 2), 'utf8'); } catch (_) {}
 }
 
 ensureDirs();
