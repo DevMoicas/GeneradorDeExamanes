@@ -185,7 +185,7 @@ app.get('/exam/code/:code/public', (req, res) => {
             difficulty: exam.difficulty,
             numQuestions: exam.numQuestions,
             createdAt: exam.createdAt,
-            examConfig: exam.examConfig || { resultOnly: true, showExamAfter: false, showCorrectAnswers: false },
+            examConfig: exam.examConfig || { resultOnly: true, noResults: false, showCorrectAnswers: false },
             status: 'active',
             questions: (exam.questions || []).map(q => ({
                 id: q.id,

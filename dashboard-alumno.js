@@ -570,15 +570,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Hay preguntas de texto que necesitan calificación manual
                 showMessage(`Examen enviado. ${result.score.correct}/${result.score.total} preguntas calificadas automáticamente. ${textQuestions.length} pregunta(s) de texto pendiente(s) de revisión manual.`, 'info');
                 closeTakeExamModalHandler();
-            } else if (examConfig.resultOnly) {
-                // Solo mostrar resultado
-                showMessage(`Examen enviado. Aciertos: ${result.score.correct}/${result.score.total}`, 'success');
-                closeTakeExamModalHandler();
-            } else if (examConfig.showExamAfter) {
-                // Mostrar examen con respuestas
-                showExamResults(exam, result, answers, examConfig);
+            } else if (examConfig.noResults) {
+                // No permitir ver resultados - mostrar mensaje y botón aceptar
+                showNoResultsMessage(exam, result, answers);
+            } else if (examConfig.showCorrectAnswers) {
+                // Mostrar examen con respuestas correctas marcadas
+                showExamResultsWithCorrectAnswers(exam, result, answers, examConfig);
             } else {
-                // Solo resultado (por defecto)
+                // Solo resultado (resultOnly o por defecto)
                 showMessage(`Examen enviado. Aciertos: ${result.score.correct}/${result.score.total}`, 'success');
                 closeTakeExamModalHandler();
             }
@@ -588,6 +587,47 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error enviando respuestas:', err);
             showMessage('Error al enviar las respuestas', 'error');
         }
+    }
+
+    // Función para mostrar mensaje cuando no se permiten resultados
+    function showNoResultsMessage(exam, result, answers) {
+        // Crear modal con mensaje
+        const resultsModal = document.createElement('div');
+        resultsModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        resultsModal.innerHTML = `
+            <div class="card-modern p-8 max-w-md mx-4 w-full">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+                    <h3 class="text-2xl font-bold text-gray-800">Examen Enviado</h3>
+                </div>
+                
+                <!-- Mensaje -->
+                <div class="mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                        <i class="fas fa-check-circle text-blue-600 text-4xl mb-4"></i>
+                        <p class="text-lg text-gray-800 font-medium mb-2">Tu examen fue enviado</p>
+                        <p class="text-sm text-gray-600">Espera a que el docente te entregue tus resultados</p>
+                    </div>
+                </div>
+
+                <!-- Botón de acción -->
+                <div class="flex justify-end">
+                    <button id="acceptNoResultsBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                        <i class="fas fa-check mr-2"></i>
+                        Aceptar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(resultsModal);
+        
+        // Event listener para el botón Aceptar
+        document.getElementById('acceptNoResultsBtn').addEventListener('click', async () => {
+            document.body.removeChild(resultsModal);
+            closeTakeExamModalHandler();
+            // Asegurar que el examen aparezca en exámenes resueltos
+            await loadExamData();
+        });
     }
 
     // Función para mostrar examen con respuestas correctas marcadas
@@ -830,11 +870,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 optionClass += ' bg-red-100 border border-red-300';
                                                 icon = '<i class="fas fa-times-circle text-red-600 ml-2"></i>';
                                             }
-                                        } else if (examConfig.showCorrectAnswers && opt.letter === q.correctAnswer) {
-                                            // Respuesta correcta (solo si está habilitado)
-                                            optionClass += ' bg-blue-100 border border-blue-300';
-                                            icon = '<i class="fas fa-star text-blue-600 ml-2"></i>';
                                         }
+                                        // Nota: Esta función muestra las respuestas del alumno marcadas (verde/rojo)
                                         
                                         return `
                                             <div class="${optionClass}">
@@ -845,11 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         `;
                                     }).join('')}
                                 </div>
-                                ${examConfig.showCorrectAnswers && q.explanation ? `
-                                    <div class="mt-3 text-sm text-gray-600 bg-blue-50 p-3 rounded border-l-4 border-blue-400">
-                                        <strong>Explicación:</strong> ${q.explanation}
-                                    </div>
-                                ` : ''}
+                                <!-- Nota: Las explicaciones solo se muestran cuando showCorrectAnswers está habilitado -->
                             </div>
                         `;
                     }).join('')}
@@ -990,8 +1023,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Determinar si se puede ver resultados según la configuración del examen
             const examConfig = session.examConfig || { resultOnly: true };
-            // Si resultOnly es true, no puede ver resultados. Solo puede ver si showExamAfter o showCorrectAnswers están habilitados
-            const canViewResults = examConfig.showExamAfter || examConfig.showCorrectAnswers;
+            // Si resultOnly o noResults es true, no puede ver resultados. Solo puede ver si showCorrectAnswers está habilitado
+            const canViewResults = examConfig.showCorrectAnswers && !examConfig.noResults;
             
             return `
                 <div class="exam-card bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -1004,7 +1037,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span><i class="fas fa-clock mr-1"></i>${new Date(session.completedAt || session.joinedAt).toLocaleString()}</span>
                                 <span><i class="fas fa-book mr-1"></i>${typeof session.subject === 'string' ? session.subject : (session.subject?.name || session.subject?.title || 'Materia no especificada')}</span>
                             </div>
-                            ${hasScore ? `
+                            ${examConfig.noResults ? `
+                                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
+                                    <p class="text-sm text-red-600 font-medium">
+                                        <i class="fas fa-clock mr-2"></i>
+                                        Espera a que el docente te dé tus resultados de este examen.
+                                    </p>
+                                </div>
+                            ` : hasScore ? `
                                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3">
                                     <div class="flex items-center justify-between mb-2">
                                         <h5 class="font-semibold text-gray-800">Resultado del Examen</h5>
@@ -1040,7 +1080,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                             ` : ''}
-                            ${!canViewResults ? `
+                            ${!canViewResults && !examConfig.noResults ? `
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                     <p class="text-sm text-blue-700">
                                         <i class="fas fa-info-circle mr-2"></i>
@@ -1094,8 +1134,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Determinar si se puede ver resultados según la configuración del examen
             const examConfig = session.examConfig || { resultOnly: true };
-            // Si resultOnly es true, no puede ver resultados. Solo puede ver si showExamAfter o showCorrectAnswers están habilitados
-            const canViewResults = examConfig.showExamAfter || examConfig.showCorrectAnswers;
+            // Si resultOnly o noResults es true, no puede ver resultados. Solo puede ver si showCorrectAnswers está habilitado
+            const canViewResults = examConfig.showCorrectAnswers && !examConfig.noResults;
             
             return `
                 <div class="exam-card bg-gray-50 border border-gray-300 rounded-lg p-6 shadow-sm">
@@ -1108,7 +1148,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span><i class="fas fa-clock mr-1"></i>${new Date(session.completedAt || session.joinedAt).toLocaleString()}</span>
                                 <span><i class="fas fa-book mr-1"></i>${typeof session.subject === 'string' ? session.subject : (session.subject?.name || session.subject?.title || 'Materia no especificada')}</span>
                             </div>
-                            ${hasScore ? `
+                            ${examConfig.noResults ? `
+                                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
+                                    <p class="text-sm text-red-600 font-medium">
+                                        <i class="fas fa-clock mr-2"></i>
+                                        Espera a que el docente te dé tus resultados de este examen.
+                                    </p>
+                                </div>
+                            ` : hasScore ? `
                                 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-3">
                                     <div class="flex items-center justify-between mb-2">
                                         <h5 class="font-semibold text-gray-700">Resultado del Examen</h5>
@@ -1144,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 </div>
                             ` : ''}
-                            ${!canViewResults ? `
+                            ${!canViewResults && !examConfig.noResults ? `
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                     <p class="text-sm text-blue-700">
                                         <i class="fas fa-info-circle mr-2"></i>
@@ -1277,7 +1324,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const examConfig = session.examConfig || exam.examConfig || { resultOnly: true };
             
             // Verificar si el alumno puede ver resultados
-            if (examConfig.resultOnly && !examConfig.showExamAfter && !examConfig.showCorrectAnswers) {
+            if (examConfig.noResults) {
+                // No se permiten resultados - mostrar mensaje
+                showMessage('No puedes ver los resultados de este examen. Espera a que el docente te entregue tus resultados.', 'info');
+                return;
+            }
+            
+            if (examConfig.resultOnly && !examConfig.showCorrectAnswers) {
                 // Solo mostrar resultado (calificación) sin acceso al examen
                 showMessage(`Aciertos: ${session.result?.score?.correct || session.score?.correct || 0}/${session.result?.score?.total || session.score?.total || 0}`, 'info');
                 return;
@@ -1292,9 +1345,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (examConfig.showCorrectAnswers) {
                 // Mostrar examen con respuestas correctas marcadas
                 showExamResultsWithCorrectAnswers(exam, session.result, session.answers, examConfig);
-            } else if (examConfig.showExamAfter) {
-                // Mostrar examen con respuestas del alumno (sin indicar si están correctas)
-                showExamResultsWithStudentAnswers(exam, session.result, session.answers, examConfig);
             } else {
                 // Por defecto, solo resultado
                 showMessage(`Aciertos: ${session.result.score.correct}/${session.result.score.total}`, 'info');

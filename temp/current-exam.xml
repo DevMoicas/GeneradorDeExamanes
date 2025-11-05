@@ -1,306 +1,279 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <exam>
-  <id>EXAM_1762370272571</id>
-  <title>Examen de mexico</title>
-  <subject>historia</subject>
-  <difficulty>avanzado</difficulty>
-  <numQuestions>11</numQuestions>
-  <createdAt>2025-11-05T19:17:52.571Z</createdAt>
+  <id>EXAM_1762374401211</id>
+  <title>Examen de carros</title>
+  <subject>mecanica</subject>
+  <difficulty>intermedio</difficulty>
+  <numQuestions>10</numQuestions>
+  <createdAt>2025-11-05T20:26:41.211Z</createdAt>
   <status>active</status>
   <questions>
     <question>
       <id>1</id>
-      <text>¿Qué documento, promulgado por Francisco I. Madero en 1910, hizo un llamado a las armas para derrocar a Porfirio Díaz y estableció el 20 de noviembre de 1910 como la fecha de inicio de la insurrección?</text>
+      <text>Cuál es la función principal del sistema de lubricación en un motor de combustión interna?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Plan de Ayala</text>
+          <text>Enfriar el motor</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Plan de San Luis Potosí</text>
+          <text>Reducir la fricción entre las piezas móviles</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Plan de La Noria</text>
+          <text>Aumentar la potencia del motor</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Plan de Guadalupe</text>
+          <text>Filtrar el aire de admisión</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>2</id>
-      <text>Emiliano Zapata, figura central del agrarismo en el sur de México, ¿contra qué presidente se levantó en armas tras sentirse traicionado en sus promesas de reforma agraria, promulgando el Plan de Ayala en 1911?</text>
+      <text>Qué componente es responsable de convertir la energía química del combustible en energía mecánica en un motor de gasolina?</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Venustiano Carranza</text>
+          <text>El radiador</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Álvaro Obregón</text>
+          <text>El carburador</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Francisco I. Madero</text>
+          <text>El pistón y la biela</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Victoriano Huerta</text>
+          <text>El alternador</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>3</id>
-      <text>La Decena Trágica fue un golpe de estado militar que ocurrió en la Ciudad de México en febrero de 1913. ¿Quién fue el principal instigador militar que derrocó y, posteriormente, asesinó a Francisco I. Madero y José María Pino Suárez?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>Cuál es el propósito del sistema de frenos ABS (Sistema Antibloqueo de Frenos)?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Pascual Orozco</text>
+          <text>Aumentar la potencia de frenado en todas las situaciones</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Venustiano Carranza</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Victoriano Huerta</text>
+          <text>Evitar que las ruedas se bloqueen durante una frenada brusca</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Reducir la distancia de frenado en pavimento seco</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Álvaro Obregón</text>
+          <text>Distribuir el líquido de frenos equitativamente a cada rueda</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>4</id>
-      <text>¿Qué facción revolucionaria, liderada por Venustiano Carranza, fue la principal impulsora de la Constitución de 1917, estableciendo un marco legal que sentó las bases del México moderno?</text>
+      <text>Qué tipo de suspensión utiliza un brazo oscilante para conectar la rueda al chasis del vehículo?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Los Zapatistas</text>
+          <text>Suspensión de eje rígido</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Los Constitucionalistas</text>
+          <text>Suspensión independiente</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Los Villistas</text>
+          <text>Suspensión de ballestas</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Los Maderistas</text>
+          <text>Suspensión neumática</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>5</id>
-      <text>La Constitución Política de los Estados Unidos Mexicanos de 1917 introdujo importantes innovaciones sociales. ¿Cuál de los siguientes artículos es fundamental para entender la reforma agraria y la propiedad de la tierra en México?</text>
+      <text>Cuál es la función principal del termostato en el sistema de refrigeración de un motor?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Artículo 3° (Educación)</text>
+          <text>Indicar la temperatura del motor en el tablero</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Artículo 27° (Tierra y Recursos Naturales)</text>
+          <text>Regular el flujo de refrigerante hacia el radiador</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Artículo 123° (Trabajo)</text>
+          <text>Bombear el refrigerante a través del motor</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Artículo 130° (Relación Iglesia-Estado)</text>
+          <text>Filtrar impurezas del refrigerante</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>6</id>
-      <text>Pancho Villa, conocido como 'El Centauro del Norte', fue una figura clave en la Revolución. ¿Cuál fue uno de sus actos más audaces que provocó una intervención militar de Estados Unidos en territorio mexicano?</text>
+      <text>Qué elemento del sistema de dirección es responsable de transmitir el movimiento giratorio del volante a las ruedas?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>La toma de la Ciudad de México junto a Emiliano Zapata.</text>
+          <text>La bomba de dirección asistida</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>El ataque a Columbus, Nuevo México, en 1916.</text>
+          <text>La cremallera de dirección</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>La firma del Tratado de Teoloyucan con Carranza.</text>
+          <text>Los amortiguadores</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>El asedio y toma de Zacatecas en 1914.</text>
+          <text>Los neumáticos</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>7</id>
-      <text>Tras la promulgación de la Constitución de 1917, ¿quién fue el primer presidente constitucional que intentó consolidar las instituciones post-revolucionarias y murió asesinado en 1920?</text>
+      <text>Qué componente del sistema eléctrico es el encargado de generar electricidad para recargar la batería y alimentar los sistemas eléctricos del vehículo mientras el motor está en marcha?</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Plutarco Elías Calles</text>
+          <text>La batería</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Álvaro Obregón</text>
+          <text>El motor de arranque</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Venustiano Carranza</text>
+          <text>El alternador</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Adolfo de la Huerta</text>
+          <text>Las bujías</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>8</id>
-      <text>El periodo conocido como el Maximato (1928-1934) se caracterizó por la influencia política de un ex-presidente. ¿Quién fue la figura central de este periodo, ejerciendo un control significativo sobre los presidentes en turno?</text>
-      <correctAnswer>D</correctAnswer>
+      <text>Cuál es la función principal del embrague en un vehículo con transmisión manual?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Lázaro Cárdenas</text>
+          <text>Cambiar las marchas automáticamente</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Emilio Portes Gil</text>
-          <isCorrect>false</isCorrect>
+          <text>Conectar y desconectar el motor de la transmisión</text>
+          <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Álvaro Obregón</text>
+          <text>Aumentar la velocidad del motor</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Plutarco Elías Calles</text>
-          <isCorrect>true</isCorrect>
+          <text>Reducir el consumo de combustible</text>
+          <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>9</id>
-      <text>¿Cuál de las siguientes acciones fue un legado crucial de la Revolución Mexicana en el ámbito educativo y cultural, buscando integrar a las masas y forjar una identidad nacional?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>Qué tipo de combustible produce principalmente monóxido de carbono (CO), hidrocarburos no quemados (HC) y óxidos de nitrógeno (NOx) como subproductos de la combustión?</text>
+      <correctAnswer>A</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>La privatización total de la educación superior.</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>La creación de la Secretaría de Educación Pública (SEP) y la promoción de la educación rural y el muralismo.</text>
+          <text>Gasolina</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>B</letter>
+          <text>Diésel</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>C</letter>
-          <text>La abolición de todas las escuelas religiosas.</text>
+          <text>Gas natural comprimido (GNC)</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>La prohibición de toda expresión artística de origen indígena.</text>
+          <text>Electricidad</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>10</id>
-      <text>Nueva pregunta</text>
-      <correctAnswer>A</correctAnswer>
+      <text>Qué indica una luz de advertencia roja con el símbolo de una batería en el tablero de instrumentos?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Opción A</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Opción B</text>
+          <text>Nivel bajo de combustible</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>B</letter>
+          <text>Fallo en el sistema de carga (alternador o batería)</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>C</letter>
-          <text>Opción C</text>
+          <text>Presión de aceite baja</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Opción D</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>11</id>
-      <text>Que dia es hoy</text>
-      <correctAnswer>A</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>miercoles</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Opción B</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Opción C</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>Opción D</text>
+          <text>Temperatura del motor alta</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>

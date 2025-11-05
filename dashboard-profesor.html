@@ -14,6 +14,28 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        
+        /* Estilos para el examen recién publicado */
+        .recently-published-exam {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+            transition: background-color 0.3s ease;
+        }
+        
+        .pulsing-blue {
+            animation: pulseBlue 1s ease-in-out infinite;
+            background-color: rgba(59, 130, 246, 0.15) !important;
+        }
+        
+        @keyframes pulseBlue {
+            0%, 100% {
+                background-color: rgba(59, 130, 246, 0.15);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                background-color: rgba(59, 130, 246, 0.25);
+                box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.3);
+            }
+        }
     </style>
     <!-- Lógica de la Aplicación -->
     <script type="module">
@@ -381,7 +403,6 @@
         const examContent = document.getElementById('examContent');
         const closeExamModal = document.getElementById('closeExamModal');
         const exportExamBtn = document.getElementById('exportExamBtn');
-        const apiStatus = document.getElementById('apiStatus');
         const userName = document.getElementById('userName');
         const logoutBtn = document.getElementById('logoutBtn');
         const saveExamBtn = document.getElementById('saveExamBtn');
@@ -410,8 +431,8 @@
             const currentConfig = lastGeneratedExam?.examConfig || { resultOnly: true };
             if (currentConfig.resultOnly) {
                 document.getElementById('resultOnly').checked = true;
-            } else if (currentConfig.showExamAfter) {
-                document.getElementById('showExamAfter').checked = true;
+            } else if (currentConfig.noResults) {
+                document.getElementById('noResults').checked = true;
             } else if (currentConfig.showCorrectAnswers) {
                 document.getElementById('showCorrectAnswers').checked = true;
             } else {
@@ -425,26 +446,20 @@
         }
         
         // Función para actualizar estado de opciones según selección
+        // Todas las opciones están siempre habilitadas (son mutuamente excluyentes por ser radio buttons)
         function updateExamConfigOptions() {
-            const resultOnlyChecked = document.getElementById('resultOnly').checked;
-            const showExamAfterContainer = document.getElementById('showExamAfterContainer');
+            const noResultsContainer = document.getElementById('noResultsContainer');
             const showCorrectAnswersContainer = document.getElementById('showCorrectAnswersContainer');
-            const showExamAfterRadio = document.getElementById('showExamAfter');
+            const noResultsRadio = document.getElementById('noResults');
             const showCorrectAnswersRadio = document.getElementById('showCorrectAnswers');
+            const resultOnlyRadio = document.getElementById('resultOnly');
             
-            if (resultOnlyChecked) {
-                // Deshabilitar otras opciones
-                showExamAfterContainer.classList.add('opacity-50', 'pointer-events-none');
-                showCorrectAnswersContainer.classList.add('opacity-50', 'pointer-events-none');
-                showExamAfterRadio.disabled = true;
-                showCorrectAnswersRadio.disabled = true;
-            } else {
-                // Habilitar otras opciones
-                showExamAfterContainer.classList.remove('opacity-50', 'pointer-events-none');
-                showCorrectAnswersContainer.classList.remove('opacity-50', 'pointer-events-none');
-                showExamAfterRadio.disabled = false;
-                showCorrectAnswersRadio.disabled = false;
-            }
+            // Asegurar que todas las opciones estén siempre habilitadas
+            if (noResultsContainer) noResultsContainer.classList.remove('opacity-50', 'pointer-events-none');
+            if (showCorrectAnswersContainer) showCorrectAnswersContainer.classList.remove('opacity-50', 'pointer-events-none');
+            if (noResultsRadio) noResultsRadio.disabled = false;
+            if (showCorrectAnswersRadio) showCorrectAnswersRadio.disabled = false;
+            if (resultOnlyRadio) resultOnlyRadio.disabled = false;
         }
 
         function saveExamConfiguration() {
@@ -459,7 +474,7 @@
             // Guardar configuración en el examen
             if (lastGeneratedExam) {
                 lastGeneratedExam.examConfig = {
-                    showExamAfter: config === 'showExamAfter',
+                    noResults: config === 'noResults',
                     showCorrectAnswers: config === 'showCorrectAnswers',
                     resultOnly: config === 'resultOnly'
                 };
@@ -871,16 +886,12 @@
             }
             examModal.classList.remove('hidden');
             
-            // Verificar si es un examen publicado (no es borrador)
-            // Un examen es publicado si NO es borrador Y tiene código de examen
-            const isDraft = examContentData && examContentData.isDraft === true;
+            // Verificar si es un examen publicado (tiene código de examen)
             const hasExamCode = examContentData && examContentData.examCode && examContentData.examCode.trim() !== '';
-            const isPublished = !isDraft && hasExamCode;
+            const isPublished = hasExamCode;
             console.log('Debug showExamInModal:', {
                 examContentData: examContentData,
-                originalIsDraft: examContentData ? examContentData.isDraft : 'null',
                 originalExamCode: examContentData ? examContentData.examCode : 'null',
-                isDraft: isDraft,
                 hasExamCode: hasExamCode,
                 isPublished: isPublished,
                 isEditing: isEditing
@@ -890,15 +901,6 @@
             const editBtn = document.getElementById('editExamBtn');
             const applyBtn = document.getElementById('applyChangesBtn');
             const cancelBtn = document.getElementById('cancelEditBtn');
-            const saveDraftBtn = document.getElementById('saveDraftBtn');
-            
-            console.log('Botones encontrados:', {
-                editBtn: !!editBtn,
-                applyBtn: !!applyBtn,
-                cancelBtn: !!cancelBtn,
-                saveDraftBtn: !!saveDraftBtn
-            });
-            
             if (editBtn && applyBtn && cancelBtn) {
                 // Mostrar botón de editar solo si NO está en modo edición y NO es un examen publicado
                 const shouldHideEdit = Boolean(isEditing || isPublished);
@@ -908,13 +910,6 @@
                 // Mostrar botones de aplicar/cancelar solo si está en modo edición
                 applyBtn.classList.toggle('hidden', !isEditing);
                 cancelBtn.classList.toggle('hidden', !isEditing);
-            }
-            
-            // Mostrar botón de guardar borrador solo si NO es un examen publicado
-            if (saveDraftBtn) {
-                const shouldHideDraft = Boolean(isPublished);
-                saveDraftBtn.classList.toggle('hidden', shouldHideDraft);
-                console.log('Save draft button hidden:', shouldHideDraft, 'isPublished:', isPublished);
             }
             
             // Mostrar mensaje si es un examen publicado
@@ -987,32 +982,23 @@
             // Configuración de UI simple
             try {
                 // Actualizar nombre del usuario inmediatamente
-                const cu = JSON.parse(sessionStorage.getItem('currentUser'));
-                if (cu && cu.nombre) {
-                    userName.textContent = `${cu.nombre} ${cu.apellido || ''}`.trim();
-                } else {
-                userName.textContent = `Profesor`;
-            }
+                updateUserName();
             
             // Cargar contador de exámenes real
             await updateExamCount();
             
-                // Actualizar estado de API
-                if (apiStatus) {
-            apiStatus.innerHTML = '<div class="w-2 h-2 bg-green-500 rounded-full"></div><span class="text-xs text-green-500">Conectado (API)</span>';
-                }
+            // Actualizar estado de API (solo en consola)
+            console.log('✅ API Conectada - Estado: Conectado');
                 
             showMessage("Sistema listo. Genera tu primer examen.", false);
                 
             } catch (error) {
                 console.error('Error en initApp:', error);
                 // Asegurar que el nombre se muestre incluso si hay error
-                userName.textContent = `Profesor`;
+                updateUserName();
                 
-                // Mostrar estado de error
-                if (apiStatus) {
-                    apiStatus.innerHTML = '<div class="w-2 h-2 bg-red-500 rounded-full"></div><span class="text-xs text-red-500">Error de conexión</span>';
-                }
+                // Mostrar estado de error (solo en consola)
+                console.error('❌ API Error - Estado: Error de conexión');
                 
                 showMessage("Error al inicializar el sistema. Algunas funciones pueden no estar disponibles.", true);
             }
@@ -1061,31 +1047,41 @@
             }
         });
         
-        document.addEventListener('DOMContentLoaded', () => {
-            // Asegurar que el nombre del usuario se muestre inmediatamente
+        // Función para actualizar el nombre del usuario y mensaje de bienvenida
+        function updateUserName() {
             try {
                 const cu = JSON.parse(sessionStorage.getItem('currentUser'));
+                const welcomeMessage = document.getElementById('welcomeMessage');
                 if (cu && cu.nombre) {
-                    userName.textContent = `${cu.nombre} ${cu.apellido || ''}`.trim();
+                    const fullName = `${cu.nombre} ${cu.apellido || ''}`.trim();
+                    userName.textContent = fullName;
+                    if (welcomeMessage) {
+                        welcomeMessage.textContent = `¡Bienvenid@, ${cu.nombre}!`;
+                    }
                 } else {
                     userName.textContent = `Profesor`;
+                    if (welcomeMessage) {
+                        welcomeMessage.textContent = `¡Bienvenid@!`;
+                    }
                 }
             } catch (_) {
                 userName.textContent = `Profesor`;
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                if (welcomeMessage) {
+                    welcomeMessage.textContent = `¡Bienvenid@!`;
+                }
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Asegurar que el nombre del usuario se muestre inmediatamente
+            updateUserName();
             
             // Luego ejecutar la inicialización completa
             initApp().catch(error => {
                 console.error('Error en inicialización:', error);
                 // Asegurar que el nombre se mantenga actualizado
-                try {
-                    const cu = JSON.parse(sessionStorage.getItem('currentUser'));
-                    if (cu && cu.nombre) {
-                        userName.textContent = `${cu.nombre} ${cu.apellido || ''}`.trim();
-                    }
-                } catch (_) {
-                    // Ya está establecido como "Profesor"
-                }
+                updateUserName();
             });
         });
 
@@ -1223,28 +1219,7 @@
                     lastGeneratedExam = JSON.parse(JSON.stringify(editDraft));
                     isEditing = false;
 
-                    // Verificar si es un borrador
-                    if (lastGeneratedExam.isDraft && lastGeneratedExam.draftId) {
-                        // Actualizar borrador en localStorage
-                        const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                        const draftIndex = drafts.findIndex(d => d.id === lastGeneratedExam.draftId);
-                        if (draftIndex >= 0) {
-                            const meta = {
-                                title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
-                                subject: document.getElementById('subject')?.value || lastGeneratedExam.subject,
-                                difficulty: document.getElementById('difficulty')?.value || 'intermedio'
-                            };
-                            const updatedDraft = transformExamForBackend(lastGeneratedExam, meta);
-                            updatedDraft.isDraft = true;
-                            updatedDraft.id = lastGeneratedExam.draftId;
-                            updatedDraft.createdAt = lastGeneratedExam.createdAt;
-                            
-                            drafts[draftIndex] = updatedDraft;
-                            localStorage.setItem('examDrafts', JSON.stringify(drafts));
-                            
-                            showMessage('Cambios guardados en borrador.', false);
-                        }
-                    } else {
+                    {
                     // Si ya existe un código publicado en esta sesión, enviar PUT para sobrescribir archivo temporal
                     const meta = {
                         title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
@@ -1327,43 +1302,6 @@
             };
         }
 
-        // Botón de guardar borrador
-        const saveDraftBtn = document.getElementById('saveDraftBtn');
-        if (saveDraftBtn) {
-            saveDraftBtn.addEventListener('click', async () => {
-                try {
-                    if (!lastGeneratedExam) {
-                        showMessage('No hay examen para guardar como borrador.', true);
-                        return;
-                    }
-                    
-                    const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                    const meta = {
-                        title: document.getElementById('examTitle').value,
-                        subject: document.getElementById('subject').value,
-                        difficulty: document.getElementById('difficulty').value,
-                        professorId: currentUser?.id || null
-                    };
-                    
-                    const draftExam = transformExamForBackend(lastGeneratedExam, meta);
-                    draftExam.isDraft = true;
-                    draftExam.createdAt = new Date().toISOString();
-                    draftExam.id = draftExam.id || 'draft_' + Date.now();
-                    
-                    // Guardar en localStorage
-                    const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                    drafts.push(draftExam);
-                    localStorage.setItem('examDrafts', JSON.stringify(drafts));
-                    
-                    showMessage('Borrador guardado exitosamente', false);
-                    await loadDrafts();
-                    
-                } catch (err) {
-                    console.error('Error al guardar borrador:', err);
-                    showMessage('Error al guardar el borrador.', true);
-                }
-            });
-        }
 
         if (saveExamBtn) {
             saveExamBtn.addEventListener('click', async () => {
@@ -1417,20 +1355,29 @@
                     // También actualizar lastGeneratedExam con el código
                     lastGeneratedExam.examCode = examToPublish.examCode;
 
-                    // Si el examen estaba en borradores, eliminarlo de ahí
-                    if (lastGeneratedExam.draftId) {
-                        const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                        const updatedDrafts = drafts.filter(d => d.id !== lastGeneratedExam.draftId);
-                        localStorage.setItem('examDrafts', JSON.stringify(updatedDrafts));
-                        
-                        // Actualizar la vista de borradores
-                        await loadDrafts();
-                    }
 
                     showMessage('Examen publicado. Código disponible para alumnos.', false);
                     
+                    // Guardar el código del examen recién publicado para resaltarlo
+                    sessionStorage.setItem('recentlyPublishedExamCode', examToPublish.examCode);
+                    
                     // Actualizar contador de exámenes
                     await updateExamCount();
+                    
+                    // Ocultar todos los botones y mostrar solo "Ver en Mis Exámenes"
+                    const editExamBtn = document.getElementById('editExamBtn');
+                    const applyChangesBtn = document.getElementById('applyChangesBtn');
+                    const cancelEditBtn = document.getElementById('cancelEditBtn');
+                    const saveExamBtn = document.getElementById('saveExamBtn');
+                    const configExamBtn = document.getElementById('configExamBtn');
+                    const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
+                    
+                    if (editExamBtn) editExamBtn.classList.add('hidden');
+                    if (applyChangesBtn) applyChangesBtn.classList.add('hidden');
+                    if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
+                    if (saveExamBtn) saveExamBtn.classList.add('hidden');
+                    if (configExamBtn) configExamBtn.classList.add('hidden');
+                    if (viewMyExamsBtn) viewMyExamsBtn.classList.remove('hidden');
                 } catch (err) {
                     console.error('Error al publicar:', err);
                     showMessage('Error al publicar el examen.', true);
@@ -1449,156 +1396,31 @@
             showExamConfigModal();
         });
 
-        // Mis exámenes (por profesor)
-        async function loadDrafts() {
-            try {
-                const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                const tbody = document.getElementById('tableDrafts');
-                if (!tbody) return;
+        // Botón "Ver en Mis Exámenes"
+        const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
+        if (viewMyExamsBtn) {
+            viewMyExamsBtn.addEventListener('click', async () => {
+                // Cerrar el modal
+                examModal.classList.add('hidden');
                 
-                if (drafts.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="text-center py-8 text-gray-500">
-                                <i class="fas fa-edit text-4xl mb-4"></i>
-                                <p>No hay borradores de exámenes</p>
-                            </td>
-                        </tr>
-                    `;
-                    return;
+                // Hacer scroll a la sección de exámenes generados primero
+                const myExamsSection = document.getElementById('myExamsSection');
+                if (myExamsSection) {
+                    myExamsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
                 
-                const rows = drafts.map(draft => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="py-3 pr-3 font-medium">${draft.title || '-'}</td>
-                        <td class="py-3 pr-3 text-gray-600">${draft.subject || '-'}</td>
-                        <td class="py-3 pr-3">${draft.numQuestions || 0}</td>
-                        <td class="py-3 pr-3 text-gray-500">${new Date(draft.createdAt).toLocaleDateString()}</td>
-                        <td class="py-3">
-                            <button data-edit-draft="${draft.id}" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs mr-1">Editar</button>
-                            <button data-publish-draft="${draft.id}" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs mr-1">Publicar</button>
-                            <button data-delete-draft="${draft.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Eliminar</button>
-                        </td>
-                    </tr>
-                `).join('');
-                tbody.innerHTML = rows;
-            } catch (err) {
-                console.error('loadDrafts error', err);
-            }
+                // Recargar la lista de exámenes después de un pequeño delay para que el scroll se complete
+                setTimeout(async () => {
+                    await loadMyExams();
+                }, 300);
+            });
         }
 
-        async function editDraftById(draftId) {
-            try {
-                const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                const draft = drafts.find(d => d.id === draftId);
-                if (!draft) {
-                    showMessage('Borrador no encontrado', true);
-                    return;
-                }
 
-                // Convertir borrador a formato de examen para edición
-                lastGeneratedExam = {
-                    ...draft,
-                    isDraft: true,
-                    draftId: draftId
-                };
+        // Variable para almacenar todos los exámenes (sin filtrar)
+        let allExamsData = [];
 
-                // Llenar los campos del formulario
-                document.getElementById('examTitle').value = draft.title || '';
-                document.getElementById('subject').value = draft.subject || '';
-                document.getElementById('difficulty').value = draft.difficulty || 'intermedio';
-
-                // Mostrar el examen en el modal
-                showExamInModal(lastGeneratedExam);
-                examModal.classList.remove('hidden');
-
-            } catch (err) {
-                console.error('Error editando borrador:', err);
-                showMessage('Error al editar el borrador', true);
-            }
-        }
-
-        async function publishDraft(draftId) {
-            try {
-                const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                const draft = drafts.find(d => d.id === draftId);
-                if (!draft) {
-                    showMessage('Borrador no encontrado', true);
-                    return;
-                }
-
-                // Confirmar publicación
-                const confirmed = confirm(
-                    '⚠️ CONFIRMACIÓN DE PUBLICACIÓN ⚠️\n\n' +
-                    '¿Estás seguro de que quieres publicar este examen?\n\n' +
-                    'Una vez publicado:\n' +
-                    '• No podrás modificarlo\n' +
-                    '• Los alumnos podrán acceder con el código\n' +
-                    '• Se moverá a la sección de exámenes generados\n\n' +
-                    '¿Continuar con la publicación?'
-                );
-
-                if (!confirmed) return;
-
-                // Generar código de examen
-                const examCode = generateExamCode();
-                
-                // Crear examen para publicar
-                const examToPublish = {
-                    ...draft,
-                    examCode: examCode,
-                    isDraft: false,
-                    publishedAt: new Date().toISOString()
-                };
-
-                // Publicar en backend
-                const resp = await fetch(getApiUrl('/exam'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(examToPublish)
-                });
-
-                if (!resp.ok) throw new Error('Error al publicar en el backend');
-
-                // Guardar en exámenes generados
-                const publishedExams = JSON.parse(localStorage.getItem('generatedExams') || '[]');
-                publishedExams.push(examToPublish);
-                localStorage.setItem('generatedExams', JSON.stringify(publishedExams));
-
-                // Eliminar de borradores
-                const updatedDrafts = drafts.filter(d => d.id !== draftId);
-                localStorage.setItem('examDrafts', JSON.stringify(updatedDrafts));
-
-                showMessage(`Examen publicado exitosamente. Código: ${examCode}`, false);
-                
-                // Actualizar vistas
-                await loadDrafts();
-                await loadMyExams();
-
-            } catch (err) {
-                console.error('Error publicando borrador:', err);
-                showMessage('Error al publicar el borrador', true);
-            }
-        }
-
-        async function deleteDraft(draftId) {
-            try {
-                if (!confirm('¿Estás seguro de que quieres eliminar este borrador?')) return;
-
-                const drafts = JSON.parse(localStorage.getItem('examDrafts') || '[]');
-                const updatedDrafts = drafts.filter(d => d.id !== draftId);
-                localStorage.setItem('examDrafts', JSON.stringify(updatedDrafts));
-
-                showMessage('Borrador eliminado', false);
-                await loadDrafts();
-
-            } catch (err) {
-                console.error('Error eliminando borrador:', err);
-                showMessage('Error al eliminar el borrador', true);
-            }
-        }
-
-        async function loadMyExams() {
+        async function loadMyExams(searchTerm = '') {
             try {
                 const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
                 if (!currentUser?.id) return;
@@ -1607,7 +1429,7 @@
                 const tbody = document.getElementById('tableMyExams');
                 
                 // Cargar estadísticas de cada examen
-                const examsWithStats = await Promise.all(items.map(async (ex) => {
+                allExamsData = await Promise.all(items.map(async (ex) => {
                     try {
                         const resultsResp = await fetch(getApiUrl(`/exam/code/${ex.examCode}/results`));
                         const results = resultsResp.ok ? await resultsResp.json() : [];
@@ -1623,8 +1445,28 @@
                     }
                 }));
                 
-                tbody.innerHTML = examsWithStats.map(ex => `
-                    <tr class="hover:bg-gray-50">
+                // Filtrar exámenes si hay término de búsqueda
+                let filteredExams = allExamsData;
+                if (searchTerm && searchTerm.trim() !== '') {
+                    const searchLower = searchTerm.toLowerCase().trim();
+                    filteredExams = allExamsData.filter(ex => 
+                        (ex.examCode && ex.examCode.toLowerCase().includes(searchLower)) ||
+                        (ex.title && ex.title.toLowerCase().includes(searchLower)) ||
+                        (ex.subject && ex.subject.toLowerCase().includes(searchLower))
+                    );
+                }
+                
+                // Obtener el código del examen recién publicado
+                const recentlyPublishedCode = sessionStorage.getItem('recentlyPublishedExamCode');
+                
+                tbody.innerHTML = filteredExams.map(ex => {
+                    const isRecentlyPublished = recentlyPublishedCode && ex.examCode === recentlyPublishedCode;
+                    const rowClass = isRecentlyPublished 
+                        ? 'hover:bg-gray-50 recently-published-exam' 
+                        : 'hover:bg-gray-50';
+                    
+                    return `
+                    <tr class="${rowClass}" data-exam-code="${ex.examCode}">
                         <td class="py-3 pr-3 font-mono text-sm">${ex.examCode}</td>
                         <td class="py-3 pr-3 font-medium">${ex.title}</td>
                         <td class="py-3 pr-3 text-gray-600">${ex.subject}</td>
@@ -1650,20 +1492,51 @@
                             </div>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
+                
+                // Si hay un examen recién publicado, aplicar el efecto de parpadeo
+                if (recentlyPublishedCode) {
+                    setTimeout(() => {
+                        const recentlyPublishedRow = tbody.querySelector(`tr[data-exam-code="${recentlyPublishedCode}"]`);
+                        if (recentlyPublishedRow) {
+                            // Aplicar el efecto de parpadeo por 3 segundos
+                            recentlyPublishedRow.classList.add('pulsing-blue');
+                            
+                            setTimeout(() => {
+                                // Quitar el parpadeo y la iluminación después de 3 segundos
+                                recentlyPublishedRow.classList.remove('pulsing-blue');
+                                recentlyPublishedRow.classList.remove('recently-published-exam');
+                                // Limpiar el código del examen recién publicado
+                                sessionStorage.removeItem('recentlyPublishedExamCode');
+                            }, 3000);
+                        }
+                    }, 100); // Pequeño delay para asegurar que el DOM esté listo
+                }
             } catch (err) {
                 console.error('loadMyExams error', err);
             }
         }
 
-        const refreshDrafts = document.getElementById('refreshDrafts');
-        if (refreshDrafts) refreshDrafts.addEventListener('click', loadDrafts);
-
         const refreshMyExams = document.getElementById('refreshMyExams');
-        if (refreshMyExams) refreshMyExams.addEventListener('click', loadMyExams);
+        if (refreshMyExams) refreshMyExams.addEventListener('click', () => loadMyExams());
+        
+        // Event listener para la barra de búsqueda
+        const searchExamsInput = document.getElementById('searchExamsInput');
+        if (searchExamsInput) {
+            let searchTimeout;
+            searchExamsInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const searchTerm = e.target.value;
+                // Debounce: esperar 300ms después de que el usuario deje de escribir
+                searchTimeout = setTimeout(() => {
+                    loadMyExams(searchTerm);
+                }, 300);
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             loadMyExams();
-            loadDrafts();
         });
 
         // Resultados modal
@@ -1690,14 +1563,14 @@
         
         // Agregar event listeners para los radio buttons de configuración
         const resultOnlyRadio = document.getElementById('resultOnly');
-        const showExamAfterRadio = document.getElementById('showExamAfter');
+        const noResultsRadio = document.getElementById('noResults');
         const showCorrectAnswersRadio = document.getElementById('showCorrectAnswers');
         
         if (resultOnlyRadio) {
             resultOnlyRadio.addEventListener('change', updateExamConfigOptions);
         }
-        if (showExamAfterRadio) {
-            showExamAfterRadio.addEventListener('change', updateExamConfigOptions);
+        if (noResultsRadio) {
+            noResultsRadio.addEventListener('change', updateExamConfigOptions);
         }
         if (showCorrectAnswersRadio) {
             showCorrectAnswersRadio.addEventListener('change', updateExamConfigOptions);
@@ -2103,18 +1976,6 @@
                     })();
                 }
             }
-            if (t && t.hasAttribute('data-edit-draft')) {
-                const draftId = t.getAttribute('data-edit-draft');
-                (async () => await editDraftById(draftId))();
-            }
-            if (t && t.hasAttribute('data-publish-draft')) {
-                const draftId = t.getAttribute('data-publish-draft');
-                (async () => await publishDraft(draftId))();
-            }
-            if (t && t.hasAttribute('data-delete-draft')) {
-                const draftId = t.getAttribute('data-delete-draft');
-                (async () => await deleteDraft(draftId))();
-            }
         });
     </script>
     <style>
@@ -2157,13 +2018,6 @@
                     <h1 class="text-xl font-bold text-gray-800">Panel Profesor</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="text-gray-600 text-sm flex items-center space-x-2">
-                        <i class="fas fa-database text-green-500"></i>
-                        <span id="apiStatus" class="flex items-center space-x-1">
-                            <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                            <span class="text-xs">Iniciando...</span>
-                        </span>
-                    </div>
                     <span id="userName" class="text-gray-700 text-sm font-medium">Profesor</span>
                     <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-sign-out-alt mr-2"></i>
@@ -2180,7 +2034,7 @@
         <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Bienvenido, Profesor!</h2>
+                    <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-2">¡Bienvenid@!</h2>
                     <p class="text-gray-600">Genera exámenes personalizados con inteligencia artificial</p>
                 </div>
                 <div class="text-right">
@@ -2363,36 +2217,24 @@
         </div>
     </div>
 
-    <!-- Borradores de Exámenes Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="card-modern p-8 mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-edit mr-2 text-yellow-600"></i>Borradores de Exámenes</h3>
-                <button id="refreshDrafts" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-3 py-1 rounded-lg text-sm transition-colors duration-200">Refrescar</button>
-            </div>
-            <div class="overflow-auto">
-                <table class="min-w-full text-sm text-gray-700">
-                    <thead class="text-gray-500">
-                        <tr>
-                            <th class="text-left py-2 pr-3">Título</th>
-                            <th class="text-left py-2 pr-3">Materia</th>
-                            <th class="text-left py-2 pr-3">Preguntas</th>
-                            <th class="text-left py-2 pr-3">Creado</th>
-                            <th class="text-left py-2">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableDrafts"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <!-- Exámenes Generados Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div id="myExamsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-list mr-2 text-green-600"></i>Exámenes generados</h3>
                 <button id="refreshMyExams" class="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-sm transition-colors duration-200">Refrescar</button>
+            </div>
+            <!-- Barra de búsqueda -->
+            <div class="mb-6">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchExamsInput" 
+                        placeholder="Buscar exámenes por código, título o materia..." 
+                        class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
             </div>
             <div class="overflow-auto">
                 <table class="min-w-full text-sm text-gray-700">
@@ -2454,9 +2296,9 @@
                                 Mostrar Solo Resultado
                             </h4>
                             <p class="text-sm text-gray-600 mb-2">El alumno únicamente verá su calificación (número de aciertos obtenidos en el examen). No podrá ver el examen, las preguntas ni las respuestas.</p>
-                            <p class="text-xs text-red-600 font-medium">
+                            <p class="text-xs text-gray-500">
                                 <i class="fas fa-info-circle mr-1"></i>
-                                Al seleccionar esta opción, las otras dos opciones se deshabilitarán.
+                                Solo se puede habilitar una opción a la vez.
                             </p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer ml-4">
@@ -2466,23 +2308,23 @@
                     </div>
                 </div>
 
-                <!-- Opción 2: Mostrar examen después de responder -->
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity" id="showExamAfterContainer">
+                <!-- Opción 2: No permitir ver ni que el alumno sepa su resultado -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity" id="noResultsContainer">
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <h4 class="text-lg font-semibold text-gray-800 mb-2">
-                                <i class="fas fa-eye mr-2 text-blue-600"></i>
-                                Mostrar Examen Después de Responder
+                                <i class="fas fa-lock mr-2 text-red-600"></i>
+                                No Permitir Ver Resultados
                             </h4>
-                            <p class="text-sm text-gray-600 mb-2">El alumno podrá ver el examen completo con sus respuestas marcadas. Se mostrará cuáles respuestas fueron correctas (verde) y cuáles incorrectas (rojo).</p>
+                            <p class="text-sm text-gray-600 mb-2">El alumno no podrá ver su resultado ni el examen después de enviarlo. Solo recibirá un mensaje confirmando que su examen fue enviado y deberá esperar a que el docente le entregue los resultados.</p>
                             <p class="text-xs text-gray-500">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                El alumno verá sus respuestas y si fueron correctas o incorrectas.
+                                <i class="fas fa-info-circle mr-1"></i>
+                                El alumno no verá su calificación ni las respuestas hasta que el docente se la proporcione.
                             </p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer ml-4">
-                            <input type="radio" name="examConfig" value="showExamAfter" class="sr-only peer" id="showExamAfter">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <input type="radio" name="examConfig" value="noResults" class="sr-only peer" id="noResults">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                         </label>
                     </div>
                 </div>
@@ -2508,13 +2350,13 @@
                     </div>
                 </div>
 
-                <!-- Configuración por defecto -->
+                <!-- Información sobre la configuración -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div class="flex items-start">
                         <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
                         <div>
-                            <h4 class="text-sm font-semibold text-blue-800 mb-1">Configuración por Defecto</h4>
-                            <p class="text-sm text-blue-700">Por defecto, el alumno solo verá su resultado sin acceso al examen ni respuestas correctas.</p>
+                            <h4 class="text-sm font-semibold text-blue-800 mb-1">Información Importante</h4>
+                            <p class="text-sm text-blue-700">Solo puedes habilitar una opción a la vez. Elige la opción que mejor se adapte a cómo quieres que los alumnos vean sus resultados después de completar el examen.</p>
                         </div>
                     </div>
                 </div>
@@ -2579,10 +2421,6 @@
                     <span id="examCodeDisplay" class="font-mono font-semibold ml-2">—</span>
                 </div>
                 <div class="flex justify-end space-x-2">
-                    <button id="saveDraftBtn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
-                        <i class="fas fa-save mr-2"></i>
-                        Guardar Borrador
-                    </button>
                     <button id="editExamBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-edit mr-2"></i>
                         Editar Examen
@@ -2602,6 +2440,10 @@
                 <button id="configExamBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                     <i class="fas fa-cog mr-2"></i>
                     Configuración de Examen
+                </button>
+                <button id="viewMyExamsBtn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <i class="fas fa-list mr-2"></i>
+                    Ver en Mis Exámenes
                 </button>
                 </div>
             </div>

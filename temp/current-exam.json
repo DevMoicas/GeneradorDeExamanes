@@ -1,32 +1,32 @@
 {
-  "id": "EXAM_1762370272571",
-  "title": "Examen de mexico",
-  "subject": "historia",
-  "difficulty": "avanzado",
-  "numQuestions": 11,
+  "id": "EXAM_1762374401211",
+  "title": "Examen de carros",
+  "subject": "mecanica",
+  "difficulty": "intermedio",
+  "numQuestions": 10,
   "questions": [
     {
       "id": 1,
-      "question": "¿Qué documento, promulgado por Francisco I. Madero en 1910, hizo un llamado a las armas para derrocar a Porfirio Díaz y estableció el 20 de noviembre de 1910 como la fecha de inicio de la insurrección?",
+      "question": "Cuál es la función principal del sistema de lubricación en un motor de combustión interna?",
       "options": [
         {
           "letter": "A",
-          "text": "Plan de Ayala",
+          "text": "Enfriar el motor",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Plan de San Luis Potosí",
+          "text": "Reducir la fricción entre las piezas móviles",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Plan de La Noria",
+          "text": "Aumentar la potencia del motor",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Plan de Guadalupe",
+          "text": "Filtrar el aire de admisión",
           "isCorrect": false
         }
       ],
@@ -35,26 +35,26 @@
     },
     {
       "id": 2,
-      "question": "Emiliano Zapata, figura central del agrarismo en el sur de México, ¿contra qué presidente se levantó en armas tras sentirse traicionado en sus promesas de reforma agraria, promulgando el Plan de Ayala en 1911?",
+      "question": "Qué componente es responsable de convertir la energía química del combustible en energía mecánica en un motor de gasolina?",
       "options": [
         {
           "letter": "A",
-          "text": "Venustiano Carranza",
+          "text": "El radiador",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Álvaro Obregón",
+          "text": "El carburador",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Francisco I. Madero",
+          "text": "El pistón y la biela",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Victoriano Huerta",
+          "text": "El alternador",
           "isCorrect": false
         }
       ],
@@ -63,54 +63,54 @@
     },
     {
       "id": 3,
-      "question": "La Decena Trágica fue un golpe de estado militar que ocurrió en la Ciudad de México en febrero de 1913. ¿Quién fue el principal instigador militar que derrocó y, posteriormente, asesinó a Francisco I. Madero y José María Pino Suárez?",
+      "question": "Cuál es el propósito del sistema de frenos ABS (Sistema Antibloqueo de Frenos)?",
       "options": [
         {
           "letter": "A",
-          "text": "Pascual Orozco",
+          "text": "Aumentar la potencia de frenado en todas las situaciones",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Venustiano Carranza",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Victoriano Huerta",
+          "text": "Evitar que las ruedas se bloqueen durante una frenada brusca",
           "isCorrect": true
         },
         {
+          "letter": "C",
+          "text": "Reducir la distancia de frenado en pavimento seco",
+          "isCorrect": false
+        },
+        {
           "letter": "D",
-          "text": "Álvaro Obregón",
+          "text": "Distribuir el líquido de frenos equitativamente a cada rueda",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C",
+      "correctAnswer": "B",
       "obligatory": true
     },
     {
       "id": 4,
-      "question": "¿Qué facción revolucionaria, liderada por Venustiano Carranza, fue la principal impulsora de la Constitución de 1917, estableciendo un marco legal que sentó las bases del México moderno?",
+      "question": "Qué tipo de suspensión utiliza un brazo oscilante para conectar la rueda al chasis del vehículo?",
       "options": [
         {
           "letter": "A",
-          "text": "Los Zapatistas",
+          "text": "Suspensión de eje rígido",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Los Constitucionalistas",
+          "text": "Suspensión independiente",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Los Villistas",
+          "text": "Suspensión de ballestas",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Los Maderistas",
+          "text": "Suspensión neumática",
           "isCorrect": false
         }
       ],
@@ -119,26 +119,26 @@
     },
     {
       "id": 5,
-      "question": "La Constitución Política de los Estados Unidos Mexicanos de 1917 introdujo importantes innovaciones sociales. ¿Cuál de los siguientes artículos es fundamental para entender la reforma agraria y la propiedad de la tierra en México?",
+      "question": "Cuál es la función principal del termostato en el sistema de refrigeración de un motor?",
       "options": [
         {
           "letter": "A",
-          "text": "Artículo 3° (Educación)",
+          "text": "Indicar la temperatura del motor en el tablero",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Artículo 27° (Tierra y Recursos Naturales)",
+          "text": "Regular el flujo de refrigerante hacia el radiador",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Artículo 123° (Trabajo)",
+          "text": "Bombear el refrigerante a través del motor",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Artículo 130° (Relación Iglesia-Estado)",
+          "text": "Filtrar impurezas del refrigerante",
           "isCorrect": false
         }
       ],
@@ -147,26 +147,26 @@
     },
     {
       "id": 6,
-      "question": "Pancho Villa, conocido como 'El Centauro del Norte', fue una figura clave en la Revolución. ¿Cuál fue uno de sus actos más audaces que provocó una intervención militar de Estados Unidos en territorio mexicano?",
+      "question": "Qué elemento del sistema de dirección es responsable de transmitir el movimiento giratorio del volante a las ruedas?",
       "options": [
         {
           "letter": "A",
-          "text": "La toma de la Ciudad de México junto a Emiliano Zapata.",
+          "text": "La bomba de dirección asistida",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "El ataque a Columbus, Nuevo México, en 1916.",
+          "text": "La cremallera de dirección",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "La firma del Tratado de Teoloyucan con Carranza.",
+          "text": "Los amortiguadores",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "El asedio y toma de Zacatecas en 1914.",
+          "text": "Los neumáticos",
           "isCorrect": false
         }
       ],
@@ -175,26 +175,26 @@
     },
     {
       "id": 7,
-      "question": "Tras la promulgación de la Constitución de 1917, ¿quién fue el primer presidente constitucional que intentó consolidar las instituciones post-revolucionarias y murió asesinado en 1920?",
+      "question": "Qué componente del sistema eléctrico es el encargado de generar electricidad para recargar la batería y alimentar los sistemas eléctricos del vehículo mientras el motor está en marcha?",
       "options": [
         {
           "letter": "A",
-          "text": "Plutarco Elías Calles",
+          "text": "La batería",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Álvaro Obregón",
+          "text": "El motor de arranque",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Venustiano Carranza",
+          "text": "El alternador",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Adolfo de la Huerta",
+          "text": "Las bujías",
           "isCorrect": false
         }
       ],
@@ -203,54 +203,26 @@
     },
     {
       "id": 8,
-      "question": "El periodo conocido como el Maximato (1928-1934) se caracterizó por la influencia política de un ex-presidente. ¿Quién fue la figura central de este periodo, ejerciendo un control significativo sobre los presidentes en turno?",
+      "question": "Cuál es la función principal del embrague en un vehículo con transmisión manual?",
       "options": [
         {
           "letter": "A",
-          "text": "Lázaro Cárdenas",
+          "text": "Cambiar las marchas automáticamente",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Emilio Portes Gil",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Álvaro Obregón",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Plutarco Elías Calles",
-          "isCorrect": true
-        }
-      ],
-      "correctAnswer": "D",
-      "obligatory": true
-    },
-    {
-      "id": 9,
-      "question": "¿Cuál de las siguientes acciones fue un legado crucial de la Revolución Mexicana en el ámbito educativo y cultural, buscando integrar a las masas y forjar una identidad nacional?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "La privatización total de la educación superior.",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "La creación de la Secretaría de Educación Pública (SEP) y la promoción de la educación rural y el muralismo.",
+          "text": "Conectar y desconectar el motor de la transmisión",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "La abolición de todas las escuelas religiosas.",
+          "text": "Aumentar la velocidad del motor",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "La prohibición de toda expresión artística de origen indígena.",
+          "text": "Reducir el consumo de combustible",
           "isCorrect": false
         }
       ],
@@ -258,27 +230,27 @@
       "obligatory": true
     },
     {
-      "id": 10,
-      "question": "Nueva pregunta",
+      "id": 9,
+      "question": "Qué tipo de combustible produce principalmente monóxido de carbono (CO), hidrocarburos no quemados (HC) y óxidos de nitrógeno (NOx) como subproductos de la combustión?",
       "options": [
         {
           "letter": "A",
-          "text": "Opción A",
+          "text": "Gasolina",
           "isCorrect": true
         },
         {
           "letter": "B",
-          "text": "Opción B",
+          "text": "Diésel",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Opción C",
+          "text": "Gas natural comprimido (GNC)",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Opción D",
+          "text": "Electricidad",
           "isCorrect": false
         }
       ],
@@ -286,41 +258,41 @@
       "obligatory": true
     },
     {
-      "id": 11,
-      "question": "Que dia es hoy",
+      "id": 10,
+      "question": "Qué indica una luz de advertencia roja con el símbolo de una batería en el tablero de instrumentos?",
       "options": [
         {
           "letter": "A",
-          "text": "miercoles",
-          "isCorrect": true
-        },
-        {
-          "letter": "B",
-          "text": "Opción B",
+          "text": "Nivel bajo de combustible",
           "isCorrect": false
         },
         {
+          "letter": "B",
+          "text": "Fallo en el sistema de carga (alternador o batería)",
+          "isCorrect": true
+        },
+        {
           "letter": "C",
-          "text": "Opción C",
+          "text": "Presión de aceite baja",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Opción D",
+          "text": "Temperatura del motor alta",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "obligatory": true
     }
   ],
-  "createdAt": "2025-11-05T19:17:52.571Z",
-  "professorId": "U_1762364594590",
+  "createdAt": "2025-11-05T20:26:41.211Z",
+  "professorId": "U_1762363249432",
   "status": "active",
   "examConfig": {
     "showExamAfter": false,
     "showCorrectAnswers": false,
     "resultOnly": true
   },
-  "examCode": "DKTNWT"
+  "examCode": "407EID"
 }
