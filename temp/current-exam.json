@@ -1,423 +1,326 @@
 {
-  "id": "EXAM_1760550726601",
-  "title": "Examen de programacion de videojuegos",
-  "subject": "programacion de videojuegos",
+  "id": "EXAM_1762370272571",
+  "title": "Examen de mexico",
+  "subject": "historia",
   "difficulty": "avanzado",
-  "numQuestions": 15,
+  "numQuestions": 11,
   "questions": [
     {
       "id": 1,
-      "question": "¿Cuál fue el estudio principal de Rockstar Games responsable del desarrollo de Grand Theft Auto V?",
+      "question": "¿Qué documento, promulgado por Francisco I. Madero en 1910, hizo un llamado a las armas para derrocar a Porfirio Díaz y estableció el 20 de noviembre de 1910 como la fecha de inicio de la insurrección?",
       "options": [
         {
           "letter": "A",
-          "text": "Rockstar San Diego",
+          "text": "Plan de Ayala",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Rockstar North",
+          "text": "Plan de San Luis Potosí",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Rockstar Leeds",
+          "text": "Plan de La Noria",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Rockstar Toronto",
+          "text": "Plan de Guadalupe",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "B",
+      "obligatory": true
     },
     {
       "id": 2,
-      "question": "¿En qué año fue anunciado oficialmente Grand Theft Auto V por primera vez?",
+      "question": "Emiliano Zapata, figura central del agrarismo en el sur de México, ¿contra qué presidente se levantó en armas tras sentirse traicionado en sus promesas de reforma agraria, promulgando el Plan de Ayala en 1911?",
       "options": [
         {
           "letter": "A",
-          "text": "2010",
+          "text": "Venustiano Carranza",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "2011",
-          "isCorrect": true
+          "text": "Álvaro Obregón",
+          "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "2012",
-          "isCorrect": false
+          "text": "Francisco I. Madero",
+          "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "2013",
+          "text": "Victoriano Huerta",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "C",
+      "obligatory": true
     },
     {
       "id": 3,
-      "question": "¿Cuál fue la fecha de lanzamiento inicial de Grand Theft Auto V para PlayStation 3 y Xbox 360?",
+      "question": "La Decena Trágica fue un golpe de estado militar que ocurrió en la Ciudad de México en febrero de 1913. ¿Quién fue el principal instigador militar que derrocó y, posteriormente, asesinó a Francisco I. Madero y José María Pino Suárez?",
       "options": [
         {
           "letter": "A",
-          "text": "17 de mayo de 2013",
+          "text": "Pascual Orozco",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "17 de septiembre de 2013",
-          "isCorrect": true
+          "text": "Venustiano Carranza",
+          "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "17 de noviembre de 2013",
-          "isCorrect": false
+          "text": "Victoriano Huerta",
+          "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "17 de enero de 2014",
+          "text": "Álvaro Obregón",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
+      "correctAnswer": "C",
+      "obligatory": true
     },
     {
       "id": 4,
-      "question": "¿Cuál fue el costo estimado de desarrollo y marketing de Grand Theft Auto V, convirtiéndolo en uno de los juegos más caros de la historia?",
+      "question": "¿Qué facción revolucionaria, liderada por Venustiano Carranza, fue la principal impulsora de la Constitución de 1917, estableciendo un marco legal que sentó las bases del México moderno?",
       "options": [
         {
           "letter": "A",
-          "text": "$100 millones",
+          "text": "Los Zapatistas",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "$150 millones",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "$265 millones",
+          "text": "Los Constitucionalistas",
           "isCorrect": true
         },
         {
+          "letter": "C",
+          "text": "Los Villistas",
+          "isCorrect": false
+        },
+        {
           "letter": "D",
-          "text": "$350 millones",
+          "text": "Los Maderistas",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "B",
+      "obligatory": true
     },
     {
       "id": 5,
-      "question": "¿Qué motor de juego propietario de Rockstar Games se utilizó para el desarrollo de Grand Theft Auto V?",
+      "question": "La Constitución Política de los Estados Unidos Mexicanos de 1917 introdujo importantes innovaciones sociales. ¿Cuál de los siguientes artículos es fundamental para entender la reforma agraria y la propiedad de la tierra en México?",
       "options": [
         {
           "letter": "A",
-          "text": "Unreal Engine 3",
+          "text": "Artículo 3° (Educación)",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "CryEngine 3",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "RAGE Engine",
+          "text": "Artículo 27° (Tierra y Recursos Naturales)",
           "isCorrect": true
         },
         {
+          "letter": "C",
+          "text": "Artículo 123° (Trabajo)",
+          "isCorrect": false
+        },
+        {
           "letter": "D",
-          "text": "Unity Engine",
+          "text": "Artículo 130° (Relación Iglesia-Estado)",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "B",
+      "obligatory": true
     },
     {
       "id": 6,
-      "question": "¿En qué se inspiró principalmente la ciudad ficticia de Los Santos en Grand Theft Auto V?",
+      "question": "Pancho Villa, conocido como 'El Centauro del Norte', fue una figura clave en la Revolución. ¿Cuál fue uno de sus actos más audaces que provocó una intervención militar de Estados Unidos en territorio mexicano?",
       "options": [
         {
           "letter": "A",
-          "text": "Nueva York",
+          "text": "La toma de la Ciudad de México junto a Emiliano Zapata.",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Miami",
-          "isCorrect": false
+          "text": "El ataque a Columbus, Nuevo México, en 1916.",
+          "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "San Francisco",
+          "text": "La firma del Tratado de Teoloyucan con Carranza.",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Los Ángeles",
-          "isCorrect": true
+          "text": "El asedio y toma de Zacatecas en 1914.",
+          "isCorrect": false
         }
       ],
-      "correctAnswer": "D"
+      "correctAnswer": "B",
+      "obligatory": true
     },
     {
       "id": 7,
-      "question": "¿Cuándo se lanzó la versión mejorada de Grand Theft Auto V para PlayStation 4 y Xbox One?",
+      "question": "Tras la promulgación de la Constitución de 1917, ¿quién fue el primer presidente constitucional que intentó consolidar las instituciones post-revolucionarias y murió asesinado en 1920?",
       "options": [
         {
           "letter": "A",
-          "text": "Noviembre de 2013",
+          "text": "Plutarco Elías Calles",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Abril de 2014",
+          "text": "Álvaro Obregón",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Noviembre de 2014",
+          "text": "Venustiano Carranza",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Abril de 2015",
+          "text": "Adolfo de la Huerta",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "C",
+      "obligatory": true
     },
     {
       "id": 8,
-      "question": "¿Cuándo se lanzó la versión de Grand Theft Auto V para PC?",
+      "question": "El periodo conocido como el Maximato (1928-1934) se caracterizó por la influencia política de un ex-presidente. ¿Quién fue la figura central de este periodo, ejerciendo un control significativo sobre los presidentes en turno?",
       "options": [
         {
           "letter": "A",
-          "text": "Noviembre de 2014",
+          "text": "Lázaro Cárdenas",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Enero de 2015",
+          "text": "Emilio Portes Gil",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Abril de 2015",
-          "isCorrect": true
+          "text": "Álvaro Obregón",
+          "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Junio de 2015",
-          "isCorrect": false
+          "text": "Plutarco Elías Calles",
+          "isCorrect": true
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "D",
+      "obligatory": true
     },
     {
       "id": 9,
-      "question": "¿Qué hito de ventas importante logró Grand Theft Auto V en sus primeros tres días de lanzamiento?",
+      "question": "¿Cuál de las siguientes acciones fue un legado crucial de la Revolución Mexicana en el ámbito educativo y cultural, buscando integrar a las masas y forjar una identidad nacional?",
       "options": [
         {
           "letter": "A",
-          "text": "Alcanzó los $500 millones en ventas",
+          "text": "La privatización total de la educación superior.",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Se convirtió en el juego más vendido del año",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Superó los $1 mil millones en ventas",
+          "text": "La creación de la Secretaría de Educación Pública (SEP) y la promoción de la educación rural y el muralismo.",
           "isCorrect": true
         },
         {
-          "letter": "D",
-          "text": "Vendió 10 millones de unidades",
+          "letter": "C",
+          "text": "La abolición de todas las escuelas religiosas.",
           "isCorrect": false
         },
         {
-          "letter": "E",
-          "text": "Recibió el premio al Juego del Año",
+          "letter": "D",
+          "text": "La prohibición de toda expresión artística de origen indígena.",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "B",
+      "obligatory": true
     },
     {
       "id": 10,
-      "question": "¿Quiénes son los tres protagonistas principales de Grand Theft Auto V?",
+      "question": "Nueva pregunta",
       "options": [
         {
           "letter": "A",
-          "text": "Niko, Claude y Carl",
-          "isCorrect": false
+          "text": "Opción A",
+          "isCorrect": true
         },
         {
           "letter": "B",
-          "text": "Franklin, Trevor y Lamar",
+          "text": "Opción B",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Michael, Franklin y Trevor",
-          "isCorrect": true
+          "text": "Opción C",
+          "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Johnny, Luis y Tony",
+          "text": "Opción D",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "C"
+      "correctAnswer": "A",
+      "obligatory": true
     },
     {
       "id": 11,
-      "question": "¿Qué componente multijugador masivo en línea se lanzó poco después del juego principal?",
+      "question": "Que dia es hoy",
       "options": [
         {
           "letter": "A",
-          "text": "GTA Battle Royale",
-          "isCorrect": false
+          "text": "miercoles",
+          "isCorrect": true
         },
         {
           "letter": "B",
-          "text": "GTA Racing Arena",
+          "text": "Opción B",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "GTA Online",
-          "isCorrect": true
-        },
-        {
-          "letter": "D",
-          "text": "Los Santos Stories",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "C"
-    },
-    {
-      "id": 12,
-      "question": "¿Qué característica clave de diseño permitió a los jugadores cambiar entre los tres protagonistas en tiempo real?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Un sistema de teletransporte",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "El sistema de 'Cambio Rápido'",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Puntos de control específicos",
+          "text": "Opción C",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Solo al completar misiones",
+          "text": "Opción D",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B"
-    },
-    {
-      "id": 13,
-      "question": "¿Qué tipo de contenido posterior al lanzamiento se convirtió en el foco principal de Rockstar para GTA V, en lugar de grandes expansiones de historia como en juegos anteriores?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Remakes de ciudades antiguas",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Paquetes de expansión de un solo jugador",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Actualizaciones continuas para GTA Online",
-          "isCorrect": true
-        },
-        {
-          "letter": "D",
-          "text": "Secuelas directas de la historia principal",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "C"
-    },
-    {
-      "id": 14,
-      "question": "¿Quiénes fueron algunos de los compositores principales que contribuyeron a la banda sonora original de Grand Theft Auto V?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Hans Zimmer y John Williams",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Daft Punk y Skrillex",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Tangerine Dream, Woody Jackson, Alchemist y Oh No",
-          "isCorrect": true
-        },
-        {
-          "letter": "D",
-          "text": "Trent Reznor y Atticus Ross",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "C"
-    },
-    {
-      "id": 15,
-      "question": "¿Cuál de las siguientes afirmaciones sobre el desarrollo de GTA V es INCORRECTA?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Fue el primer juego de la serie GTA en presentar tres protagonistas jugables simultáneamente.",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Se lanzó inicialmente solo para PC antes de llegar a consolas.",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "El mapa del juego era más grande que los de Red Dead Redemption, Grand Theft Auto IV y Grand Theft Auto: San Andreas combinados.",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "El desarrollo comenzó poco después del lanzamiento de Grand Theft Auto IV.",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B"
+      "correctAnswer": "A",
+      "obligatory": true
     }
   ],
-  "createdAt": "2025-10-15T17:52:06.601Z",
-  "professorId": "U_1760550620800",
+  "createdAt": "2025-11-05T19:17:52.571Z",
+  "professorId": "U_1762364594590",
   "status": "active",
-  "examCode": "7YKVH0"
+  "examConfig": {
+    "showExamAfter": false,
+    "showCorrectAnswers": false,
+    "resultOnly": true
+  },
+  "examCode": "DKTNWT"
 }

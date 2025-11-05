@@ -202,8 +202,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        if (examData.numQuestions < 1 || examData.numQuestions > 50) {
-            showMessage('El número de preguntas debe estar entre 1 y 50', 'error');
+        if (examData.numQuestions < 5 || examData.numQuestions > 10) {
+            showMessage('El número de preguntas debe estar entre 5 y 10', 'error');
             return false;
         }
         

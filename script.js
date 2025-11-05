@@ -5,12 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
     const userTypeRadios = document.querySelectorAll('input[name="userType"]');
-    const userTypeOptions = document.querySelectorAll('.user-type-option');
     const togglePasswordBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
     const passwordIcon = document.getElementById('passwordIcon');
     const rememberMeCheckbox = document.getElementById('rememberMe');
-    const rememberMeDiv = document.querySelector('.remember-checkbox');
     const messageContainer = document.getElementById('messageContainer');
     const message = document.getElementById('message');
 
@@ -23,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Aplicar estilos iniciales
         updateUserTypeSelection();
-        updateRememberMeCheckbox();
         
         // Cargar datos guardados si existen
         loadSavedCredentials();
@@ -51,7 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
         togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
         
         // Evento para recordar sesión
-        rememberMeCheckbox.addEventListener('change', updateRememberMeCheckbox);
+        if (rememberMeCheckbox) {
+            rememberMeCheckbox.addEventListener('change', updateRememberMeCheckbox);
+        }
         
         // Eventos para validación en tiempo real
         document.getElementById('email').addEventListener('blur', validateEmail);
@@ -59,27 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUserTypeSelection() {
-        userTypeOptions.forEach((option, index) => {
-            const radio = userTypeRadios[index];
-            if (radio.checked) {
-                option.classList.add('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                option.classList.remove('border-transparent');
-            } else {
-                option.classList.remove('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                option.classList.add('border-transparent');
-            }
-        });
+        // Esta función no es necesaria para el HTML actual
+        // ya que usa radio buttons con estilos CSS
     }
 
     function updateRememberMeCheckbox() {
-        const checkIcon = rememberMeDiv.querySelector('i');
-        if (rememberMeCheckbox.checked) {
-            rememberMeDiv.classList.add('bg-green-500', 'border-green-400');
-            checkIcon.classList.remove('opacity-0');
-        } else {
-            rememberMeDiv.classList.remove('bg-green-500', 'border-green-400');
-            checkIcon.classList.add('opacity-0');
-        }
+        // Esta función no es necesaria para el HTML actual
+        // ya que usa un checkbox simple
     }
 
     function togglePasswordVisibility() {
@@ -186,54 +171,43 @@ document.addEventListener('DOMContentLoaded', function() {
     async function authenticateUser(email, password, userType) {
         console.log('Autenticando usuario:', { email, userType });
         
-        // Credenciales de prueba (simplificado)
-        const validCredentials = {
-            'profesor@ucol.mx': { 
-                password: 'profesor123', 
-                type: 'profesor',
-                user: {
-                    id: 1,
-                    email: 'profesor@ucol.mx',
-                    nombre: 'Juan',
-                    apellido: 'Pérez',
-                    tipo_usuario: 'profesor'
-                }
-            },
-            'alumno@ucol.mx': { 
-                password: 'alumno123', 
-                type: 'alumno',
-                user: {
-                    id: 2,
-                    email: 'alumno@ucol.mx',
-                    nombre: 'María',
-                    apellido: 'González',
-                    tipo_usuario: 'alumno'
-                }
-            },
-            'admin@ucol.mx': { 
-                password: 'admin123', 
-                type: 'profesor',
-                user: {
-                    id: 3,
-                    email: 'admin@ucol.mx',
-                    nombre: 'Admin',
-                    apellido: 'Sistema',
-                    tipo_usuario: 'profesor'
-                }
+        try {
+            // Obtener usuarios del servidor
+            const resp = await fetch((window.getApiUrl ? window.getApiUrl('/users') : '/users'));
+            if (!resp.ok) {
+                throw new Error('No se pudo conectar al servidor');
             }
-        };
-        
-        const user = validCredentials[email.toLowerCase()];
-        
-        if (user && user.password === password && user.type === userType) {
-            // Guardar información del usuario en sessionStorage
-            sessionStorage.setItem('currentUser', JSON.stringify(user.user));
-            sessionStorage.setItem('sessionToken', 'token_' + Date.now());
-            console.log('Usuario autenticado correctamente:', user.user);
-            return true;
-        } else {
-            console.log('Credenciales incorrectas');
-            showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
+            
+            const data = await resp.json();
+            const users = data.users || [];
+            
+            // Buscar usuario por email y tipo
+            const user = users.find(u => 
+                String(u.email).toLowerCase() === String(email).toLowerCase() && 
+                String(u.tipo_usuario) === String(userType)
+            );
+            
+            if (user && String(user.password) === String(password)) {
+                // Guardar información del usuario en sessionStorage
+                const userPayload = { 
+                    id: user.id, 
+                    email: user.email, 
+                    nombre: user.nombre, 
+                    apellido: user.apellido, 
+                    tipo_usuario: user.tipo_usuario 
+                };
+                sessionStorage.setItem('currentUser', JSON.stringify(userPayload));
+                sessionStorage.setItem('sessionToken', 'token_' + Date.now());
+                console.log('Usuario autenticado correctamente:', userPayload);
+                return true;
+            } else {
+                console.log('Credenciales incorrectas');
+                showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error en autenticación:', error);
+            showMessage('Error del servidor. Intenta nuevamente.', 'error');
             return false;
         }
     }
@@ -292,24 +266,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aplicar estilos según el tipo de mensaje
         switch (type) {
             case 'success':
-                message.classList.add('bg-green-600', 'text-white');
+                message.classList.add('bg-green-100', 'text-green-800');
                 break;
             case 'error':
-                message.classList.add('bg-red-500', 'text-white');
+                message.classList.add('bg-red-100', 'text-red-800');
                 break;
             case 'info':
-                message.classList.add('bg-green-500', 'text-white');
+                message.classList.add('bg-blue-100', 'text-blue-800');
                 break;
             default:
-                message.classList.add('bg-gray-500', 'text-white');
+                message.classList.add('bg-gray-100', 'text-gray-800');
         }
         
-        messageContainer.classList.remove('hidden');
+        messageContainer.classList.remove('opacity-0');
         
         // Auto-ocultar mensajes de éxito e info después de 5 segundos
         if (type === 'success' || type === 'info') {
             setTimeout(() => {
-                messageContainer.classList.add('hidden');
+                messageContainer.classList.add('opacity-0');
             }, 5000);
         }
     }

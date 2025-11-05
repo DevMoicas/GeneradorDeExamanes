@@ -1,419 +1,306 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <exam>
-  <id>EXAM_1760550726601</id>
-  <title>Examen de programacion de videojuegos</title>
-  <subject>programacion de videojuegos</subject>
+  <id>EXAM_1762370272571</id>
+  <title>Examen de mexico</title>
+  <subject>historia</subject>
   <difficulty>avanzado</difficulty>
-  <numQuestions>15</numQuestions>
-  <createdAt>2025-10-15T17:52:06.601Z</createdAt>
+  <numQuestions>11</numQuestions>
+  <createdAt>2025-11-05T19:17:52.571Z</createdAt>
   <status>active</status>
   <questions>
     <question>
       <id>1</id>
-      <text>¿Cuál fue el estudio principal de Rockstar Games responsable del desarrollo de Grand Theft Auto V?</text>
+      <text>¿Qué documento, promulgado por Francisco I. Madero en 1910, hizo un llamado a las armas para derrocar a Porfirio Díaz y estableció el 20 de noviembre de 1910 como la fecha de inicio de la insurrección?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Rockstar San Diego</text>
+          <text>Plan de Ayala</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Rockstar North</text>
+          <text>Plan de San Luis Potosí</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Rockstar Leeds</text>
+          <text>Plan de La Noria</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Rockstar Toronto</text>
+          <text>Plan de Guadalupe</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>2</id>
-      <text>¿En qué año fue anunciado oficialmente Grand Theft Auto V por primera vez?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>Emiliano Zapata, figura central del agrarismo en el sur de México, ¿contra qué presidente se levantó en armas tras sentirse traicionado en sus promesas de reforma agraria, promulgando el Plan de Ayala en 1911?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>2010</text>
+          <text>Venustiano Carranza</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>2011</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>2012</text>
+          <text>Álvaro Obregón</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Francisco I. Madero</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>2013</text>
+          <text>Victoriano Huerta</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>3</id>
-      <text>¿Cuál fue la fecha de lanzamiento inicial de Grand Theft Auto V para PlayStation 3 y Xbox 360?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>La Decena Trágica fue un golpe de estado militar que ocurrió en la Ciudad de México en febrero de 1913. ¿Quién fue el principal instigador militar que derrocó y, posteriormente, asesinó a Francisco I. Madero y José María Pino Suárez?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>17 de mayo de 2013</text>
+          <text>Pascual Orozco</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>17 de septiembre de 2013</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>17 de noviembre de 2013</text>
+          <text>Venustiano Carranza</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Victoriano Huerta</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>17 de enero de 2014</text>
+          <text>Álvaro Obregón</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>4</id>
-      <text>¿Cuál fue el costo estimado de desarrollo y marketing de Grand Theft Auto V, convirtiéndolo en uno de los juegos más caros de la historia?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>¿Qué facción revolucionaria, liderada por Venustiano Carranza, fue la principal impulsora de la Constitución de 1917, estableciendo un marco legal que sentó las bases del México moderno?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>$100 millones</text>
+          <text>Los Zapatistas</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>$150 millones</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>$265 millones</text>
+          <text>Los Constitucionalistas</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Los Villistas</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>$350 millones</text>
+          <text>Los Maderistas</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>5</id>
-      <text>¿Qué motor de juego propietario de Rockstar Games se utilizó para el desarrollo de Grand Theft Auto V?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>La Constitución Política de los Estados Unidos Mexicanos de 1917 introdujo importantes innovaciones sociales. ¿Cuál de los siguientes artículos es fundamental para entender la reforma agraria y la propiedad de la tierra en México?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Unreal Engine 3</text>
+          <text>Artículo 3° (Educación)</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>CryEngine 3</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>RAGE Engine</text>
+          <text>Artículo 27° (Tierra y Recursos Naturales)</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Artículo 123° (Trabajo)</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Unity Engine</text>
+          <text>Artículo 130° (Relación Iglesia-Estado)</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>6</id>
-      <text>¿En qué se inspiró principalmente la ciudad ficticia de Los Santos en Grand Theft Auto V?</text>
-      <correctAnswer>D</correctAnswer>
+      <text>Pancho Villa, conocido como 'El Centauro del Norte', fue una figura clave en la Revolución. ¿Cuál fue uno de sus actos más audaces que provocó una intervención militar de Estados Unidos en territorio mexicano?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Nueva York</text>
+          <text>La toma de la Ciudad de México junto a Emiliano Zapata.</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Miami</text>
-          <isCorrect>false</isCorrect>
+          <text>El ataque a Columbus, Nuevo México, en 1916.</text>
+          <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>San Francisco</text>
+          <text>La firma del Tratado de Teoloyucan con Carranza.</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Los Ángeles</text>
-          <isCorrect>true</isCorrect>
+          <text>El asedio y toma de Zacatecas en 1914.</text>
+          <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>7</id>
-      <text>¿Cuándo se lanzó la versión mejorada de Grand Theft Auto V para PlayStation 4 y Xbox One?</text>
+      <text>Tras la promulgación de la Constitución de 1917, ¿quién fue el primer presidente constitucional que intentó consolidar las instituciones post-revolucionarias y murió asesinado en 1920?</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Noviembre de 2013</text>
+          <text>Plutarco Elías Calles</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Abril de 2014</text>
+          <text>Álvaro Obregón</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Noviembre de 2014</text>
+          <text>Venustiano Carranza</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Abril de 2015</text>
+          <text>Adolfo de la Huerta</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>8</id>
-      <text>¿Cuándo se lanzó la versión de Grand Theft Auto V para PC?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>El periodo conocido como el Maximato (1928-1934) se caracterizó por la influencia política de un ex-presidente. ¿Quién fue la figura central de este periodo, ejerciendo un control significativo sobre los presidentes en turno?</text>
+      <correctAnswer>D</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Noviembre de 2014</text>
+          <text>Lázaro Cárdenas</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Enero de 2015</text>
+          <text>Emilio Portes Gil</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Abril de 2015</text>
-          <isCorrect>true</isCorrect>
+          <text>Álvaro Obregón</text>
+          <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Junio de 2015</text>
-          <isCorrect>false</isCorrect>
+          <text>Plutarco Elías Calles</text>
+          <isCorrect>true</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>9</id>
-      <text>¿Qué hito de ventas importante logró Grand Theft Auto V en sus primeros tres días de lanzamiento?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>¿Cuál de las siguientes acciones fue un legado crucial de la Revolución Mexicana en el ámbito educativo y cultural, buscando integrar a las masas y forjar una identidad nacional?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Alcanzó los $500 millones en ventas</text>
+          <text>La privatización total de la educación superior.</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Se convirtió en el juego más vendido del año</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Superó los $1 mil millones en ventas</text>
+          <text>La creación de la Secretaría de Educación Pública (SEP) y la promoción de la educación rural y el muralismo.</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
-          <letter>D</letter>
-          <text>Vendió 10 millones de unidades</text>
+          <letter>C</letter>
+          <text>La abolición de todas las escuelas religiosas.</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
-          <letter>E</letter>
-          <text>Recibió el premio al Juego del Año</text>
+          <letter>D</letter>
+          <text>La prohibición de toda expresión artística de origen indígena.</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>10</id>
-      <text>¿Quiénes son los tres protagonistas principales de Grand Theft Auto V?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>Nueva pregunta</text>
+      <correctAnswer>A</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Niko, Claude y Carl</text>
-          <isCorrect>false</isCorrect>
+          <text>Opción A</text>
+          <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Franklin, Trevor y Lamar</text>
+          <text>Opción B</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Michael, Franklin y Trevor</text>
-          <isCorrect>true</isCorrect>
+          <text>Opción C</text>
+          <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Johnny, Luis y Tony</text>
+          <text>Opción D</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>11</id>
-      <text>¿Qué componente multijugador masivo en línea se lanzó poco después del juego principal?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>Que dia es hoy</text>
+      <correctAnswer>A</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>GTA Battle Royale</text>
-          <isCorrect>false</isCorrect>
+          <text>miercoles</text>
+          <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>GTA Racing Arena</text>
+          <text>Opción B</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>GTA Online</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>Los Santos Stories</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>12</id>
-      <text>¿Qué característica clave de diseño permitió a los jugadores cambiar entre los tres protagonistas en tiempo real?</text>
-      <correctAnswer>B</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>Un sistema de teletransporte</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>El sistema de 'Cambio Rápido'</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Puntos de control específicos</text>
+          <text>Opción C</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Solo al completar misiones</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>13</id>
-      <text>¿Qué tipo de contenido posterior al lanzamiento se convirtió en el foco principal de Rockstar para GTA V, en lugar de grandes expansiones de historia como en juegos anteriores?</text>
-      <correctAnswer>C</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>Remakes de ciudades antiguas</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Paquetes de expansión de un solo jugador</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Actualizaciones continuas para GTA Online</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>Secuelas directas de la historia principal</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>14</id>
-      <text>¿Quiénes fueron algunos de los compositores principales que contribuyeron a la banda sonora original de Grand Theft Auto V?</text>
-      <correctAnswer>C</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>Hans Zimmer y John Williams</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Daft Punk y Skrillex</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Tangerine Dream, Woody Jackson, Alchemist y Oh No</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>Trent Reznor y Atticus Ross</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>15</id>
-      <text>¿Cuál de las siguientes afirmaciones sobre el desarrollo de GTA V es INCORRECTA?</text>
-      <correctAnswer>B</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>Fue el primer juego de la serie GTA en presentar tres protagonistas jugables simultáneamente.</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Se lanzó inicialmente solo para PC antes de llegar a consolas.</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>El mapa del juego era más grande que los de Red Dead Redemption, Grand Theft Auto IV y Grand Theft Auto: San Andreas combinados.</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>El desarrollo comenzó poco después del lanzamiento de Grand Theft Auto IV.</text>
+          <text>Opción D</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>

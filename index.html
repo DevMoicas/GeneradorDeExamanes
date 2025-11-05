@@ -3,127 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Exámenes - Universidad de Colima</title>
+    <title>Iniciar Sesión - Generador de Exámenes UCOL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="config.js"></script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
-        }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-        }
-        .ucol-green {
-            background-color: #16a34a;
-        }
-        .ucol-green-dark {
-            background-color: #15803d;
-        }
-        .ucol-green-darker {
-            background-color: #166534;
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
         <!-- Logo y título -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4 shadow-lg">
-                <i class="fas fa-graduation-cap text-3xl text-green-600"></i>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <i class="fas fa-key text-3xl text-green-600"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Generador de Exámenes</h1>
-            <p class="text-green-100">Universidad de Colima</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-1">¡Bienvenido!</h1>
+            <p class="text-gray-500">Inicia sesión para continuar</p>
         </div>
 
         <!-- Formulario de inicio de sesión -->
-        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+        <div class="bg-white rounded-2xl p-8 shadow-lg">
             <form id="loginForm" class="space-y-6">
+                
                 <!-- Selector de tipo de usuario -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-white">Tipo de Usuario</label>
-                    <div class="flex space-x-4">
-                        <div class="flex items-center cursor-pointer" onclick="selectUserType('profesor')">
-                            <input type="radio" name="userType" value="profesor" id="profesor" checked style="display: none;">
-                            <div id="profesor-option" class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-green-400 bg-green-500 bg-opacity-30 text-white transition-all duration-200 hover:bg-opacity-30">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Usuario</label>
+                    <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1">
+                        <label>
+                            <input type="radio" name="userType" value="profesor" class="sr-only peer" checked>
+                            <div class="flex items-center justify-center cursor-pointer rounded-md py-2 px-4 text-center text-gray-600 peer-checked:bg-green-600 peer-checked:text-white peer-checked:shadow-md transition-all duration-300">
                                 <i class="fas fa-chalkboard-teacher mr-2"></i>
                                 <span>Profesor</span>
                             </div>
-                        </div>
-                        <div class="flex items-center cursor-pointer" onclick="selectUserType('alumno')">
-                            <input type="radio" name="userType" value="alumno" id="alumno" style="display: none;">
-                            <div id="alumno-option" class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-transparent bg-white bg-opacity-20 text-white transition-all duration-200 hover:bg-opacity-30">
+                        </label>
+                        <label>
+                            <input type="radio" name="userType" value="alumno" class="sr-only peer">
+                            <div class="flex items-center justify-center cursor-pointer rounded-md py-2 px-4 text-center text-gray-600 peer-checked:bg-green-600 peer-checked:text-white peer-checked:shadow-md transition-all duration-300">
                                 <i class="fas fa-user-graduate mr-2"></i>
                                 <span>Alumno</span>
                             </div>
-                        </div>
+                        </label>
                     </div>
                 </div>
 
                 <!-- Campo de email -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-medium text-white">Correo Electrónico</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="tu@email.com"
-                        >
-                    </div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="tu@email.com"
+                    >
                 </div>
 
                 <!-- Campo de contraseña -->
                 <div class="space-y-2">
-                    <label for="password" class="block text-sm font-medium text-white">Contraseña</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
                         <input 
                             type="password" 
                             id="password" 
                             name="password" 
                             required
-                            class="input-focus w-full pl-10 pr-12 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                             placeholder="••••••••"
                         >
                         <button 
                             type="button" 
                             id="togglePassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-green-600 transition-colors duration-200"
                         >
                             <i class="fas fa-eye" id="passwordIcon"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Recordar sesión -->
+                <!-- Recordar sesión y Olvidaste contraseña -->
                 <div class="flex items-center justify-between">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="rememberMe" class="sr-only">
-                        <div class="remember-checkbox w-5 h-5 border-2 border-white border-opacity-30 rounded flex items-center justify-center mr-2 transition-all duration-200">
-                            <i class="fas fa-check text-white text-xs opacity-0"></i>
-                        </div>
-                        <span class="text-white text-sm">Recordar sesión</span>
+                        <input type="checkbox" id="rememberMe" name="rememberMe" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                        <span class="ml-2 text-sm text-gray-600">Recordar sesión</span>
                     </label>
-                    <a href="#" class="text-green-200 hover:text-white text-sm transition-colors duration-200">¿Olvidaste tu contraseña?</a>
+                    <a href="#" class="text-sm font-medium text-green-600 hover:underline">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <!-- Botón de inicio de sesión -->
                 <button 
                     type="submit" 
-                    class="w-full bg-white text-green-600 py-3 px-4 rounded-lg font-semibold hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
                 >
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Iniciar Sesión
@@ -132,190 +109,20 @@
 
             <!-- Enlaces adicionales -->
             <div class="mt-6 text-center">
-                <p class="text-green-200 text-sm">
-                    ¿No tienes cuenta? 
-                    <a href="register.html" class="text-white hover:underline font-medium">Regístrate aquí</a>
+                <p class="text-sm text-gray-600">
+                    ¿No tienes una cuenta? 
+                    <a href="register.html" class="font-medium text-green-600 hover:underline">Regístrate aquí</a>
                 </p>
             </div>
         </div>
 
         <!-- Mensaje de error/success -->
-        <div id="messageContainer" class="mt-4 hidden">
+        <div id="messageContainer" class="mt-4 opacity-0 transition-opacity duration-300">
             <div id="message" class="p-4 rounded-lg text-center font-medium"></div>
         </div>
     </div>
 
-    <!-- Script principal simplificado -->
-    <script>
-        // Backend users JSON auth
-
-        // Función para seleccionar tipo de usuario
-        function selectUserType(type) {
-            console.log('Seleccionando tipo:', type);
-            
-            // Desmarcar todos los radio buttons
-            document.getElementById('profesor').checked = false;
-            document.getElementById('alumno').checked = false;
-            
-            // Marcar el seleccionado
-            document.getElementById(type).checked = true;
-            
-            // Actualizar estilos visuales
-            const profesorOption = document.getElementById('profesor-option');
-            const alumnoOption = document.getElementById('alumno-option');
-            
-            if (type === 'profesor') {
-                profesorOption.classList.add('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                profesorOption.classList.remove('border-transparent');
-                alumnoOption.classList.remove('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                alumnoOption.classList.add('border-transparent');
-            } else {
-                alumnoOption.classList.add('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                alumnoOption.classList.remove('border-transparent');
-                profesorOption.classList.remove('border-green-400', 'bg-green-500', 'bg-opacity-30');
-                profesorOption.classList.add('border-transparent');
-            }
-        }
-
-        // Función para mostrar/ocultar contraseña
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const passwordIcon = document.getElementById('passwordIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                passwordIcon.className = 'fas fa-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                passwordIcon.className = 'fas fa-eye';
-            }
-        }
-
-        // Función para mostrar mensajes
-        function showMessage(text, type) {
-            const messageContainer = document.getElementById('messageContainer');
-            const message = document.getElementById('message');
-            
-            message.textContent = text;
-            messageContainer.className = 'mt-4';
-            message.className = `p-4 rounded-lg text-center font-medium`;
-            
-            switch (type) {
-                case 'success':
-                    message.classList.add('bg-green-600', 'text-white');
-                    break;
-                case 'error':
-                    message.classList.add('bg-red-500', 'text-white');
-                    break;
-                case 'info':
-                    message.classList.add('bg-green-500', 'text-white');
-                    break;
-                default:
-                    message.classList.add('bg-gray-500', 'text-white');
-            }
-            
-            messageContainer.classList.remove('hidden');
-            
-            setTimeout(() => {
-                messageContainer.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Función de autenticación (contra /users JSON)
-        async function authenticateUser(email, password, userType) {
-            try {
-                const resp = await fetch((window.getApiUrl ? window.getApiUrl('/users') : '/users'));
-                if (!resp.ok) return { ok: false };
-                const data = await resp.json();
-                const users = data.users || [];
-                const u = users.find(x => String(x.email).toLowerCase() === String(email).toLowerCase() && String(x.tipo_usuario) === String(userType));
-                if (u && String(u.password) === String(password)) {
-                    const userPayload = { id: u.id, email: u.email, nombre: u.nombre, apellido: u.apellido, tipo_usuario: u.tipo_usuario };
-                    sessionStorage.setItem('currentUser', JSON.stringify(userPayload));
-                    sessionStorage.setItem('sessionToken', 'token_' + Date.now());
-                    return { ok: true, user: userPayload };
-                }
-                return { ok: false };
-            } catch (e) {
-                console.error('Auth error', e);
-                return { ok: false };
-            }
-        }
-
-        // Función de redirección
-        function redirectToDashboard(userType) {
-            const dashboardUrl = userType === 'profesor' ? 'dashboard-profesor.html' : 'dashboard-alumno.html';
-            console.log('Redirigiendo a:', dashboardUrl);
-            window.location.href = dashboardUrl;
-        }
-
-        // Manejar envío del formulario
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            const rememberMeCheckbox = document.getElementById('rememberMe');
-            const rememberMeDiv = document.querySelector('.remember-checkbox');
-            
-            // Evento del formulario
-            loginForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                const formData = new FormData(this);
-                const userType = formData.get('userType');
-                const email = formData.get('email').trim();
-                const password = formData.get('password');
-                const rememberMe = formData.get('rememberMe') === 'on';
-                
-                console.log('Datos del formulario:', { userType, email, password: '***', rememberMe });
-                
-                // Validar datos
-                if (!email || !password) {
-                    showMessage('Por favor, completa todos los campos.', 'error');
-                    return;
-                }
-                
-                // Mostrar mensaje de carga
-                showMessage('Iniciando sesión...', 'info');
-                
-                // Autenticar usuario
-                (async () => {
-                    const result = await authenticateUser(email, password, userType);
-                    if (result.ok) {
-                        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-                    const userName = currentUser ? `${currentUser.nombre} ${currentUser.apellido}` : 'Usuario';
-                    
-                    showMessage(`¡Bienvenido ${userName}! Redirigiendo...`, 'success');
-                    
-                    // Redirigir después de 2 segundos
-                    setTimeout(() => {
-                        redirectToDashboard(userType);
-                    }, 2000);
-                    } else {
-                        showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
-                    }
-                })();
-            });
-            
-            // Evento para mostrar/ocultar contraseña
-            togglePasswordBtn.addEventListener('click', togglePassword);
-            
-            // Evento para recordar sesión
-            rememberMeCheckbox.addEventListener('change', function() {
-                const checkbox = this;
-                const div = rememberMeDiv;
-                const icon = div.querySelector('i');
-                
-                if (checkbox.checked) {
-                    div.classList.add('bg-green-500', 'border-green-400');
-                    icon.classList.remove('opacity-0');
-                } else {
-                    div.classList.remove('bg-green-500', 'border-green-400');
-                    icon.classList.add('opacity-0');
-                }
-            });
-            
-            console.log('Sistema de login cargado correctamente');
-        });
-    </script>
+    <!-- Script principal -->
+    <script src="script.js"></script>
 </body>
 </html>

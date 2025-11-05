@@ -7,41 +7,56 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="config.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- SQL.js para base de datos SQLite -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-        }
-        .exam-card {
+        /* Estilos modernos y minimalistas */
+        .card-modern {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
         }
-        .exam-card:hover {
+        .card-modern:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .input-modern {
+            transition: all 0.2s ease;
+        }
+        .input-modern:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+        .btn-modern {
+            transition: all 0.3s ease;
+        }
+        .btn-modern:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg">
+<body class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white bg-opacity-10 backdrop-blur-md border-b border-white border-opacity-20">
+    <header class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center">
-                    <i class="fas fa-user-graduate text-2xl text-white mr-3"></i>
-                    <h1 class="text-xl font-bold text-white">Panel Alumno</h1>
+                    <div class="inline-flex items-center justify-center w-10 h-10 bg-green-100 rounded-full mr-3">
+                        <i class="fas fa-user-graduate text-lg text-green-600"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">Panel Alumno</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span id="userName" class="text-white text-sm"></span>
-                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                    <span id="userName" class="text-gray-700 text-sm font-medium"></span>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-sign-out-alt mr-2"></i>
                         Cerrar Sesión
                     </button>
@@ -53,126 +68,118 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Welcome Section -->
-        <div class="glass-effect rounded-2xl p-6 mb-8">
+        <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-white mb-2">¡Bienvenido, Alumno!</h2>
-                    <p class="text-green-100">Únete a exámenes y demuestra tus conocimientos</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Bienvenido, Alumno!</h2>
+                    <p class="text-gray-600">Únete a exámenes y demuestra tus conocimientos</p>
                 </div>
                 <div class="text-right">
-                    <div class="text-3xl font-bold text-white" id="examCount">0</div>
-                    <div class="text-green-100 text-sm">Exámenes Realizados</div>
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-2">
+                        <i class="fas fa-clipboard-check text-2xl text-green-600"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-800" id="examCount">0</div>
+                    <div class="text-gray-600 text-sm">Exámenes Realizados</div>
                 </div>
             </div>
         </div>
 
-        <!-- Join Exam Section -->
-        <div class="glass-effect rounded-2xl p-8 mb-8">
-            <h3 class="text-xl font-bold text-white mb-6">
-                <i class="fas fa-sign-in-alt mr-2"></i>
-                Unirse a un Examen
+
+        <!-- Available Exams Section -->
+        <!-- Unirse a Examen por Código -->
+        <div class="card-modern p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-key mr-2 text-green-600"></i>
+                Unirse a Examen
             </h3>
             
-            <form id="joinExamForm" class="space-y-6">
-                <!-- Exam Code -->
-                <div class="space-y-2">
-                    <label for="examCode" class="block text-sm font-medium text-white">Código del Examen</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-key text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="text" 
-                            id="examCode" 
-                            name="examCode" 
-                            required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Ingresa el código del examen"
-                        >
+            <form id="joinExamForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="examCode" class="block text-sm font-medium text-gray-700 mb-2">
+                            Código del Examen
+                        </label>
+                        <input type="text" id="examCode" name="examCode" required
+                               class="input-modern w-full"
+                               placeholder="Ingresa el código del examen">
                     </div>
-                    <p class="text-green-200 text-sm">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        El profesor te proporcionará el código del examen
-                    </p>
-                </div>
-
-                <!-- Student Name -->
-                <div class="space-y-2">
-                    <label for="studentName" class="block text-sm font-medium text-white">Tu Nombre Completo</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-user text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="text" 
-                            id="studentName" 
-                            name="studentName" 
-                            required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Nombre y apellido"
-                        >
+                    <div>
+                        <label for="studentName" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nombre Completo
+                        </label>
+                        <input type="text" id="studentName" name="studentName" required
+                               class="input-modern w-full"
+                               placeholder="Tu nombre completo">
                     </div>
                 </div>
-
-                <!-- Student ID -->
-                <div class="space-y-2">
-                    <label for="studentId" class="block text-sm font-medium text-white">Número de Control (Opcional)</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-id-card text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="text" 
-                            id="studentId" 
-                            name="studentId"
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Número de control del estudiante"
-                        >
-                    </div>
+                <div>
+                    <label for="studentId" class="block text-sm font-medium text-gray-700 mb-2">
+                        Número de Cuenta <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="studentId" name="studentId" required
+                           class="input-modern w-full"
+                           placeholder="Tu número de cuenta">
                 </div>
-
-                <!-- Join Button -->
-                <button 
-                    type="submit" 
-                    id="joinBtn"
-                    class="w-full bg-white text-green-600 py-3 px-4 rounded-lg font-semibold hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
-                >
+                <button type="submit" id="joinBtn" class="btn-modern bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg w-full">
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Unirse al Examen
                 </button>
             </form>
         </div>
 
-        <!-- Available Exams Section -->
-        <div class="glass-effect rounded-2xl p-8 mb-8">
-            <h3 class="text-xl font-bold text-white mb-6">
-                <i class="fas fa-list mr-2"></i>
-                Exámenes Disponibles
+        <!-- Exámenes Pendientes -->
+        <div class="card-modern p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-clock mr-2 text-yellow-600"></i>
+                Exámenes Pendientes
             </h3>
             
-            <div id="availableExamsList" class="space-y-4">
-                <!-- Los exámenes disponibles se cargarán aquí -->
-                <div class="text-center text-green-200 py-8">
-                    <i class="fas fa-search text-4xl mb-4 opacity-50"></i>
-                    <p>No hay exámenes disponibles</p>
-                    <p class="text-sm">Los exámenes aparecerán aquí cuando estén activos</p>
+            <div id="pendingExamsList" class="space-y-4">
+                <!-- Los exámenes pendientes se cargarán aquí -->
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-hourglass-half text-4xl mb-4 opacity-50"></i>
+                    <p>No tienes exámenes pendientes</p>
+                    <p class="text-sm">Únete a un examen para verlo aquí</p>
                 </div>
             </div>
         </div>
 
-        <!-- Exam History Section -->
-        <div class="glass-effect rounded-2xl p-8">
-            <h3 class="text-xl font-bold text-white mb-6">
-                <i class="fas fa-history mr-2"></i>
-                Historial de Exámenes
+        <!-- Exámenes Terminados -->
+        <div class="card-modern p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-check-circle mr-2 text-green-600"></i>
+                Exámenes Terminados
             </h3>
             
-            <div id="examHistoryList" class="space-y-4">
-                <!-- El historial se cargará aquí -->
-                <div class="text-center text-green-200 py-8">
-                    <i class="fas fa-clipboard-list text-4xl mb-4 opacity-50"></i>
-                    <p>No has realizado exámenes aún</p>
-                    <p class="text-sm">Tu historial aparecerá aquí después de completar exámenes</p>
+            <div id="completedExamsList" class="space-y-4">
+                <!-- Los exámenes terminados se cargarán aquí -->
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-clipboard-check text-4xl mb-4 opacity-50"></i>
+                    <p>No has completado exámenes aún</p>
+                    <p class="text-sm">Los exámenes completados aparecerán aquí</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exámenes Archivados -->
+        <div class="card-modern p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-archive mr-2 text-gray-600"></i>
+                    Exámenes Archivados
+                </h3>
+                <button id="toggleArchivedExams" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                    <i class="fas fa-chevron-down mr-1"></i>
+                    Mostrar archivados
+                </button>
+            </div>
+            
+            <div id="archivedExamsList" class="space-y-4 hidden">
+                <!-- Los exámenes archivados se cargarán aquí -->
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-archive text-4xl mb-4 opacity-50"></i>
+                    <p>No tienes exámenes archivados</p>
+                    <p class="text-sm">Los exámenes archivados aparecerán aquí</p>
                 </div>
             </div>
         </div>
@@ -180,10 +187,10 @@
 
     <!-- Join Exam Modal -->
     <div id="joinExamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect rounded-2xl p-8 max-w-2xl mx-4">
+        <div class="card-modern p-8 max-w-2xl mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-white">Confirmar Unión al Examen</h3>
-                <button id="closeJoinModal" class="text-white hover:text-red-300 text-2xl">
+                <h3 class="text-2xl font-bold text-gray-800">Confirmar Unión al Examen</h3>
+                <button id="closeJoinModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -193,10 +200,10 @@
             </div>
             
             <div class="flex justify-end space-x-4">
-                <button id="cancelJoinBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                <button id="cancelJoinBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                     Cancelar
                 </button>
-                <button id="confirmJoinBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                <button id="confirmJoinBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                     <i class="fas fa-check mr-2"></i>
                     Confirmar
                 </button>
@@ -206,20 +213,20 @@
 
     <!-- Take Exam Modal -->
     <div id="takeExamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect rounded-2xl p-8 max-w-3xl w-full mx-4 max-h-[85vh] overflow-y-auto">
+        <div class="card-modern p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
-                <h3 id="takeExamTitle" class="text-2xl font-bold text-white">Examen</h3>
-                <button id="closeTakeExamModal" class="text-white hover:text-red-300 text-2xl">
+                <h3 id="takeExamTitle" class="text-2xl font-bold text-gray-800">Examen</h3>
+                <button id="closeTakeExamModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <form id="takeExamForm" class="space-y-6">
                 <div id="takeExamBody" class="space-y-4"></div>
                 <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" id="cancelTakeExamBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                    <button type="button" id="cancelTakeExamBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         Cancelar
                     </button>
-                    <button type="submit" id="submitExamBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+                    <button type="submit" id="submitExamBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-paper-plane mr-2"></i>
                         Enviar Respuestas
                     </button>
@@ -227,6 +234,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- Message Container -->
     <div id="messageContainer" class="fixed top-4 right-4 z-50 hidden">

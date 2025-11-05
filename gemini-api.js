@@ -72,17 +72,17 @@ class GeminiAPI {
             const prompt = this.buildExamPrompt(examData);
             console.log('📝 Prompt enviado a Gemini:', prompt);
             
+            // Configuración con tokens altos para priorizar completitud
+            const primaryMaxTokens = 4096; // objetivo alto
             const requestBody = {
                 contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
+                    parts: [{ text: prompt }]
                 }],
                 generationConfig: {
                     temperature: 0.7,
                     topK: 40,
                     topP: 0.95,
-                    maxOutputTokens: 2048,
+                    maxOutputTokens: primaryMaxTokens,
                 }
             };
 
@@ -97,13 +97,39 @@ class GeminiAPI {
 
             console.log('📡 Respuesta recibida:', response.status);
 
+            // Si la primera solicitud falla, intentar una de respaldo con menos temperatura y menos tokens
+            let data;
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('❌ Error de API:', errorData);
-                throw new Error(`Error de API: ${errorData.error?.message || 'Error desconocido'}`);
-            }
+                let errorData = null;
+                try { errorData = await response.json(); } catch (_) {}
+                console.warn('⚠️ Primer intento falló. Reintentando con menos tokens...', errorData);
 
-            const data = await response.json();
+                const fallbackBody = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.5,
+                        topK: 32,
+                        topP: 0.9,
+                        maxOutputTokens: 3072,
+                    }
+                };
+
+                const response2 = await fetch(`${this.baseURL}?key=${this.apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fallbackBody)
+                });
+
+                if (!response2.ok) {
+                    let errorData2 = null;
+                    try { errorData2 = await response2.json(); } catch (_) {}
+                    console.error('❌ Error de API en reintento:', errorData2);
+                    throw new Error(`Error de API (reintento): ${errorData2?.error?.message || 'Error desconocido'}`);
+                }
+                data = await response2.json();
+            } else {
+                data = await response.json();
+            }
             console.log('✅ Datos recibidos de Gemini:', data);
             
             if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
@@ -126,19 +152,31 @@ class GeminiAPI {
 
     // Construir el prompt para Gemini
     buildExamPrompt(examData) {
-        const { title, subject, numQuestions, difficulty, aiPrompt } = examData;
+        const { title, subject, numQuestions, difficulty } = examData;
+        // Permitir prompts largos (no truncar), solo normalizar espacios extremos
+        let aiPrompt = (examData.aiPrompt || '').toString();
+        aiPrompt = aiPrompt.replace(/\s+/g, ' ').trim();
         
-        return `Eres un experto en educación y creación de exámenes. Genera un examen completo basado en los siguientes parámetros:
+        return `Eres un experto en educación y creación de exámenes. Tu tarea es generar un examen completo con el número EXACTO de preguntas solicitado.
 
-TÍTULO DEL EXAMEN: ${title}
-MATERIA: ${subject}
-NÚMERO DE PREGUNTAS: ${numQuestions}
-NIVEL DE DIFICULTAD: ${difficulty}
-INSTRUCCIONES ESPECÍFICAS: ${aiPrompt}
+PARÁMETROS OBLIGATORIOS:
+- TÍTULO DEL EXAMEN: ${title}
+- MATERIA: ${subject}
+- NÚMERO DE PREGUNTAS REQUERIDAS: ${numQuestions} (CRÍTICO: DEBE SER EXACTAMENTE ${numQuestions})
+- NIVEL DE DIFICULTAD: ${difficulty}
+- INSTRUCCIONES ESPECÍFICAS: ${aiPrompt}
+
+INSTRUCCIONES CRÍTICAS:
+1. DEBES generar EXACTAMENTE ${numQuestions} preguntas, ni más ni menos
+2. Cada pregunta debe tener 4 opciones (A, B, C, D)
+3. Una sola opción debe ser correcta por pregunta
+4. Las preguntas deben ser variadas y apropiadas para el nivel ${difficulty}
+5. Si no puedes generar ${numQuestions} preguntas sobre el tema específico, genera preguntas adicionales sobre temas relacionados
+6. Esta es la regla más importante: EXACTAMENTE ${numQuestions} preguntas
 
 FORMATO REQUERIDO:
 1. Cada pregunta debe tener:
-   - Número de pregunta
+   - Número de pregunta (1, 2, 3, ..., ${numQuestions})
    - Enunciado claro y conciso
    - 4 opciones de respuesta (A, B, C, D)
    - Una respuesta correcta marcada con [CORRECTA]
@@ -160,7 +198,24 @@ B) Opción 2 [CORRECTA]
 C) Opción 3
 D) Opción 4
 
-Genera el examen completo siguiendo exactamente este formato.`;
+2. ¿Qué característica es importante en...?
+A) Característica A
+B) Característica B [CORRECTA]
+C) Característica C
+D) Característica D
+
+... continuar hasta la pregunta ${numQuestions}
+
+RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla más importante.`;
+    }
+
+    // Estimación conservadora de tokens de salida para evitar límites
+    computeMaxOutputTokens(numQuestions) {
+        const n = Math.max(1, Math.min(50, Number(numQuestions) || 5));
+        // Aproximación: ~60 tokens por pregunta + 300 de overhead
+        const estimate = 60 * n + 300;
+        // Limitar a 1200 para mantener margen y evitar errores de cuota
+        return Math.min(1200, Math.max(400, estimate));
     }
 
     // Parsear la respuesta de Gemini
@@ -245,10 +300,44 @@ Genera el examen completo siguiendo exactamente este formato.`;
                 question: q.question || '',
                 options: (q.options || []).map(o => ({ letter: o.letter, text: o.text, isCorrect: !!o.isCorrect })),
                 correctAnswer: q.correctAnswer || (q.options || []).find(o => o.isCorrect)?.letter || null,
-                explanation: q.explanation || ''
+                explanation: q.explanation || '',
+                obligatory: q.obligatory === true // Solo obligatoria si explícitamente es true
             }));
 
             console.log('Preguntas parseadas:', normalized);
+            console.log('Preguntas solicitadas:', examData.numQuestions);
+            console.log('Preguntas generadas:', normalized.length);
+
+            // VALIDACIÓN Y CORRECCIÓN DEL NÚMERO DE PREGUNTAS
+            const targetQuestions = examData.numQuestions || 5;
+            let finalQuestions = [...normalized];
+
+            if (finalQuestions.length !== targetQuestions) {
+                console.warn(`⚠️ Número de preguntas incorrecto: ${finalQuestions.length}/${targetQuestions}`);
+                
+                if (finalQuestions.length < targetQuestions) {
+                    // Generar preguntas adicionales si faltan
+                    console.log(`➕ Generando ${targetQuestions - finalQuestions.length} preguntas adicionales...`);
+                    const additionalQuestions = this.generateAdditionalQuestions(
+                        examData, 
+                        targetQuestions - finalQuestions.length, 
+                        finalQuestions.length + 1
+                    );
+                    finalQuestions = [...finalQuestions, ...additionalQuestions];
+                } else if (finalQuestions.length > targetQuestions) {
+                    // Eliminar preguntas excedentes si sobran
+                    console.log(`➖ Eliminando ${finalQuestions.length - targetQuestions} preguntas excedentes...`);
+                    finalQuestions = finalQuestions.slice(0, targetQuestions);
+                }
+            }
+
+            // Renumerar preguntas para asegurar consistencia
+            finalQuestions = finalQuestions.map((q, idx) => ({
+                ...q,
+                id: idx + 1
+            }));
+
+            console.log(`✅ Preguntas finales: ${finalQuestions.length}/${targetQuestions}`);
 
             return {
                 success: true,
@@ -257,8 +346,8 @@ Genera el examen completo siguiendo exactamente este formato.`;
                     title: examData.title || maybeJson?.examTitle || 'Examen',
                     subject: examData.subject || maybeJson?.subject || 'General',
                     difficulty: examData.difficulty || 'intermedio',
-                    numQuestions: normalized.length,
-                    questions: normalized,
+                    numQuestions: finalQuestions.length,
+                    questions: finalQuestions,
                     createdAt: new Date().toISOString(),
                     professorId: examData.professorId || null,
                     status: 'generated'
@@ -274,6 +363,111 @@ Genera el examen completo siguiendo exactamente este formato.`;
                 rawResponse: text
             };
         }
+    }
+
+    // Generar preguntas adicionales cuando la IA no genera el número correcto
+    generateAdditionalQuestions(examData, count, startId) {
+        const questions = [];
+        const { subject, difficulty, title } = examData;
+        
+        // Plantillas de preguntas basadas en la materia y dificultad
+        const questionTemplates = this.getQuestionTemplates(subject, difficulty);
+        
+        for (let i = 0; i < count; i++) {
+            const template = questionTemplates[i % questionTemplates.length];
+            const questionNumber = startId + i;
+            
+            questions.push({
+                id: questionNumber,
+                question: template.question.replace('{subject}', subject).replace('{title}', title),
+                options: template.options.map(opt => ({
+                    letter: opt.letter,
+                    text: opt.text.replace('{subject}', subject),
+                    isCorrect: opt.isCorrect
+                })),
+                correctAnswer: template.correctAnswer,
+                explanation: template.explanation.replace('{subject}', subject),
+                obligatory: true // Por defecto obligatoria
+            });
+        }
+        
+        return questions;
+    }
+
+    // Plantillas de preguntas por materia y dificultad
+    getQuestionTemplates(subject, difficulty) {
+        const baseTemplates = [
+            {
+                question: `¿Cuál es un concepto fundamental en {subject}?`,
+                options: [
+                    { letter: 'A', text: 'Opción básica A', isCorrect: false },
+                    { letter: 'B', text: 'Opción básica B', isCorrect: false },
+                    { letter: 'C', text: 'Concepto fundamental correcto', isCorrect: true },
+                    { letter: 'D', text: 'Opción básica D', isCorrect: false }
+                ],
+                correctAnswer: 'C',
+                explanation: 'Esta es la respuesta correcta porque representa un concepto fundamental en {subject}.'
+            },
+            {
+                question: `¿Qué característica es importante en {subject}?`,
+                options: [
+                    { letter: 'A', text: 'Característica importante', isCorrect: true },
+                    { letter: 'B', text: 'Opción secundaria B', isCorrect: false },
+                    { letter: 'C', text: 'Opción secundaria C', isCorrect: false },
+                    { letter: 'D', text: 'Opción secundaria D', isCorrect: false }
+                ],
+                correctAnswer: 'A',
+                explanation: 'Esta característica es fundamental para entender {subject}.'
+            },
+            {
+                question: `¿Cuál es el objetivo principal de estudiar {subject}?`,
+                options: [
+                    { letter: 'A', text: 'Objetivo secundario A', isCorrect: false },
+                    { letter: 'B', text: 'Objetivo principal correcto', isCorrect: true },
+                    { letter: 'C', text: 'Objetivo secundario C', isCorrect: false },
+                    { letter: 'D', text: 'Objetivo secundario D', isCorrect: false }
+                ],
+                correctAnswer: 'B',
+                explanation: 'Este es el objetivo principal de estudiar {subject}.'
+            },
+            {
+                question: `¿Qué método es más efectivo para aprender {subject}?`,
+                options: [
+                    { letter: 'A', text: 'Método tradicional', isCorrect: false },
+                    { letter: 'B', text: 'Método efectivo correcto', isCorrect: true },
+                    { letter: 'C', text: 'Método alternativo', isCorrect: false },
+                    { letter: 'D', text: 'Método básico', isCorrect: false }
+                ],
+                correctAnswer: 'B',
+                explanation: 'Este método ha demostrado ser más efectivo para aprender {subject}.'
+            },
+            {
+                question: `¿Cuál es una aplicación práctica de {subject}?`,
+                options: [
+                    { letter: 'A', text: 'Aplicación práctica correcta', isCorrect: true },
+                    { letter: 'B', text: 'Aplicación teórica B', isCorrect: false },
+                    { letter: 'C', text: 'Aplicación teórica C', isCorrect: false },
+                    { letter: 'D', text: 'Aplicación teórica D', isCorrect: false }
+                ],
+                correctAnswer: 'A',
+                explanation: 'Esta es una aplicación práctica común de {subject}.'
+            }
+        ];
+
+        // Ajustar dificultad
+        if (difficulty === 'básico') {
+            return baseTemplates.map(t => ({
+                ...t,
+                question: t.question.replace('concepto fundamental', 'concepto básico')
+            }));
+        } else if (difficulty === 'avanzado') {
+            return baseTemplates.map(t => ({
+                ...t,
+                question: t.question.replace('concepto fundamental', 'concepto avanzado')
+            }));
+        }
+
+        return baseTemplates;
     }
 
     // Generar ID único para el examen
@@ -393,8 +587,8 @@ Genera el examen completo siguiendo exactamente este formato.`;
             }
         }
         
-        if (examData.numQuestions < 1 || examData.numQuestions > 50) {
-            throw new Error('El número de preguntas debe estar entre 1 y 50');
+        if (examData.numQuestions < 5 || examData.numQuestions > 10) {
+            throw new Error('El número de preguntas debe estar entre 5 y 10');
         }
         
         const validDifficulties = ['básico', 'intermedio', 'avanzado'];

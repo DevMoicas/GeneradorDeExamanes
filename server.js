@@ -5,7 +5,7 @@ const path = require('path');
 const { createExamXML, createAnswersXML, parseExamXMLToJson } = require('./xml-utils');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors());
@@ -185,6 +185,7 @@ app.get('/exam/code/:code/public', (req, res) => {
             difficulty: exam.difficulty,
             numQuestions: exam.numQuestions,
             createdAt: exam.createdAt,
+            examConfig: exam.examConfig || { resultOnly: true, showExamAfter: false, showCorrectAnswers: false },
             status: 'active',
             questions: (exam.questions || []).map(q => ({
                 id: q.id,

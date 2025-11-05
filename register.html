@@ -6,49 +6,46 @@
     <title>Registro - Generador de Exámenes UCOL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="config.js"></script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
-        }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .input-focus:focus {
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
         <!-- Logo y título -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4 shadow-lg">
-                <i class="fas fa-user-plus text-3xl text-green-600"></i>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <i class="fas fa-file-alt text-3xl text-green-600"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Registro de Usuario</h1>
-            <p class="text-green-100">Universidad de Colima</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-1">Crea tu Cuenta</h1>
+            <p class="text-gray-500">Generador de Exámenes - Universidad de Colima</p>
         </div>
 
         <!-- Formulario de registro -->
-        <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+        <div class="bg-white rounded-2xl p-8 shadow-lg">
             <form id="registerForm" class="space-y-6">
+                
                 <!-- Selector de tipo de usuario -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-white">Tipo de Usuario</label>
-                    <div class="flex space-x-4">
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="userType" value="profesor" class="sr-only" checked>
-                            <div class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-transparent bg-white bg-opacity-20 text-white transition-all duration-200 hover:bg-opacity-30">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Usuario</label>
+                    <div class="grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1">
+                        <label>
+                            <input type="radio" name="userType" value="profesor" class="sr-only peer" checked>
+                            <div class="flex items-center justify-center cursor-pointer rounded-md py-2 px-4 text-center text-gray-600 peer-checked:bg-green-600 peer-checked:text-white peer-checked:shadow-md transition-all duration-300">
                                 <i class="fas fa-chalkboard-teacher mr-2"></i>
                                 <span>Profesor</span>
                             </div>
                         </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="userType" value="alumno" class="sr-only">
-                            <div class="user-type-option flex items-center px-4 py-3 rounded-lg border-2 border-transparent bg-white bg-opacity-20 text-white transition-all duration-200 hover:bg-opacity-30">
+                        <label>
+                            <input type="radio" name="userType" value="alumno" class="sr-only peer">
+                            <div class="flex items-center justify-center cursor-pointer rounded-md py-2 px-4 text-center text-gray-600 peer-checked:bg-green-600 peer-checked:text-white peer-checked:shadow-md transition-all duration-300">
                                 <i class="fas fa-user-graduate mr-2"></i>
                                 <span>Alumno</span>
                             </div>
@@ -56,51 +53,40 @@
                     </div>
                 </div>
 
-                <!-- Código de profesor -->
+                <!-- Código de profesor (condicional) -->
                 <div id="professorCodeField" class="space-y-2 hidden">
-                    <label for="professorCode" class="block text-sm font-medium text-white">Código de Docente</label>
-                    <div class="text-green-200 text-xs mb-1">Solo docentes con código institucional pueden registrarse.</div>
+                    <label for="professorCode" class="block text-sm font-medium text-gray-700">Código de Docente</label>
                     <input 
                         type="text" 
                         id="professorCode" 
                         name="professorCode" 
-                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                         placeholder="Ingresa tu código institucional"
                     >
-                    <div class="text-xs text-green-200">El código válido actualmente es: <span class="font-mono">telematica2025tesis</span></div>
+                    <p class="text-xs text-gray-500">El código válido es: <span class="font-mono text-green-600">telematica2025tesis</span></p>
                 </div>
 
-                <!-- Nombre -->
-                <div class="space-y-2">
-                    <label for="nombre" class="block text-sm font-medium text-white">Nombre</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-user text-gray-400"></i>
-                        </div>
+                <!-- Nombre y Apellido en una fila -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
                         <input 
                             type="text" 
                             id="nombre" 
                             name="nombre" 
                             required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                             placeholder="Tu nombre"
                         >
                     </div>
-                </div>
-
-                <!-- Apellido -->
-                <div class="space-y-2">
-                    <label for="apellido" class="block text-sm font-medium text-white">Apellido</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-user text-gray-400"></i>
-                        </div>
+                    <div class="space-y-2">
+                        <label for="apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
                         <input 
                             type="text" 
                             id="apellido" 
                             name="apellido" 
                             required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                             placeholder="Tu apellido"
                         >
                     </div>
@@ -108,96 +94,79 @@
 
                 <!-- Campo de email -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-medium text-white">Correo Electrónico</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="tu@email.com"
-                        >
-                    </div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="tu@email.com"
+                    >
                 </div>
 
                 <!-- Campo de contraseña -->
                 <div class="space-y-2">
-                    <label for="password" class="block text-sm font-medium text-white">Contraseña</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
                         <input 
                             type="password" 
                             id="password" 
                             name="password" 
                             required
-                            class="input-focus w-full pl-10 pr-12 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                             placeholder="••••••••"
                         >
                         <button 
                             type="button" 
                             id="togglePassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-green-600 transition-colors duration-200"
                         >
                             <i class="fas fa-eye" id="passwordIcon"></i>
                         </button>
                     </div>
-                    <div class="text-xs text-green-200">
-                        Mínimo 6 caracteres
-                    </div>
+                     <p class="text-xs text-gray-500">Mínimo 6 caracteres.</p>
                 </div>
 
                 <!-- Confirmar contraseña -->
                 <div class="space-y-2">
-                    <label for="confirmPassword" class="block text-sm font-medium text-white">Confirmar Contraseña</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
-                        <input 
-                            type="password" 
-                            id="confirmPassword" 
-                            name="confirmPassword" 
-                            required
-                            class="input-focus w-full pl-10 pr-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                            placeholder="••••••••"
-                        >
-                    </div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                        placeholder="••••••••"
+                    >
                 </div>
-
-                <!-- Terms removed per requirements -->
 
                 <!-- Botón de registro -->
                 <button 
                     type="submit" 
-                    class="w-full bg-white text-green-600 py-3 px-4 rounded-lg font-semibold hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
                 >
                     <i class="fas fa-user-plus mr-2"></i>
-                    Registrarse
+                    Crear Cuenta
                 </button>
             </form>
 
             <!-- Enlaces adicionales -->
             <div class="mt-6 text-center">
-                <p class="text-green-200 text-sm">
-                    ¿Ya tienes cuenta? 
-                    <a href="index.html" class="text-white hover:underline font-medium">Inicia sesión aquí</a>
+                <p class="text-sm text-gray-600">
+                    ¿Ya tienes una cuenta? 
+                    <a href="index.html" class="font-medium text-green-600 hover:underline">Inicia sesión</a>
                 </p>
             </div>
         </div>
 
         <!-- Mensaje de error/success -->
-        <div id="messageContainer" class="mt-4 hidden">
+        <div id="messageContainer" class="mt-4 opacity-0 transition-opacity duration-300">
             <div id="message" class="p-4 rounded-lg text-center font-medium"></div>
         </div>
     </div>
 
-    <!-- Script de registro -->
+    <!-- Script de registro (sin cambios) -->
     <script src="register.js"></script>
 </body>
 </html>
