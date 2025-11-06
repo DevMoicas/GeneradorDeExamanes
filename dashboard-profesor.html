@@ -534,6 +534,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         const logoutBtn = document.getElementById('logoutBtn');
         const saveExamBtn = document.getElementById('saveExamBtn');
         const examCodeDisplay = document.getElementById('examCodeDisplay');
+        const editExamBtn = document.getElementById('editExamBtn');
+        const applyChangesBtn = document.getElementById('applyChangesBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const configExamBtn = document.getElementById('configExamBtn');
+        const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
 
         let lastGeneratedExam = null; 
 
@@ -1112,27 +1117,77 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             // Verificar si es un examen publicado (tiene código de examen)
             const hasExamCode = examContentData && examContentData.examCode && examContentData.examCode.trim() !== '';
             const isPublished = hasExamCode;
-            console.log('Debug showExamInModal:', {
-                examContentData: examContentData,
-                originalExamCode: examContentData ? examContentData.examCode : 'null',
-                hasExamCode: hasExamCode,
-                isPublished: isPublished,
-                isEditing: isEditing
-            });
+            const isAssigned = examContentData && (examContentData.assigned === true || examContentData.isPrivate === true);
+            
+            // Actualizar código del examen o mostrar mensaje de privado
+            const examCodeDisplay = document.getElementById('examCodeDisplay');
+            const examCodeContainer = examCodeDisplay?.parentElement;
+            if (examCodeContainer) {
+                if (isAssigned) {
+                    examCodeContainer.innerHTML = '<span class="text-gray-500 italic">Este examen es privado</span>';
+                } else if (hasExamCode) {
+                    examCodeContainer.innerHTML = `
+                        <span class="opacity-80">Código del examen:</span>
+                        <span class="font-mono font-semibold ml-2">${examContentData.examCode}</span>
+                    `;
+                } else {
+                    examCodeContainer.innerHTML = `
+                        <span class="opacity-80">Código del examen:</span>
+                        <span class="font-mono font-semibold ml-2">—</span>
+                    `;
+                }
+            }
             
             // Toggle botones del pie del modal
             const editBtn = document.getElementById('editExamBtn');
             const applyBtn = document.getElementById('applyChangesBtn');
             const cancelBtn = document.getElementById('cancelEditBtn');
+            const saveBtn = document.getElementById('saveExamBtn');
+            const assignBtn = document.getElementById('assignExamBtn');
+            const configBtn = document.getElementById('configExamBtn');
+            
             if (editBtn && applyBtn && cancelBtn) {
                 // Mostrar botón de editar solo si NO está en modo edición y NO es un examen publicado
                 const shouldHideEdit = Boolean(isEditing || isPublished);
                 editBtn.classList.toggle('hidden', shouldHideEdit);
-                console.log('Edit button hidden:', shouldHideEdit, 'isEditing:', isEditing, 'isPublished:', isPublished);
                 
                 // Mostrar botones de aplicar/cancelar solo si está en modo edición
                 applyBtn.classList.toggle('hidden', !isEditing);
                 cancelBtn.classList.toggle('hidden', !isEditing);
+            }
+            
+            // Mostrar/ocultar botón de publicar: mostrar solo si NO está asignado y NO está publicado
+            if (saveBtn) {
+                if (isAssigned || isPublished) {
+                    saveBtn.classList.add('hidden');
+                } else {
+                    saveBtn.classList.remove('hidden');
+                }
+            }
+            
+            // Sincronizar botones móviles después de actualizar los botones desktop
+            if (typeof syncMobileButtonsVisibility === 'function') {
+                setTimeout(() => {
+                    syncMobileButtonsVisibility();
+                }, 100);
+            }
+            
+            // Mostrar/ocultar botón de asignar: mostrar solo si NO está publicado y NO está asignado
+            if (assignBtn) {
+                if (isPublished || isAssigned) {
+                    assignBtn.classList.add('hidden');
+                } else {
+                    assignBtn.classList.remove('hidden');
+                }
+            }
+            
+            // Asegurar que el botón de configurar siempre esté visible (a menos que esté en edición)
+            if (configBtn) {
+                if (isEditing) {
+                    configBtn.classList.add('hidden');
+                } else {
+                    configBtn.classList.remove('hidden');
+                }
             }
             
             // Mostrar mensaje si es un examen publicado
@@ -1286,19 +1341,19 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     const fullName = `${cu.nombre} ${cu.apellido || ''}`.trim();
                     userName.textContent = fullName;
                     if (welcomeMessage) {
-                        welcomeMessage.textContent = `¡Bienvenid@, ${cu.nombre}!`;
+                        welcomeMessage.textContent = `Bienvenido(a), ${fullName}`;
                     }
                 } else {
                     userName.textContent = `Profesor`;
                     if (welcomeMessage) {
-                        welcomeMessage.textContent = `¡Bienvenid@!`;
+                        welcomeMessage.textContent = `Bienvenido(a)!`;
                     }
                 }
             } catch (_) {
                 userName.textContent = `Profesor`;
                 const welcomeMessage = document.getElementById('welcomeMessage');
                 if (welcomeMessage) {
-                    welcomeMessage.textContent = `¡Bienvenid@!`;
+                    welcomeMessage.textContent = `Bienvenido(a)!`;
                 }
             }
         }
@@ -1522,6 +1577,769 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             }
         });
         
+        // Gestión de Grupos
+        const createGroupBtn = document.getElementById('createGroupBtn');
+        const groupsModal = document.getElementById('groupsModal');
+        const closeGroupsModal = document.getElementById('closeGroupsModal');
+        const showCreateGroupFormBtn = document.getElementById('showCreateGroupFormBtn');
+        const createGroupFormContainer = document.getElementById('createGroupFormContainer');
+        const createGroupForm = document.getElementById('createGroupForm');
+        const cancelCreateGroupBtn = document.getElementById('cancelCreateGroupBtn');
+        const addStudentEmailBtn = document.getElementById('addStudentEmailBtn');
+        const groupStudentsInputs = document.getElementById('groupStudentsInputs');
+        const groupsListContainer = document.getElementById('groupsListContainer');
+
+        // Abrir dashboard de grupos
+        if (createGroupBtn) {
+            createGroupBtn.addEventListener('click', () => {
+                if (groupsModal) {
+                    groupsModal.classList.remove('hidden');
+                    loadGroups();
+                }
+            });
+        }
+
+        // Cerrar dashboard de grupos
+        if (closeGroupsModal) {
+            closeGroupsModal.addEventListener('click', () => {
+                if (groupsModal) {
+                    groupsModal.classList.add('hidden');
+                    createGroupFormContainer.classList.add('hidden');
+                    createGroupForm.reset();
+                }
+            });
+        }
+
+        // Mostrar formulario de crear grupo
+        if (showCreateGroupFormBtn) {
+            showCreateGroupFormBtn.addEventListener('click', () => {
+                createGroupFormContainer.classList.remove('hidden');
+                // Scroll al formulario
+                createGroupFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+
+        // Cancelar creación de grupo
+        if (cancelCreateGroupBtn) {
+            cancelCreateGroupBtn.addEventListener('click', () => {
+                createGroupFormContainer.classList.add('hidden');
+                createGroupForm.reset();
+                // Limpiar inputs de correos
+                groupStudentsInputs.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input 
+                            type="email" 
+                            class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            placeholder="correo@ucol.mx"
+                        />
+                        <button type="button" class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg hidden">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Agregar campo de correo
+        if (addStudentEmailBtn) {
+            addStudentEmailBtn.addEventListener('click', () => {
+                addStudentEmailInput();
+            });
+        }
+
+        // Función para agregar input de correo
+        function addStudentEmailInput() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex items-center gap-2';
+            wrapper.innerHTML = `
+                <input 
+                    type="email" 
+                    class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    placeholder="correo@ucol.mx"
+                />
+                <button type="button" class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            groupStudentsInputs.appendChild(wrapper);
+            
+            // Event listener para remover input
+            const removeBtn = wrapper.querySelector('.remove-student-email-btn');
+            removeBtn.addEventListener('click', () => {
+                if (groupStudentsInputs.children.length > 1) {
+                    wrapper.remove();
+                    updateRemoveButtons();
+                }
+            });
+            
+            // Event listener para agregar automáticamente otro campo cuando se completa uno
+            const input = wrapper.querySelector('.group-student-email');
+            input.addEventListener('blur', () => {
+                const lastInput = groupStudentsInputs.querySelector('.group-student-email:last-of-type');
+                if (input.value.trim() !== '' && lastInput === input) {
+                    addStudentEmailInput();
+                }
+            });
+            
+            updateRemoveButtons();
+        }
+
+        // Función para actualizar visibilidad de botones de remover
+        function updateRemoveButtons() {
+            const removeButtons = groupStudentsInputs.querySelectorAll('.remove-student-email-btn');
+            removeButtons.forEach((btn) => {
+                if (groupStudentsInputs.children.length > 1) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            });
+        }
+
+        // Submit del formulario de crear grupo
+        if (createGroupForm) {
+            createGroupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(createGroupForm);
+                const groupName = formData.get('groupName').trim();
+                const groupDescription = formData.get('groupDescription').trim();
+                const groupSemester = formData.get('groupSemester').trim();
+                const groupGroup = formData.get('groupGroup').trim();
+                const groupPassword = formData.get('groupPassword');
+
+                // Validar campos requeridos
+                if (!groupName || !groupSemester || !groupGroup || !groupPassword) {
+                    showMessage('Por favor completa todos los campos requeridos', true);
+                    return;
+                }
+
+                // Obtener correos de alumnos
+                const emailInputs = groupStudentsInputs.querySelectorAll('.group-student-email');
+                const studentEmails = Array.from(emailInputs)
+                    .map(input => input.value.trim().toLowerCase())
+                    .filter(email => email !== '');
+
+                if (studentEmails.length === 0) {
+                    showMessage('Por favor ingresa al menos un correo de alumno', true);
+                    return;
+                }
+
+                // Validar formato de correos
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const invalidFormat = studentEmails.filter(email => !emailRegex.test(email));
+                if (invalidFormat.length > 0) {
+                    showMessage(`Los siguientes correos tienen formato inválido: ${invalidFormat.join(', ')}`, true);
+                    return;
+                }
+
+                // Validar correos contra usuarios registrados
+                try {
+                    const { validEmails, invalidEmails } = await validateEmails(studentEmails);
+                    if (invalidEmails.length > 0) {
+                        showMessage(`Los siguientes correos no están registrados: ${invalidEmails.join(', ')}`, true);
+                        return;
+                    }
+
+                    // Crear el grupo
+                    const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                    const newGroup = {
+                        id: 'GROUP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        name: groupName,
+                        description: groupDescription || '',
+                        semester: groupSemester,
+                        group: groupGroup,
+                        password: groupPassword,
+                        students: validEmails,
+                        professorId: currentUser?.id || null,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    // Guardar en localStorage
+                    const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                    groups.push(newGroup);
+                    localStorage.setItem('teacherGroups', JSON.stringify(groups));
+
+                    showMessage(`Grupo "${groupName}" creado exitosamente con ${validEmails.length} alumno(s)`, false);
+                    
+                    // Limpiar formulario y ocultar
+                    createGroupForm.reset();
+                    createGroupFormContainer.classList.add('hidden');
+                    groupStudentsInputs.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <input 
+                                type="email" 
+                                class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                placeholder="correo@ucol.mx"
+                            />
+                            <button type="button" class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg hidden">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Recargar lista de grupos
+                    loadGroups();
+                } catch (error) {
+                    console.error('Error al crear grupo:', error);
+                    showMessage('Error al crear el grupo', true);
+                }
+            });
+        }
+
+        // Función para cargar y mostrar grupos
+        function loadGroups() {
+            const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+            
+            // Filtrar grupos del profesor actual
+            const teacherGroups = groups.filter(g => g.professorId === currentUser?.id);
+            
+            if (teacherGroups.length === 0) {
+                groupsListContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-users text-6xl mb-4 opacity-30"></i>
+                        <p class="text-lg">No tienes grupos creados aún</p>
+                        <p class="text-sm mt-2">Presiona "Crear Grupo Nuevo" para comenzar</p>
+                    </div>
+                `;
+            } else {
+                groupsListContainer.innerHTML = teacherGroups.map(group => `
+                    <div class="card-modern p-6 hover:shadow-lg transition-shadow duration-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold text-gray-800 mb-2">${escapeHtml(group.name)}</h4>
+                                ${group.description ? `<p class="text-gray-600 text-sm mb-2">${escapeHtml(group.description)}</p>` : ''}
+                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span><i class="fas fa-calendar-alt mr-1"></i>Semestre: ${escapeHtml(group.semester)}</span>
+                                    <span><i class="fas fa-users mr-1"></i>Grupo: ${escapeHtml(group.group)}</span>
+                                    <span><i class="fas fa-user-graduate mr-1"></i>${group.students ? group.students.length : 0} alumno(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>Creado: ${new Date(group.createdAt).toLocaleDateString()}
+                            </p>
+                            <div class="flex space-x-2">
+                                <button 
+                                    data-manage-group="${escapeHtml(group.id)}" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                                >
+                                    <i class="fas fa-cog mr-1"></i>Gestionar
+                                </button>
+                                <button 
+                                    data-delete-group="${escapeHtml(group.id)}" 
+                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                                >
+                                    <i class="fas fa-trash mr-1"></i>Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Agregar event listeners a los botones de gestionar
+                groupsListContainer.querySelectorAll('[data-manage-group]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const groupId = e.currentTarget.getAttribute('data-manage-group');
+                        openManageGroupModal(groupId);
+                    });
+                });
+
+                // Agregar event listeners a los botones de eliminar
+                groupsListContainer.querySelectorAll('[data-delete-group]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const groupId = e.currentTarget.getAttribute('data-delete-group');
+                        showDeleteGroupModal(groupId);
+                    });
+                });
+            }
+        }
+
+        // Variable para almacenar el grupo a eliminar
+        let groupToDelete = null;
+
+        // Función para mostrar modal de confirmación de eliminar grupo
+        function showDeleteGroupModal(groupId) {
+            try {
+                const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                
+                const group = groups.find(g => g.id === groupId && g.professorId === currentUser?.id);
+                
+                if (!group) {
+                    showMessage('Grupo no encontrado', true);
+                    return;
+                }
+
+                groupToDelete = group;
+
+                // Llenar información del modal
+                document.getElementById('deleteGroupName').textContent = escapeHtml(group.name);
+                document.getElementById('deleteGroupStudents').textContent = group.students ? group.students.length : 0;
+
+                // Mostrar modal
+                document.getElementById('deleteGroupModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al mostrar modal de eliminar grupo:', error);
+                showMessage('Error al cargar la información del grupo', true);
+            }
+        }
+
+        // Función para eliminar grupo
+        async function deleteGroup(groupId) {
+            try {
+                const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                
+                const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
+                
+                if (groupIndex === -1) {
+                    showMessage('Grupo no encontrado', true);
+                    return;
+                }
+
+                const groupName = groups[groupIndex].name;
+
+                // Eliminar el grupo
+                groups.splice(groupIndex, 1);
+                localStorage.setItem('teacherGroups', JSON.stringify(groups));
+
+                showMessage(`Grupo "${groupName}" eliminado exitosamente`, false);
+                
+                // Cerrar modal
+                document.getElementById('deleteGroupModal').classList.add('hidden');
+                groupToDelete = null;
+                
+                // Recargar lista de grupos
+                loadGroups();
+            } catch (error) {
+                console.error('Error al eliminar grupo:', error);
+                showMessage('Error al eliminar el grupo', true);
+            }
+        }
+
+        // Event listeners para el modal de eliminar grupo
+        const deleteGroupModal = document.getElementById('deleteGroupModal');
+        const closeDeleteGroupModal = document.getElementById('closeDeleteGroupModal');
+        const cancelDeleteGroupBtn = document.getElementById('cancelDeleteGroupBtn');
+        const confirmDeleteGroupBtn = document.getElementById('confirmDeleteGroupBtn');
+
+        if (closeDeleteGroupModal) {
+            closeDeleteGroupModal.addEventListener('click', () => {
+                deleteGroupModal.classList.add('hidden');
+                groupToDelete = null;
+            });
+        }
+
+        if (cancelDeleteGroupBtn) {
+            cancelDeleteGroupBtn.addEventListener('click', () => {
+                deleteGroupModal.classList.add('hidden');
+                groupToDelete = null;
+            });
+        }
+
+        if (confirmDeleteGroupBtn) {
+            confirmDeleteGroupBtn.addEventListener('click', async () => {
+                if (groupToDelete) {
+                    await deleteGroup(groupToDelete.id);
+                }
+            });
+        }
+
+        // Funcionalidad de búsqueda de grupos
+        const searchGroupsInput = document.getElementById('searchGroupsInput');
+        if (searchGroupsInput) {
+            let searchTimeout;
+            searchGroupsInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const searchTerm = e.target.value.trim().toLowerCase();
+                
+                searchTimeout = setTimeout(() => {
+                    filterGroups(searchTerm);
+                }, 300);
+            });
+        }
+
+        // Función para filtrar grupos
+        function filterGroups(searchTerm) {
+            const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+            
+            // Filtrar grupos del profesor actual
+            let teacherGroups = groups.filter(g => g.professorId === currentUser?.id);
+            
+            // Si hay término de búsqueda, filtrar
+            if (searchTerm) {
+                teacherGroups = teacherGroups.filter(group => {
+                    const name = (group.name || '').toLowerCase();
+                    const description = (group.description || '').toLowerCase();
+                    const semester = (group.semester || '').toLowerCase();
+                    const groupName = (group.group || '').toLowerCase();
+                    
+                    return name.includes(searchTerm) || 
+                           description.includes(searchTerm) ||
+                           semester.includes(searchTerm) ||
+                           groupName.includes(searchTerm);
+                });
+            }
+            
+            // Renderizar grupos filtrados
+            if (teacherGroups.length === 0) {
+                groupsListContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-search text-6xl mb-4 opacity-30"></i>
+                        <p class="text-lg">No se encontraron grupos</p>
+                        <p class="text-sm mt-2">${searchTerm ? 'Intenta con otro término de búsqueda' : 'Presiona "Crear Grupo Nuevo" para comenzar'}</p>
+                    </div>
+                `;
+            } else {
+                groupsListContainer.innerHTML = teacherGroups.map(group => `
+                    <div class="card-modern p-6 hover:shadow-lg transition-shadow duration-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h4 class="text-xl font-bold text-gray-800 mb-2">${escapeHtml(group.name)}</h4>
+                                ${group.description ? `<p class="text-gray-600 text-sm mb-2">${escapeHtml(group.description)}</p>` : ''}
+                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span><i class="fas fa-calendar-alt mr-1"></i>Semestre: ${escapeHtml(group.semester)}</span>
+                                    <span><i class="fas fa-users mr-1"></i>Grupo: ${escapeHtml(group.group)}</span>
+                                    <span><i class="fas fa-user-graduate mr-1"></i>${group.students ? group.students.length : 0} alumno(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>Creado: ${new Date(group.createdAt).toLocaleDateString()}
+                            </p>
+                            <div class="flex space-x-2">
+                                <button 
+                                    data-manage-group="${escapeHtml(group.id)}" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                                >
+                                    <i class="fas fa-cog mr-1"></i>Gestionar
+                                </button>
+                                <button 
+                                    data-delete-group="${escapeHtml(group.id)}" 
+                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                                >
+                                    <i class="fas fa-trash mr-1"></i>Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Agregar event listeners a los botones de gestionar
+                groupsListContainer.querySelectorAll('[data-manage-group]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const groupId = e.currentTarget.getAttribute('data-manage-group');
+                        openManageGroupModal(groupId);
+                    });
+                });
+
+                // Agregar event listeners a los botones de eliminar
+                groupsListContainer.querySelectorAll('[data-delete-group]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const groupId = e.currentTarget.getAttribute('data-delete-group');
+                        showDeleteGroupModal(groupId);
+                    });
+                });
+            }
+        }
+
+        // Gestión de Grupos - Modal
+        const manageGroupModal = document.getElementById('manageGroupModal');
+        const closeManageGroupModal = document.getElementById('closeManageGroupModal');
+        const manageGroupContent = document.getElementById('manageGroupContent');
+
+        if (closeManageGroupModal) {
+            closeManageGroupModal.addEventListener('click', () => {
+                if (manageGroupModal) {
+                    manageGroupModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Función para abrir modal de gestión de grupo
+        async function openManageGroupModal(groupId) {
+            try {
+                const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                
+                const group = groups.find(g => g.id === groupId && g.professorId === currentUser?.id);
+                
+                if (!group) {
+                    showMessage('Grupo no encontrado', true);
+                    return;
+                }
+
+                // Renderizar contenido del modal
+                manageGroupContent.innerHTML = `
+                    <div class="mb-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">${escapeHtml(group.name)}</h4>
+                        ${group.description ? `<p class="text-gray-600 text-sm mb-2">${escapeHtml(group.description)}</p>` : ''}
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>Semestre: ${escapeHtml(group.semester)}</span>
+                            <span><i class="fas fa-users mr-1"></i>Grupo: ${escapeHtml(group.group)}</span>
+                            <span><i class="fas fa-user-graduate mr-1"></i>${group.students ? group.students.length : 0} alumno(s)</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h5 class="text-lg font-semibold text-gray-800">Alumnos del Grupo</h5>
+                            <button id="addStudentsToGroupBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200">
+                                <i class="fas fa-plus mr-1"></i>Agregar Alumnos
+                            </button>
+                        </div>
+                        
+                        <div id="groupStudentsList" class="space-y-2">
+                            ${group.students && group.students.length > 0 ? 
+                                group.students.map(email => `
+                                    <div class="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center hover:shadow-md transition-shadow duration-200">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-user-circle text-gray-400 mr-3 text-xl"></i>
+                                            <span class="font-medium text-gray-900">${escapeHtml(email)}</span>
+                                        </div>
+                                        <button 
+                                            data-remove-student="${escapeHtml(email)}" 
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-200"
+                                        >
+                                            <i class="fas fa-times mr-1"></i>Eliminar
+                                        </button>
+                                    </div>
+                                `).join('') :
+                                '<div class="text-center py-8 text-gray-500"><p>No hay alumnos en este grupo</p></div>'
+                            }
+                        </div>
+                    </div>
+
+                    <div id="addStudentsToGroupSection" class="hidden mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h6 class="font-semibold text-gray-800 mb-3">Agregar Nuevos Alumnos</h6>
+                        <div id="addStudentsToGroupInputs" class="space-y-2 mb-3">
+                        </div>
+                        <button type="button" id="addMoreStudentEmailsBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium mb-3">
+                            <i class="fas fa-plus mr-1"></i>Agregar otro correo
+                        </button>
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancelAddStudentsToGroup" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">
+                                Cancelar
+                            </button>
+                            <button id="confirmAddStudentsToGroup" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-check mr-1"></i>Agregar
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Event listeners para eliminar alumnos
+                manageGroupContent.querySelectorAll('[data-remove-student]').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const emailToRemove = e.currentTarget.getAttribute('data-remove-student');
+                        if (confirm(`¿Eliminar a ${emailToRemove} del grupo?`)) {
+                            await removeStudentFromGroup(groupId, emailToRemove);
+                        }
+                    });
+                });
+
+                // Event listener para mostrar formulario de agregar alumnos
+                const addStudentsToGroupBtn = document.getElementById('addStudentsToGroupBtn');
+                const addStudentsToGroupSection = document.getElementById('addStudentsToGroupSection');
+                const cancelAddStudentsToGroup = document.getElementById('cancelAddStudentsToGroup');
+                const confirmAddStudentsToGroup = document.getElementById('confirmAddStudentsToGroup');
+                const addStudentsToGroupInputs = document.getElementById('addStudentsToGroupInputs');
+
+                if (addStudentsToGroupBtn) {
+                    addStudentsToGroupBtn.addEventListener('click', () => {
+                        addStudentsToGroupSection.classList.remove('hidden');
+                        if (addStudentsToGroupInputs.children.length === 0) {
+                            addStudentInputToGroup();
+                        }
+                    });
+                }
+
+                // Botón para agregar más campos de correo
+                const addMoreStudentEmailsBtn = document.getElementById('addMoreStudentEmailsBtn');
+                if (addMoreStudentEmailsBtn) {
+                    addMoreStudentEmailsBtn.addEventListener('click', () => {
+                        addStudentInputToGroup();
+                    });
+                }
+
+                if (cancelAddStudentsToGroup) {
+                    cancelAddStudentsToGroup.addEventListener('click', () => {
+                        addStudentsToGroupSection.classList.add('hidden');
+                        addStudentsToGroupInputs.innerHTML = '';
+                    });
+                }
+
+                if (confirmAddStudentsToGroup) {
+                    confirmAddStudentsToGroup.addEventListener('click', async () => {
+                        await addStudentsToGroup(groupId, addStudentsToGroupInputs);
+                    });
+                }
+
+                // Función para agregar input de correo
+                function addStudentInputToGroup() {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'flex items-center gap-2';
+                    wrapper.innerHTML = `
+                        <input 
+                            type="email" 
+                            class="add-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            placeholder="correo@ucol.mx"
+                        >
+                        <button type="button" class="remove-add-student-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    addStudentsToGroupInputs.appendChild(wrapper);
+                    
+                    const removeBtn = wrapper.querySelector('.remove-add-student-btn');
+                    removeBtn.addEventListener('click', () => {
+                        if (addStudentsToGroupInputs.children.length > 1) {
+                            wrapper.remove();
+                            updateRemoveButtonsForGroup();
+                        }
+                    });
+                    
+                    const input = wrapper.querySelector('.add-student-email');
+                    input.addEventListener('blur', () => {
+                        const lastInput = addStudentsToGroupInputs.querySelector('.add-student-email:last-of-type');
+                        if (input.value.trim() !== '' && lastInput === input) {
+                            addStudentInputToGroup();
+                        }
+                    });
+                    
+                    updateRemoveButtonsForGroup();
+                }
+
+                function updateRemoveButtonsForGroup() {
+                    const removeButtons = addStudentsToGroupInputs.querySelectorAll('.remove-add-student-btn');
+                    removeButtons.forEach((btn) => {
+                        if (addStudentsToGroupInputs.children.length > 1) {
+                            btn.classList.remove('hidden');
+                        } else {
+                            btn.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Mostrar modal
+                manageGroupModal.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al abrir modal de gestión:', error);
+                showMessage('Error al cargar la información del grupo', true);
+            }
+        }
+
+        // Función para eliminar alumno del grupo
+        async function removeStudentFromGroup(groupId, emailToRemove) {
+            try {
+                const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                
+                const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
+                
+                if (groupIndex === -1) {
+                    showMessage('Grupo no encontrado', true);
+                    return;
+                }
+
+                const group = groups[groupIndex];
+                
+                // Eliminar el correo del array de estudiantes
+                group.students = (group.students || []).filter(email => 
+                    String(email).toLowerCase() !== String(emailToRemove).toLowerCase()
+                );
+
+                // Actualizar en localStorage
+                groups[groupIndex] = group;
+                localStorage.setItem('teacherGroups', JSON.stringify(groups));
+
+                showMessage(`Alumno ${emailToRemove} eliminado del grupo`, false);
+                
+                // Recargar modal y lista de grupos
+                openManageGroupModal(groupId);
+                loadGroups();
+            } catch (error) {
+                console.error('Error al eliminar alumno:', error);
+                showMessage('Error al eliminar el alumno del grupo', true);
+            }
+        }
+
+        // Función para agregar alumnos al grupo
+        async function addStudentsToGroup(groupId, inputsContainer) {
+            try {
+                const emailInputs = inputsContainer.querySelectorAll('.add-student-email');
+                const newEmails = Array.from(emailInputs)
+                    .map(input => input.value.trim().toLowerCase())
+                    .filter(email => email !== '');
+
+                if (newEmails.length === 0) {
+                    showMessage('Por favor ingresa al menos un correo electrónico', true);
+                    return;
+                }
+
+                // Validar formato de correos
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const invalidFormat = newEmails.filter(email => !emailRegex.test(email));
+                if (invalidFormat.length > 0) {
+                    showMessage(`Los siguientes correos tienen formato inválido: ${invalidFormat.join(', ')}`, true);
+                    return;
+                }
+
+                // Obtener grupo actual
+                const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                
+                const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
+                
+                if (groupIndex === -1) {
+                    showMessage('Grupo no encontrado', true);
+                    return;
+                }
+
+                const group = groups[groupIndex];
+                const existingEmails = (group.students || []).map(e => e.toLowerCase());
+
+                // Validar que no estén duplicados
+                const duplicates = newEmails.filter(email => existingEmails.includes(email));
+                if (duplicates.length > 0) {
+                    showMessage(`Los siguientes correos ya están en el grupo: ${duplicates.join(', ')}`, true);
+                    return;
+                }
+
+                // Validar correos contra usuarios registrados
+                const { validEmails, invalidEmails } = await validateEmails(newEmails);
+                if (invalidEmails.length > 0) {
+                    showMessage(`Los siguientes correos no están registrados: ${invalidEmails.join(', ')}`, true);
+                    return;
+                }
+
+                // Agregar nuevos alumnos al grupo
+                group.students = [...(group.students || []), ...validEmails];
+
+                // Actualizar en localStorage
+                groups[groupIndex] = group;
+                localStorage.setItem('teacherGroups', JSON.stringify(groups));
+
+                showMessage(`Se agregaron ${validEmails.length} alumno(s) al grupo`, false);
+                
+                // Limpiar inputs y ocultar sección
+                inputsContainer.innerHTML = '';
+                document.getElementById('addStudentsToGroupSection').classList.add('hidden');
+                
+                // Recargar modal y lista de grupos
+                openManageGroupModal(groupId);
+                loadGroups();
+            } catch (error) {
+                console.error('Error al agregar alumnos:', error);
+                showMessage('Error al agregar alumnos al grupo', true);
+            }
+        }
+
         // Cerrar sesión
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
@@ -1580,6 +2398,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         return;
                     }
 
+                    // Verificar si el examen ya está asignado (solo si realmente está asignado)
+                    if (lastGeneratedExam.assigned === true || lastGeneratedExam.isPrivate === true) {
+                        showMessage('Este examen ya está asignado a alumnos. No se puede publicar.', true);
+                        return;
+                    }
+
                     // Confirmar publicación usando el modal personalizado
                     const confirmed = await showConfirmPublishModal();
 
@@ -1630,12 +2454,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     examsCacheTime = 0;
                     
                     // Ocultar todos los botones y mostrar solo "Ver en Mis Exámenes"
-                    const editExamBtn = document.getElementById('editExamBtn');
-                    const applyChangesBtn = document.getElementById('applyChangesBtn');
-                    const cancelEditBtn = document.getElementById('cancelEditBtn');
-                    const saveExamBtn = document.getElementById('saveExamBtn');
-                    const configExamBtn = document.getElementById('configExamBtn');
-                    const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
+                    // Los botones ya están declarados globalmente, solo actualizar su visibilidad
                     
                     if (editExamBtn) editExamBtn.classList.add('hidden');
                     if (applyChangesBtn) applyChangesBtn.classList.add('hidden');
@@ -1661,8 +2480,670 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             showExamConfigModal();
         });
 
+        // Asignación de Examen por Correo
+        const assignExamBtn = document.getElementById('assignExamBtn');
+        const assignExamModal = document.getElementById('assignExamModal');
+        const closeAssignExamModal = document.getElementById('closeAssignExamModal');
+        const cancelAssignExamBtn = document.getElementById('cancelAssignExamBtn');
+        const confirmAssignExamBtn = document.getElementById('confirmAssignExamBtn');
+        const emailInputsContainer = document.getElementById('emailInputsContainer');
+        const assignSuccessModal = document.getElementById('assignSuccessModal');
+        const acceptAssignSuccessBtn = document.getElementById('acceptAssignSuccessBtn');
+
+        // Función para mostrar el modal de asignación
+        function showAssignExamModal() {
+            if (!lastGeneratedExam) {
+                showMessage("No hay examen para asignar.", true);
+                return;
+            }
+
+            // Resetear a asignación manual por defecto
+            const manualRadio = document.querySelector('input[name="assignMethod"][value="manual"]');
+            const groupRadio = document.querySelector('input[name="assignMethod"][value="group"]');
+            if (manualRadio) manualRadio.checked = true;
+            if (groupRadio) groupRadio.checked = false;
+
+            // Mostrar sección manual, ocultar grupo
+            const manualSection = document.getElementById('manualAssignSection');
+            const groupSection = document.getElementById('groupAssignSection');
+            if (manualSection) manualSection.classList.remove('hidden');
+            if (groupSection) groupSection.classList.add('hidden');
+
+            // Limpiar inputs anteriores
+            emailInputsContainer.innerHTML = `
+                <div class="flex items-center gap-2 email-input-wrapper">
+                    <input 
+                        type="email" 
+                        class="email-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                        placeholder="correo@ejemplo.com"
+                    >
+                    <button type="button" class="add-email-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            `;
+
+            // Ocultar errores
+            const emailErrors = document.getElementById('emailErrors');
+            if (emailErrors) {
+                emailErrors.classList.add('hidden');
+                emailErrors.innerHTML = '';
+            }
+
+            // Cargar grupos en el selector
+            loadGroupsForAssignment();
+
+            // Agregar event listeners a los inputs
+            setupEmailInputs();
+
+            // Agregar event listeners a los radio buttons
+            setupAssignMethodListeners();
+
+            // Mostrar modal
+            assignExamModal.classList.remove('hidden');
+        }
+
+        // Variable para almacenar los grupos del profesor (para evitar buscar múltiples veces)
+        let teacherGroupsForAssignment = [];
+
+        // Función para cargar grupos en el selector
+        function loadGroupsForAssignment() {
+            const selectGroup = document.getElementById('selectGroup');
+            const groupInfo = document.getElementById('groupInfo');
+            if (!selectGroup) return;
+
+            const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+
+            // Filtrar grupos del profesor actual
+            teacherGroupsForAssignment = groups.filter(g => g.professorId === currentUser?.id);
+
+            // Limpiar opciones existentes (excepto la primera)
+            selectGroup.innerHTML = '<option value="">-- Selecciona un grupo --</option>';
+
+            if (teacherGroupsForAssignment.length === 0) {
+                selectGroup.innerHTML += '<option value="" disabled>No tienes grupos creados</option>';
+                if (groupInfo) groupInfo.classList.add('hidden');
+                return;
+            }
+
+            // Agregar grupos al selector
+            teacherGroupsForAssignment.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group.id;
+                const studentCount = group.students ? group.students.length : 0;
+                option.textContent = `${group.name} (${studentCount} alumno(s))`;
+                selectGroup.appendChild(option);
+            });
+
+            // Remover event listeners anteriores para evitar duplicados
+            const newSelectGroup = selectGroup.cloneNode(true);
+            selectGroup.parentNode.replaceChild(newSelectGroup, selectGroup);
+
+            // Obtener referencia al nuevo elemento
+            const updatedSelectGroup = document.getElementById('selectGroup');
+
+            // Event listener para mostrar info del grupo seleccionado
+            if (updatedSelectGroup) {
+                updatedSelectGroup.addEventListener('change', (e) => {
+                    const selectedGroupId = e.target.value;
+                    if (selectedGroupId && groupInfo) {
+                        const selectedGroup = teacherGroupsForAssignment.find(g => g.id === selectedGroupId);
+                        if (selectedGroup) {
+                            groupInfo.classList.remove('hidden');
+                            const studentCount = selectedGroup.students ? selectedGroup.students.length : 0;
+                            groupInfo.textContent = `Este examen se asignará a ${studentCount} alumno(s) del grupo "${selectedGroup.name}"`;
+                        } else {
+                            groupInfo.classList.add('hidden');
+                        }
+                    } else {
+                        if (groupInfo) groupInfo.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        // Función para configurar listeners de los métodos de asignación
+        function setupAssignMethodListeners() {
+            const assignMethodRadios = document.querySelectorAll('input[name="assignMethod"]');
+            const manualSection = document.getElementById('manualAssignSection');
+            const groupSection = document.getElementById('groupAssignSection');
+
+            assignMethodRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'manual') {
+                        manualSection.classList.remove('hidden');
+                        groupSection.classList.add('hidden');
+                    } else if (e.target.value === 'group') {
+                        manualSection.classList.add('hidden');
+                        groupSection.classList.remove('hidden');
+                    }
+                });
+            });
+        }
+
+        // Función para configurar los event listeners de los inputs de correo
+        function setupEmailInputs() {
+            const emailInputs = emailInputsContainer.querySelectorAll('.email-input');
+            
+            emailInputs.forEach((input, index) => {
+                // Remover listeners anteriores
+                const newInput = input.cloneNode(true);
+                input.parentNode.replaceChild(newInput, input);
+            });
+
+            const newEmailInputs = emailInputsContainer.querySelectorAll('.email-input');
+            
+            newEmailInputs.forEach((input, index) => {
+                const wrapper = input.closest('.email-input-wrapper');
+                const addBtn = wrapper.querySelector('.add-email-btn');
+
+                // Mostrar botón + solo si hay texto en el último input
+                input.addEventListener('input', () => {
+                    if (input.value.trim() && index === newEmailInputs.length - 1) {
+                        addBtn.classList.remove('hidden');
+                    } else {
+                        addBtn.classList.add('hidden');
+                    }
+                });
+
+                // Agregar nuevo campo cuando se presiona +
+                if (index === newEmailInputs.length - 1) {
+                    addBtn.addEventListener('click', () => {
+                        addEmailInput();
+                    });
+                }
+            });
+        }
+
+        // Función para agregar un nuevo campo de correo
+        function addEmailInput() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex items-center gap-2 email-input-wrapper';
+            wrapper.innerHTML = `
+                <input 
+                    type="email" 
+                    class="email-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    placeholder="correo@ejemplo.com"
+                >
+                <button type="button" class="add-email-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-plus"></i>
+                </button>
+            `;
+            emailInputsContainer.appendChild(wrapper);
+            setupEmailInputs();
+        }
+
+        // Función para validar correos contra usuarios registrados
+        async function validateEmails(emails) {
+            try {
+                const resp = await fetch(getApiUrl('/users'));
+                if (!resp.ok) {
+                    throw new Error('Error al obtener usuarios');
+                }
+                const data = await resp.json();
+                const users = data.users || [];
+                
+                const invalidEmails = [];
+                const validEmails = [];
+
+                for (const email of emails) {
+                    const user = users.find(u => 
+                        String(u.email).toLowerCase() === String(email).toLowerCase() && 
+                        String(u.tipo_usuario) === 'alumno'
+                    );
+                    if (!user) {
+                        invalidEmails.push(email);
+                    } else {
+                        validEmails.push(email);
+                    }
+                }
+
+                return { validEmails, invalidEmails };
+            } catch (error) {
+                console.error('Error validando correos:', error);
+                throw error;
+            }
+        }
+
+        // Función para asignar examen a alumnos
+        async function assignExamToStudents(emails) {
+            try {
+                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                if (!currentUser?.id) {
+                    throw new Error('No hay usuario actual');
+                }
+
+                // Obtener datos del examen
+                const meta = {
+                    title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
+                    subject: document.getElementById('subject')?.value || lastGeneratedExam.subject,
+                    difficulty: document.getElementById('difficulty')?.value || lastGeneratedExam.difficulty,
+                    professorId: currentUser.id
+                };
+
+                const examToAssign = transformExamForBackend(lastGeneratedExam, meta);
+                examToAssign.professorId = currentUser.id;
+                examToAssign.assigned = true;
+                // Normalizar correos a minúsculas para comparación consistente
+                examToAssign.assignedTo = emails.map(email => String(email).toLowerCase().trim());
+                examToAssign.isPrivate = true;
+                // Generar ID único si no existe
+                if (!examToAssign.id) {
+                    examToAssign.id = 'ASSIGNED_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                }
+                // No generar código para exámenes asignados - simplemente no incluir la propiedad
+                delete examToAssign.examCode;
+
+                // Guardar también localmente primero
+                const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                
+                // Verificar que no exista ya un examen con el mismo ID (evitar duplicados)
+                const existingIndex = assignedExams.findIndex(ex => String(ex.id) === String(examToAssign.id));
+                if (existingIndex >= 0) {
+                    // Si ya existe, actualizarlo en lugar de agregar duplicado
+                    assignedExams[existingIndex] = examToAssign;
+                } else {
+                    // Si no existe, agregarlo
+                    assignedExams.push(examToAssign);
+                }
+                
+                localStorage.setItem('assignedExams', JSON.stringify(assignedExams));
+
+                // Intentar guardar en backend (pero no fallar si no funciona, ya que los exámenes asignados se manejan principalmente en localStorage)
+                try {
+                    const resp = await fetch(getApiUrl('/exam'), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(examToAssign)
+                    });
+
+                    if (!resp.ok) {
+                        const errorText = await resp.text();
+                        console.warn('El backend no pudo guardar el examen asignado, pero se guardó localmente:', errorText);
+                        // No lanzar error, ya que se guardó en localStorage
+                    }
+                } catch (backendError) {
+                    console.warn('Error al guardar en backend (se guardó localmente):', backendError);
+                    // No lanzar error, ya que se guardó en localStorage
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Error asignando examen:', error);
+                throw error;
+            }
+        }
+
+        // Event listeners para el modal de asignación
+        if (assignExamBtn) {
+            assignExamBtn.addEventListener('click', () => {
+                showAssignExamModal();
+            });
+        }
+
+        // Event listeners para botones móviles - Sincronizar con botones desktop
+        const examActionsMenuBtn = document.getElementById('examActionsMenuBtn');
+        const examActionsMenu = document.getElementById('examActionsMenu');
+        const examActionsMenuIcon = document.getElementById('examActionsMenuIcon');
+        const editExamBtnMobile = document.getElementById('editExamBtnMobile');
+        const applyChangesBtnMobile = document.getElementById('applyChangesBtnMobile');
+        const cancelEditBtnMobile = document.getElementById('cancelEditBtnMobile');
+        const saveExamBtnMobile = document.getElementById('saveExamBtnMobile');
+        const assignExamBtnMobile = document.getElementById('assignExamBtnMobile');
+        const configExamBtnMobile = document.getElementById('configExamBtnMobile');
+        const viewMyExamsBtnMobile = document.getElementById('viewMyExamsBtnMobile');
+
+        // Toggle del menú móvil
+        if (examActionsMenuBtn && examActionsMenu) {
+            examActionsMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = examActionsMenu.classList.contains('hidden');
+                if (isHidden) {
+                    examActionsMenu.classList.remove('hidden');
+                    examActionsMenuIcon.classList.remove('fa-chevron-down');
+                    examActionsMenuIcon.classList.add('fa-chevron-up');
+                } else {
+                    examActionsMenu.classList.add('hidden');
+                    examActionsMenuIcon.classList.remove('fa-chevron-up');
+                    examActionsMenuIcon.classList.add('fa-chevron-down');
+                }
+            });
+
+            // Cerrar menú al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!examActionsMenuBtn.contains(e.target) && !examActionsMenu.contains(e.target)) {
+                    examActionsMenu.classList.add('hidden');
+                    examActionsMenuIcon.classList.remove('fa-chevron-up');
+                    examActionsMenuIcon.classList.add('fa-chevron-down');
+                }
+            });
+        }
+
+        // Sincronizar botones móviles con desktop
+        if (editExamBtnMobile && editExamBtn) {
+            editExamBtnMobile.addEventListener('click', () => {
+                editExamBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (applyChangesBtnMobile && applyChangesBtn) {
+            applyChangesBtnMobile.addEventListener('click', () => {
+                applyChangesBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (cancelEditBtnMobile && cancelEditBtn) {
+            cancelEditBtnMobile.addEventListener('click', () => {
+                cancelEditBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (saveExamBtnMobile && saveExamBtn) {
+            saveExamBtnMobile.addEventListener('click', () => {
+                saveExamBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (assignExamBtnMobile && assignExamBtn) {
+            assignExamBtnMobile.addEventListener('click', () => {
+                assignExamBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (configExamBtnMobile && configExamBtn) {
+            configExamBtnMobile.addEventListener('click', () => {
+                configExamBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        if (viewMyExamsBtnMobile && viewMyExamsBtn) {
+            viewMyExamsBtnMobile.addEventListener('click', () => {
+                viewMyExamsBtn.click();
+                examActionsMenu.classList.add('hidden');
+                examActionsMenuIcon.classList.remove('fa-chevron-up');
+                examActionsMenuIcon.classList.add('fa-chevron-down');
+            });
+        }
+
+        // Función para sincronizar visibilidad de botones móviles con desktop
+        function syncMobileButtonsVisibility() {
+            if (editExamBtn) {
+                if (editExamBtn.classList.contains('hidden')) {
+                    if (editExamBtnMobile) editExamBtnMobile.classList.add('hidden');
+                } else {
+                    if (editExamBtnMobile) editExamBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (applyChangesBtn) {
+                if (applyChangesBtn.classList.contains('hidden')) {
+                    if (applyChangesBtnMobile) applyChangesBtnMobile.classList.add('hidden');
+                } else {
+                    if (applyChangesBtnMobile) applyChangesBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (cancelEditBtn) {
+                if (cancelEditBtn.classList.contains('hidden')) {
+                    if (cancelEditBtnMobile) cancelEditBtnMobile.classList.add('hidden');
+                } else {
+                    if (cancelEditBtnMobile) cancelEditBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (saveExamBtn) {
+                if (saveExamBtn.classList.contains('hidden')) {
+                    if (saveExamBtnMobile) saveExamBtnMobile.classList.add('hidden');
+                } else {
+                    if (saveExamBtnMobile) saveExamBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (assignExamBtn) {
+                if (assignExamBtn.classList.contains('hidden')) {
+                    if (assignExamBtnMobile) assignExamBtnMobile.classList.add('hidden');
+                } else {
+                    if (assignExamBtnMobile) assignExamBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (configExamBtn) {
+                if (configExamBtn.classList.contains('hidden')) {
+                    if (configExamBtnMobile) configExamBtnMobile.classList.add('hidden');
+                } else {
+                    if (configExamBtnMobile) configExamBtnMobile.classList.remove('hidden');
+                }
+            }
+
+            if (viewMyExamsBtn) {
+                if (viewMyExamsBtn.classList.contains('hidden')) {
+                    if (viewMyExamsBtnMobile) viewMyExamsBtnMobile.classList.add('hidden');
+                } else {
+                    if (viewMyExamsBtnMobile) viewMyExamsBtnMobile.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Observar cambios en la visibilidad de los botones desktop
+        if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(() => {
+                syncMobileButtonsVisibility();
+            });
+
+            // Observar cambios en los botones
+            [editExamBtn, applyChangesBtn, cancelEditBtn, saveExamBtn, assignExamBtn, configExamBtn, viewMyExamsBtn].forEach(btn => {
+                if (btn) {
+                    observer.observe(btn, { attributes: true, attributeFilter: ['class'] });
+                }
+            });
+        }
+
+        // Sincronizar inicialmente
+        syncMobileButtonsVisibility();
+
+        if (closeAssignExamModal) {
+            closeAssignExamModal.addEventListener('click', () => {
+                assignExamModal.classList.add('hidden');
+            });
+        }
+
+        if (cancelAssignExamBtn) {
+            cancelAssignExamBtn.addEventListener('click', () => {
+                assignExamModal.classList.add('hidden');
+            });
+        }
+
+        if (confirmAssignExamBtn) {
+            confirmAssignExamBtn.addEventListener('click', async () => {
+                const selectedMethod = document.querySelector('input[name="assignMethod"]:checked')?.value;
+                let emailsToAssign = [];
+
+                if (selectedMethod === 'manual') {
+                    // Obtener todos los correos ingresados
+                    const emailInputs = emailInputsContainer.querySelectorAll('.email-input');
+                    emailsToAssign = Array.from(emailInputs)
+                        .map(input => input.value.trim())
+                        .filter(email => email !== '');
+
+                    if (emailsToAssign.length === 0) {
+                        showMessage('Por favor ingresa al menos un correo electrónico', true);
+                        return;
+                    }
+
+                    // Validar formato de correos
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const invalidFormat = emailsToAssign.filter(email => !emailRegex.test(email));
+                    if (invalidFormat.length > 0) {
+                        showMessage(`Los siguientes correos tienen formato inválido: ${invalidFormat.join(', ')}`, true);
+                        return;
+                    }
+
+                    // Deshabilitar botón mientras se procesa
+                    confirmAssignExamBtn.disabled = true;
+                    confirmAssignExamBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validando...';
+
+                    try {
+                        // Validar correos contra usuarios registrados
+                        const { validEmails, invalidEmails } = await validateEmails(emailsToAssign);
+
+                        if (invalidEmails.length > 0) {
+                            // Mostrar errores
+                            const emailErrors = document.getElementById('emailErrors');
+                            emailErrors.classList.remove('hidden');
+                            emailErrors.innerHTML = invalidEmails.map(email => {
+                                const input = Array.from(emailInputsContainer.querySelectorAll('.email-input'))
+                                    .find(inp => inp.value.trim() === email);
+                                if (input) {
+                                    input.classList.add('border-red-500', 'bg-red-50');
+                                }
+                                return `<p class="text-red-600 text-sm"><i class="fas fa-exclamation-circle mr-1"></i>${escapeHtml(email)} no existe</p>`;
+                            }).join('');
+
+                            confirmAssignExamBtn.disabled = false;
+                            confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                            return;
+                        }
+
+                        emailsToAssign = validEmails;
+                    } catch (error) {
+                        console.error('Error validando correos:', error);
+                        showMessage('Error al validar los correos. Intenta nuevamente.', true);
+                        confirmAssignExamBtn.disabled = false;
+                        confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                        return;
+                    }
+                } else if (selectedMethod === 'group') {
+                    // Obtener grupo seleccionado
+                    const selectGroup = document.getElementById('selectGroup');
+                    const selectedGroupId = selectGroup?.value;
+
+                    if (!selectedGroupId) {
+                        showMessage('Por favor selecciona un grupo', true);
+                        return;
+                    }
+
+                    // Buscar el grupo seleccionado en la lista cargada
+                    const selectedGroup = teacherGroupsForAssignment.find(g => g.id === selectedGroupId);
+
+                    if (!selectedGroup) {
+                        showMessage('Grupo no encontrado', true);
+                        return;
+                    }
+
+                    if (!selectedGroup.students || selectedGroup.students.length === 0) {
+                        showMessage('El grupo seleccionado no tiene alumnos', true);
+                        return;
+                    }
+
+                    // Obtener emails del grupo
+                    emailsToAssign = selectedGroup.students.map(email => String(email).toLowerCase().trim());
+
+                    // Deshabilitar botón mientras se procesa
+                    confirmAssignExamBtn.disabled = true;
+                    confirmAssignExamBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validando...';
+
+                    try {
+                        // Validar correos contra usuarios registrados
+                        const { validEmails, invalidEmails } = await validateEmails(emailsToAssign);
+
+                        if (invalidEmails.length > 0) {
+                            showMessage(`Los siguientes correos del grupo no están registrados: ${invalidEmails.join(', ')}`, true);
+                            confirmAssignExamBtn.disabled = false;
+                            confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                            return;
+                        }
+
+                        if (validEmails.length === 0) {
+                            showMessage('No hay correos válidos en el grupo seleccionado', true);
+                            confirmAssignExamBtn.disabled = false;
+                            confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                            return;
+                        }
+
+                        emailsToAssign = validEmails;
+                        confirmAssignExamBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Asignando...';
+                    } catch (error) {
+                        console.error('Error validando correos del grupo:', error);
+                        showMessage('Error al validar los correos del grupo. Intenta nuevamente.', true);
+                        confirmAssignExamBtn.disabled = false;
+                        confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                        return;
+                    }
+                } else {
+                    showMessage('Por favor selecciona un método de asignación', true);
+                    return;
+                }
+
+                try {
+                    // Asignar el examen a los alumnos
+                    await assignExamToStudents(emailsToAssign);
+
+                    // Actualizar lastGeneratedExam para reflejar que está asignado
+                    lastGeneratedExam.assigned = true;
+                    lastGeneratedExam.isPrivate = true;
+                    lastGeneratedExam.assignedTo = emailsToAssign;
+
+                    // Ocultar botón de asignar y publicar
+                    if (assignExamBtn) assignExamBtn.classList.add('hidden');
+                    if (saveExamBtn) saveExamBtn.classList.add('hidden');
+
+                    // Cerrar modal de asignación
+                    assignExamModal.classList.add('hidden');
+
+                    // Mostrar modal de éxito
+                    const assignSuccessMessage = document.getElementById('assignSuccessMessage');
+                    if (selectedMethod === 'group') {
+                        const selectGroup = document.getElementById('selectGroup');
+                        const selectedGroupId = selectGroup?.value;
+                        const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
+                        const selectedGroup = groups.find(g => g.id === selectedGroupId);
+                        assignSuccessMessage.textContent = `El examen fue asignado al grupo "${selectedGroup?.name || 'seleccionado'}" con ${emailsToAssign.length} alumno(s).`;
+                    } else {
+                        assignSuccessMessage.textContent = `El examen fue asignado a los alumnos con correo: ${emailsToAssign.join(', ')}`;
+                    }
+                    assignSuccessModal.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error('Error asignando examen:', error);
+                    showMessage('Error al asignar el examen. Intenta nuevamente.', true);
+                    confirmAssignExamBtn.disabled = false;
+                    confirmAssignExamBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Confirmar Asignación';
+                }
+            });
+        }
+
+        if (acceptAssignSuccessBtn) {
+            acceptAssignSuccessBtn.addEventListener('click', () => {
+                assignSuccessModal.classList.add('hidden');
+                examModal.classList.add('hidden');
+                // Recargar página y redirigir a exámenes
+                window.location.href = '#myExamsSection';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+            });
+        }
+
         // Botón "Ver en Mis Exámenes"
-        const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
         if (viewMyExamsBtn) {
             viewMyExamsBtn.addEventListener('click', async () => {
                 // Cerrar el modal
@@ -1734,24 +3215,63 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         // Cargar estadísticas de cada examen en paralelo (optimizado)
                         allExamsData = await Promise.all(items.map(async (ex) => {
                             try {
-                                const resultsResp = await fetch(getApiUrl(`/exam/code/${ex.examCode}/results`));
-                                const results = resultsResp.ok ? await resultsResp.json() : [];
-                                return {
-                                    ...ex,
-                                    totalStudents: results.length,
-                                    completedStudents: results.filter(r => r.score).length,
-                                    pendingStudents: results.filter(r => !r.score).length
-                                };
+                                // Solo buscar resultados si tiene código (no es privado)
+                                if (ex.examCode && !ex.isPrivate) {
+                                    const resultsResp = await fetch(getApiUrl(`/exam/code/${ex.examCode}/results`));
+                                    const results = resultsResp.ok ? await resultsResp.json() : [];
+                                    return {
+                                        ...ex,
+                                        totalStudents: results.length,
+                                        completedStudents: results.filter(r => r.score).length,
+                                        pendingStudents: results.filter(r => !r.score).length
+                                    };
+                                } else {
+                                    // Para exámenes privados/asignados, contar desde localStorage
+                                    const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                                    const examId = ex.id || ex.examCode;
+                                    const sessions = examSessions.filter(s => 
+                                        (s.examId === examId) || (s.examCode === examId)
+                                    );
+                                    return {
+                                        ...ex,
+                                        totalStudents: sessions.length,
+                                        completedStudents: sessions.filter(s => s.status === 'completed').length,
+                                        pendingStudents: sessions.filter(s => s.status === 'in_progress' || s.status === 'pending').length
+                                    };
+                                }
                             } catch (err) {
-                                console.error(`Error loading stats for exam ${ex.examCode}:`, err);
+                                console.error(`Error loading stats for exam ${ex.examCode || ex.id}:`, err);
                                 return { ...ex, totalStudents: 0, completedStudents: 0, pendingStudents: 0 };
                             }
                         }));
                     }
                     
+                    // Agregar exámenes asignados desde localStorage
+                    const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                    const assignedExamsData = assignedExams.map(ex => {
+                        const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                        const examId = ex.id || ex.examCode;
+                        const sessions = examSessions.filter(s => 
+                            (s.examId === examId) || (s.examCode === examId)
+                        );
+                        return {
+                            ...ex,
+                            totalStudents: sessions.length,
+                            completedStudents: sessions.filter(s => s.status === 'completed').length,
+                            pendingStudents: sessions.filter(s => s.status === 'in_progress' || s.status === 'pending').length
+                        };
+                    });
+                    
+                    // Combinar exámenes del backend con asignados (evitar duplicados)
+                    const existingIds = new Set(allExamsData.map(e => e.id));
+                    const newAssigned = assignedExamsData.filter(e => !existingIds.has(e.id));
+                    allExamsData = [...allExamsData, ...newAssigned];
+                    
                     // Actualizar cache
                     examsCache = allExamsData;
                     examsCacheTime = now;
+                    // Actualizar contador de exámenes cuando se actualiza el cache
+                    examCountElement.textContent = allExamsData.length;
                 }
                 
                 // Filtrar exámenes si hay término de búsqueda (optimizado)
@@ -1787,9 +3307,15 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             ? 'hover:bg-gray-50 recently-published-exam' 
                             : 'hover:bg-gray-50';
                         
+                        const examIdentifier = ex.examCode || ex.id || '';
                         return `
-                        <tr class="${rowClass}" data-exam-code="${ex.examCode}">
-                            <td class="py-3 pr-3 font-mono text-sm">${escapeHtml(ex.examCode || '')}</td>
+                        <tr class="${rowClass}" data-exam-code="${examIdentifier}" data-exam-id="${ex.id || ''}">
+                            <td class="py-3 pr-3 font-mono text-sm">
+                                ${ex.isPrivate || ex.assigned ? 
+                                    '<span class="text-gray-500 italic">Este examen es privado</span>' : 
+                                    escapeHtml(ex.examCode || '')
+                                }
+                            </td>
                             <td class="py-3 pr-3 font-medium">${escapeHtml(ex.title || '')}</td>
                             <td class="py-3 pr-3 text-gray-600">${escapeHtml(ex.subject || '')}</td>
                             <td class="py-3 pr-3 text-center">${ex.numQuestions || 0}</td>
@@ -1802,13 +3328,22 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             </td>
                             <td class="py-3">
                                 <div class="flex space-x-2">
-                                    <button data-view-results="${escapeHtml(ex.examCode || '')}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                        <i class="fas fa-chart-bar mr-1"></i>Ver resultados
-                                    </button>
-                                    <button data-view-students="${escapeHtml(ex.examCode || '')}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                        <i class="fas fa-users mr-1"></i>Ver alumnos
-                                    </button>
-                                    <button data-delete-exam="${escapeHtml(ex.examCode || '')}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                    ${ex.examCode && !ex.isPrivate ? `
+                                        <button data-view-results="${escapeHtml(ex.examCode)}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                            <i class="fas fa-chart-bar mr-1"></i>Ver resultados
+                                        </button>
+                                        <button data-view-students="${escapeHtml(ex.examCode)}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                            <i class="fas fa-users mr-1"></i>Ver alumnos
+                                        </button>
+                                    ` : `
+                                        <button data-view-results-assigned="${escapeHtml(ex.id || examIdentifier)}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                            <i class="fas fa-chart-bar mr-1"></i>Ver resultados
+                                        </button>
+                                        <button data-view-students-assigned="${escapeHtml(ex.id || examIdentifier)}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                            <i class="fas fa-users mr-1"></i>Alumnos
+                                        </button>
+                                    `}
+                                    <button data-delete-exam="${escapeHtml(examIdentifier)}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
                                         <i class="fas fa-trash mr-1"></i>Eliminar
                                     </button>
                                 </div>
@@ -2162,6 +3697,84 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             }
         }
 
+        async function openResultsForAssignedExam(examId) {
+            try {
+                // Buscar el examen asignado
+                const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                const exam = assignedExams.find(e => e.id === examId || e.examCode === examId);
+                
+                if (!exam) {
+                    showMessage('No se encontró el examen asignado', 'error');
+                    return;
+                }
+
+                // Buscar sesiones del examen
+                const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                const sessions = examSessions.filter(s => 
+                    (s.examId === examId) || (s.examCode === examId) || 
+                    (s.examId === exam.id) || (s.examCode === exam.examCode)
+                );
+
+                const resultsContent = document.getElementById('resultsContent');
+                const resultsModal = document.getElementById('resultsModal');
+
+                if (sessions.length === 0) {
+                    resultsContent.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-inbox text-4xl mb-4 opacity-50"></i>
+                            <p>No hay resultados aún para este examen asignado</p>
+                        </div>
+                    `;
+                } else {
+                    const rows = sessions.map(session => {
+                        const hasScore = session.score && session.score.correct !== undefined;
+                        const scoreText = hasScore ? `${session.score.correct}/${session.score.total}` : 'Pendiente';
+                        const studentName = session.studentName || 'N/A';
+                        const studentId = session.studentId ? ` (${session.studentId})` : '';
+                        return `
+                            <tr class="border-b border-gray-200">
+                                <td class="py-2 pr-3">
+                                    ${escapeHtml(studentName)}${studentId ? `<br><span class="text-sm text-gray-500">${escapeHtml(studentId)}</span>` : ''}
+                                </td>
+                                <td class="py-2 pr-3">${scoreText}</td>
+                                <td class="py-2 pr-3">${new Date(session.completedAt || session.joinedAt).toLocaleString()}</td>
+                                <td class="py-2">
+                                    ${session.status === 'completed' ? 
+                                        '<span class="text-green-600">Completado</span>' : 
+                                        session.status === 'pending_review' ?
+                                        '<span class="text-orange-600">Pendiente revisión</span>' :
+                                        '<span class="text-yellow-600">En progreso</span>'
+                                    }
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    resultsContent.innerHTML = `
+                        <div class="text-sm text-gray-800 mb-4">Examen Asignado: <span class="font-mono">${escapeHtml(exam.title || 'N/A')}</span></div>
+                        <div class="overflow-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="text-gray-800">
+                                    <tr>
+                                        <th class="text-left py-2 pr-3">Alumno</th>
+                                        <th class="text-left py-2 pr-3">Puntaje</th>
+                                        <th class="text-left py-2 pr-3">Fecha</th>
+                                        <th class="text-left py-2">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                resultsModal.classList.remove('hidden');
+            } catch (err) {
+                console.error('openResultsForAssignedExam error', err);
+                showMessage('Error al cargar los resultados del examen asignado', 'error');
+            }
+        }
+
         async function openResultsForExam(code) {
             try {
                 const resp = await fetch(getApiUrl(`/exam/code/${code}/results`));
@@ -2330,6 +3943,202 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             }
         }
 
+        // Función para ver y gestionar alumnos de un examen asignado
+        async function openStudentsForAssignedExam(examId) {
+            try {
+                // Buscar el examen asignado
+                const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                const exam = assignedExams.find(e => e.id === examId || e.examCode === examId);
+                
+                if (!exam) {
+                    showMessage('No se encontró el examen asignado', true);
+                    return;
+                }
+
+                // Obtener lista de alumnos asignados
+                const assignedEmails = exam.assignedTo || [];
+
+                // Renderizar contenido
+                studentsContent.innerHTML = `
+                    <div class="mb-6">
+                        <h5 class="text-xl font-bold text-gray-800 mb-2">${escapeHtml(exam.title || 'Examen')}</h5>
+                        <p class="text-gray-600 text-sm">${escapeHtml(exam.subject || '')}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h6 class="font-semibold text-gray-800">Alumnos Asignados</h6>
+                            <button id="addMoreStudentsBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200">
+                                <i class="fas fa-plus mr-1"></i>Agregar Alumnos
+                            </button>
+                        </div>
+                        
+                        <div id="studentsListContainer" class="space-y-2">
+                            ${assignedEmails.length === 0 ? `
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-users text-4xl mb-4 opacity-50"></i>
+                                    <p>No hay alumnos asignados a este examen</p>
+                                </div>
+                            ` : assignedEmails.map(email => `
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow duration-200">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-user-circle text-gray-400 mr-3 text-xl"></i>
+                                        <span class="font-medium text-gray-900">${escapeHtml(email)}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="addStudentsSection" class="hidden mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h6 class="font-semibold text-gray-800 mb-3">Agregar Nuevos Alumnos</h6>
+                        <div id="newStudentsInputs" class="space-y-2 mb-3">
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button id="cancelAddStudents" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">
+                                Cancelar
+                            </button>
+                            <button id="confirmAddStudents" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-check mr-1"></i>Agregar
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Event listeners para agregar alumnos
+                const addMoreStudentsBtn = document.getElementById('addMoreStudentsBtn');
+                const addStudentsSection = document.getElementById('addStudentsSection');
+                const cancelAddStudents = document.getElementById('cancelAddStudents');
+                const confirmAddStudents = document.getElementById('confirmAddStudents');
+                const newStudentsInputs = document.getElementById('newStudentsInputs');
+
+                if (addMoreStudentsBtn) {
+                    addMoreStudentsBtn.addEventListener('click', () => {
+                        addStudentsSection.classList.remove('hidden');
+                        // Agregar primer input si no hay ninguno
+                        if (newStudentsInputs.children.length === 0) {
+                            addEmailInput();
+                        }
+                    });
+                }
+
+                if (cancelAddStudents) {
+                    cancelAddStudents.addEventListener('click', () => {
+                        addStudentsSection.classList.add('hidden');
+                        newStudentsInputs.innerHTML = '';
+                    });
+                }
+
+                if (confirmAddStudents) {
+                    confirmAddStudents.addEventListener('click', async () => {
+                        const emailInputs = newStudentsInputs.querySelectorAll('.new-student-email');
+                        const newEmails = Array.from(emailInputs)
+                            .map(input => input.value.trim().toLowerCase())
+                            .filter(email => email !== '');
+
+                        if (newEmails.length === 0) {
+                            showMessage('Por favor ingresa al menos un correo electrónico', true);
+                            return;
+                        }
+
+                        // Validar formato de correos
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        const invalidFormat = newEmails.filter(email => !emailRegex.test(email));
+                        if (invalidFormat.length > 0) {
+                            showMessage(`Los siguientes correos tienen formato inválido: ${invalidFormat.join(', ')}`, true);
+                            return;
+                        }
+
+                        // Validar que no estén duplicados
+                        const existingEmails = assignedEmails.map(e => e.toLowerCase());
+                        const duplicates = newEmails.filter(email => existingEmails.includes(email));
+                        if (duplicates.length > 0) {
+                            showMessage(`Los siguientes correos ya están asignados: ${duplicates.join(', ')}`, true);
+                            return;
+                        }
+
+                        // Validar correos contra usuarios registrados
+                        const { validEmails, invalidEmails } = await validateEmails(newEmails);
+                        if (invalidEmails.length > 0) {
+                            showMessage(`Los siguientes correos no están registrados: ${invalidEmails.join(', ')}`, true);
+                            return;
+                        }
+
+                        // Agregar nuevos alumnos al examen
+                        exam.assignedTo = [...assignedEmails, ...validEmails];
+                        
+                        // Actualizar en localStorage
+                        const examIndex = assignedExams.findIndex(e => e.id === examId || e.examCode === examId);
+                        if (examIndex !== -1) {
+                            assignedExams[examIndex] = exam;
+                            localStorage.setItem('assignedExams', JSON.stringify(assignedExams));
+                        }
+
+                        showMessage(`Se agregaron ${validEmails.length} alumno(s) al examen`, false);
+                        
+                        // Recargar la vista
+                        openStudentsForAssignedExam(examId);
+                    });
+                }
+
+                // Función para agregar inputs de correo
+                function addEmailInput() {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'flex items-center gap-2';
+                    wrapper.innerHTML = `
+                        <input 
+                            type="email" 
+                            class="new-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            placeholder="correo@ucol.mx"
+                        >
+                        <button type="button" class="remove-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg ${newStudentsInputs.children.length === 0 ? '' : ''}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    newStudentsInputs.appendChild(wrapper);
+                    
+                    // Mostrar botones de remover si hay más de un input
+                    updateRemoveButtons();
+                    
+                    // Event listener para agregar más inputs
+                    const input = wrapper.querySelector('.new-student-email');
+                    input.addEventListener('blur', () => {
+                        const lastInput = newStudentsInputs.querySelector('.new-student-email:last-of-type');
+                        if (input.value.trim() !== '' && (lastInput === input || lastInput.value.trim() !== '')) {
+                            addEmailInput();
+                        }
+                    });
+                    
+                    // Event listener para remover input
+                    const removeBtn = wrapper.querySelector('.remove-email-btn');
+                    removeBtn.addEventListener('click', () => {
+                        if (newStudentsInputs.children.length > 1) {
+                            wrapper.remove();
+                            updateRemoveButtons();
+                        }
+                    });
+                }
+                
+                // Función para actualizar visibilidad de botones de remover
+                function updateRemoveButtons() {
+                    const removeButtons = newStudentsInputs.querySelectorAll('.remove-email-btn');
+                    removeButtons.forEach((btn, index) => {
+                        if (newStudentsInputs.children.length > 1) {
+                            btn.classList.remove('hidden');
+                        } else {
+                            btn.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Mostrar modal
+                studentsModal.classList.remove('hidden');
+            } catch (err) {
+                console.error('Error loading assigned students:', err);
+                showMessage('Error al cargar los alumnos asignados', true);
+            }
+        }
+
         // Función para ver detalles de un estudiante específico
         window.viewStudentDetails = function(examCode, studentId) {
             // Por ahora, simplemente abrimos los resultados generales
@@ -2362,9 +4171,17 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 const code = t.getAttribute('data-view-results');
                 openResultsForExam(code);
             }
+            if (t && t.hasAttribute('data-view-results-assigned')) {
+                const examId = t.getAttribute('data-view-results-assigned');
+                openResultsForAssignedExam(examId);
+            }
             if (t && t.hasAttribute('data-view-students')) {
                 const code = t.getAttribute('data-view-students');
                 openStudentsForExam(code);
+            }
+            if (t && t.hasAttribute('data-view-students-assigned')) {
+                const examId = t.getAttribute('data-view-students-assigned');
+                openStudentsForAssignedExam(examId);
             }
             if (t && t.hasAttribute('data-view-sub')) {
                 const val = t.getAttribute('data-view-sub');
@@ -2377,20 +4194,71 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 openTextGradingModal(examId, studentId);
             }
             if (t && t.hasAttribute('data-delete-exam')) {
-                const code = t.getAttribute('data-delete-exam');
-                if (confirm(`¿Eliminar examen ${code}? Esta acción lo ocultará también para alumnos.`)) {
+                const examIdentifier = t.getAttribute('data-delete-exam');
+                const examRow = t.closest('tr');
+                const examId = examRow ? examRow.getAttribute('data-exam-id') : null;
+                
+                if (confirm(`¿Eliminar examen? Esta acción lo eliminará también para todos los alumnos asignados.`)) {
                     (async () => {
                         try {
-                            let resp = await fetch(getApiUrl(`/exam/code/${code}`), { method: 'DELETE' });
-                            if (!resp.ok) {
-                                resp = await fetch(getApiUrl(`/api/exam/code/${code}`), { method: 'DELETE' });
+                            // Verificar si es un examen asignado (privado)
+                            const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                            
+                            // Buscar el examen exacto usando el ID o el identificador
+                            let assignedExam = null;
+                            if (examId) {
+                                assignedExam = assignedExams.find(ex => String(ex.id) === String(examId));
                             }
-                            if (!resp.ok) throw new Error('Delete failed');
-                            showMessage('Examen eliminado', false);
+                            if (!assignedExam && examIdentifier) {
+                                assignedExam = assignedExams.find(ex => 
+                                    String(ex.id) === String(examIdentifier) || 
+                                    String(ex.examCode) === String(examIdentifier)
+                                );
+                            }
+
+                            if (assignedExam) {
+                                // Es un examen asignado, eliminarlo de localStorage
+                                const examToDeleteId = assignedExam.id;
+                                
+                                // Eliminar SOLO el examen específico usando su ID exacto
+                                const updatedAssignedExams = assignedExams.filter(ex => 
+                                    String(ex.id) !== String(examToDeleteId)
+                                );
+                                localStorage.setItem('assignedExams', JSON.stringify(updatedAssignedExams));
+
+                                // Eliminar sesiones relacionadas usando el ID exacto
+                                const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                                const updatedSessions = examSessions.filter(session => 
+                                    String(session.examId) !== String(examToDeleteId)
+                                );
+                                localStorage.setItem('examSessions', JSON.stringify(updatedSessions));
+
+                                showMessage('Examen asignado eliminado. Los alumnos ya no podrán verlo.', false);
+                            } else {
+                                // Es un examen público, eliminarlo del backend
+                                let resp = await fetch(getApiUrl(`/exam/code/${examIdentifier}`), { method: 'DELETE' });
+                                if (!resp.ok) {
+                                    resp = await fetch(getApiUrl(`/api/exam/code/${examIdentifier}`), { method: 'DELETE' });
+                                }
+                                if (!resp.ok) throw new Error('Delete failed');
+                                
+                                // También eliminar sesiones relacionadas si existen
+                                const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                                const updatedSessions = examSessions.filter(session => 
+                                    String(session.examCode) !== String(examIdentifier) &&
+                                    String(session.examId) !== String(examIdentifier)
+                                );
+                                localStorage.setItem('examSessions', JSON.stringify(updatedSessions));
+
+                                showMessage('Examen eliminado', false);
+                            }
+
                             // Invalidar cache y recargar
                             examsCache = null;
                             examsCacheTime = 0;
                             await loadMyExams('', true);
+                            // Actualizar contador de exámenes
+                            await updateExamCount();
                         } catch (err) {
                             console.error('delete exam error', err);
                             showMessage('No se pudo eliminar el examen', true);
@@ -2441,6 +4309,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 </div>
                 <div class="flex items-center space-x-4">
                     <span id="userName" class="text-gray-700 text-sm font-medium">Profesor</span>
+                    <button id="createGroupBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
+                        <i class="fas fa-users mr-2"></i>
+                        Tus Grupos
+                    </button>
                     <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-sign-out-alt mr-2"></i>
                         Cerrar Sesión
@@ -2456,7 +4328,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-2">¡Bienvenid@!</h2>
+                    <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-2">Bienvenido(a)!</h2>
                     <p class="text-gray-600">Genera exámenes personalizados con inteligencia artificial</p>
                 </div>
                 <div class="text-right">
@@ -2861,12 +4733,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 <!-- El contenido del examen se mostrará aquí -->
             </div>
             
-            <div class="flex justify-between items-center mt-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-8 gap-4">
                 <div class="text-green-600 text-sm">
                     <span class="opacity-80">Código del examen:</span>
                     <span id="examCodeDisplay" class="font-mono font-semibold ml-2">—</span>
                 </div>
-                <div class="flex justify-end space-x-2">
+                
+                <!-- Botones para desktop (ocultos en móvil) -->
+                <div class="hidden md:flex justify-end space-x-2 w-full sm:w-auto">
                     <button id="editExamBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-edit mr-2"></i>
                         Editar Examen
@@ -2883,14 +4757,58 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         <i class="fas fa-bullhorn mr-2"></i>
                         Publicar Examen
                     </button>
-                <button id="configExamBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
-                    <i class="fas fa-cog mr-2"></i>
-                    Configuración de Examen
-                </button>
-                <button id="viewMyExamsBtn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
-                    <i class="fas fa-list mr-2"></i>
-                    Ver en Mis Exámenes
-                </button>
+                    <button id="assignExamBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Asignar Examen por Correo
+                    </button>
+                    <button id="configExamBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                        <i class="fas fa-cog mr-2"></i>
+                        Configuración de Examen
+                    </button>
+                    <button id="viewMyExamsBtn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                        <i class="fas fa-list mr-2"></i>
+                        Ver en Mis Exámenes
+                    </button>
+                </div>
+                
+                <!-- Menú desplegable para móvil (visible solo en móvil) -->
+                <div class="md:hidden w-full">
+                    <div class="relative">
+                        <button id="examActionsMenuBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-between">
+                            <span><i class="fas fa-bars mr-2"></i>Opciones del Examen</span>
+                            <i class="fas fa-chevron-down" id="examActionsMenuIcon"></i>
+                        </button>
+                        <div id="examActionsMenu" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <button id="editExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-edit mr-3 text-yellow-500"></i>
+                                <span>Editar Examen</span>
+                            </button>
+                            <button id="applyChangesBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-check mr-3 text-emerald-500"></i>
+                                <span>Aplicar Cambios</span>
+                            </button>
+                            <button id="cancelEditBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-times mr-3 text-gray-500"></i>
+                                <span>Cancelar</span>
+                            </button>
+                            <button id="saveExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-bullhorn mr-3 text-green-500"></i>
+                                <span>Publicar Examen</span>
+                            </button>
+                            <button id="assignExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-envelope mr-3 text-blue-500"></i>
+                                <span>Asignar Examen por Correo</span>
+                            </button>
+                            <button id="configExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-cog mr-3 text-purple-500"></i>
+                                <span>Configuración de Examen</span>
+                            </button>
+                            <button id="viewMyExamsBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-list mr-3 text-blue-500"></i>
+                                <span>Ver en Mis Exámenes</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2991,6 +4909,369 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     Eliminar
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Asignación de Examen por Correo -->
+    <div id="assignExamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
+        <div class="card-modern p-8 max-w-lg mx-4 w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-paper-plane text-blue-500 mr-3"></i>
+                    Asignar Examen
+                </h3>
+                <button id="closeAssignExamModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6 mb-6">
+                <!-- Opciones de asignación -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Método de asignación</label>
+                    <div class="space-y-3">
+                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                            <input type="radio" name="assignMethod" value="manual" class="mr-3" checked>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-800">
+                                    <i class="fas fa-envelope mr-2 text-blue-500"></i>Asignar Manualmente
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Ingresa los correos de los alumnos individualmente</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                            <input type="radio" name="assignMethod" value="group" class="mr-3">
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-800">
+                                    <i class="fas fa-users mr-2 text-green-500"></i>Asignar a Grupo
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Asigna el examen a todos los alumnos de un grupo</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sección: Asignación Manual -->
+                <div id="manualAssignSection" class="space-y-4">
+                    <p class="text-gray-700 text-sm">
+                        Ingresa el correo electrónico del alumno al que deseas asignar este examen.
+                    </p>
+                    
+                    <div id="emailInputsContainer" class="space-y-3">
+                        <div class="flex items-center gap-2 email-input-wrapper">
+                            <input 
+                                type="email" 
+                                class="email-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                placeholder="correo@ejemplo.com"
+                            >
+                            <button type="button" class="add-email-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors duration-200 hidden">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="emailErrors" class="space-y-2 hidden">
+                        <!-- Los errores se mostrarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Sección: Asignación por Grupo -->
+                <div id="groupAssignSection" class="space-y-4 hidden">
+                    <p class="text-gray-700 text-sm">
+                        Selecciona el grupo al que deseas asignar este examen. Se asignará automáticamente a todos los alumnos del grupo.
+                    </p>
+                    
+                    <div>
+                        <label for="selectGroup" class="block text-sm font-medium text-gray-700 mb-2">
+                            Seleccionar Grupo <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="selectGroup" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">-- Selecciona un grupo --</option>
+                        </select>
+                        <p id="groupInfo" class="text-xs text-gray-500 mt-2 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <button id="cancelAssignExamBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <button id="confirmAssignExamBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                    <i class="fas fa-check mr-2"></i>
+                    Confirmar Asignación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminar Grupo -->
+    <div id="deleteGroupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[86] hidden">
+        <div class="card-modern p-6 max-w-md mx-4 w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Eliminar Grupo
+                </h3>
+                <button id="closeDeleteGroupModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <p class="text-gray-700 text-base leading-relaxed">
+                    ¿Estás seguro de que deseas eliminar este grupo?
+                </p>
+                
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                Esta acción eliminará permanentemente el grupo y toda su información. 
+                                Los alumnos del grupo seguirán existiendo, pero ya no estarán asociados a este grupo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="deleteGroupInfo" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm text-gray-600">
+                        <strong>Grupo:</strong> <span id="deleteGroupName" class="font-semibold text-gray-800"></span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        <strong>Alumnos:</strong> <span id="deleteGroupStudents" class="font-semibold text-gray-800"></span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <button id="cancelDeleteGroupBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-times mr-2"></i>Cancelar
+                </button>
+                <button id="confirmDeleteGroupBtn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
+                    <i class="fas fa-trash mr-2"></i>Eliminar Grupo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Grupo -->
+    <div id="manageGroupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[85] hidden">
+        <div class="card-modern p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-users-cog mr-2 text-blue-600"></i>Gestionar Grupo
+                </h3>
+                <button id="closeManageGroupModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="manageGroupContent" class="space-y-6">
+                <!-- El contenido se cargará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Asignación Exitosa -->
+    <div id="assignSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[90] hidden">
+        <div class="card-modern p-8 max-w-md mx-4 w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                    Examen Asignado
+                </h3>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <p class="text-gray-700 text-base leading-relaxed" id="assignSuccessMessage">
+                    <!-- El mensaje se mostrará aquí -->
+                </p>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <button id="acceptAssignSuccessBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                    <i class="fas fa-check mr-2"></i>
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grupos Dashboard -->
+    <div id="groupsModal" class="fixed inset-0 bg-gray-100 z-50 hidden">
+        <div class="h-full flex flex-col">
+            <!-- Header del Dashboard -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="flex items-center">
+                            <div class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mr-3">
+                                <i class="fas fa-users text-lg text-blue-600"></i>
+                            </div>
+                            <h1 class="text-xl font-bold text-gray-800">Gestión de Grupos</h1>
+                        </div>
+                        <button id="closeGroupsModal" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                            <i class="fas fa-times mr-2"></i>Cerrar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Contenido Principal -->
+            <main class="flex-1 overflow-y-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <!-- Barra de búsqueda y botón Crear Grupo Nuevo -->
+                    <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                        <div class="w-full sm:w-auto sm:flex-1 max-w-md">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="searchGroupsInput" 
+                                    placeholder="Buscar grupos..." 
+                                    class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <button id="showCreateGroupFormBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
+                            <i class="fas fa-plus-circle mr-2"></i>Crear Grupo Nuevo
+                        </button>
+                    </div>
+
+                    <!-- Lista de Grupos -->
+                    <div id="groupsListContainer" class="space-y-4">
+                        <div class="text-center py-12 text-gray-500">
+                            <i class="fas fa-users text-6xl mb-4 opacity-30"></i>
+                            <p class="text-lg">No tienes grupos creados aún</p>
+                            <p class="text-sm mt-2">Presiona "Crear Grupo Nuevo" para comenzar</p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Crear Grupo (oculto por defecto) -->
+                    <div id="createGroupFormContainer" class="hidden mt-6">
+                        <div class="card-modern p-6">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-6">
+                                <i class="fas fa-plus-circle mr-2 text-green-600"></i>Crear Nuevo Grupo
+                            </h3>
+                            
+                            <form id="createGroupForm" class="space-y-6">
+                                <!-- Nombre del Grupo -->
+                                <div>
+                                    <label for="groupName" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Nombre del Grupo <span class="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="groupName" 
+                                        name="groupName"
+                                        required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Ej: Grupo 1A - Programación"
+                                    />
+                                </div>
+
+                                <!-- Descripción (Opcional) -->
+                                <div>
+                                    <label for="groupDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Descripción <span class="text-gray-500 text-xs">(Opcional)</span>
+                                    </label>
+                                    <textarea 
+                                        id="groupDescription" 
+                                        name="groupDescription"
+                                        rows="3"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Descripción del grupo..."
+                                    ></textarea>
+                                </div>
+
+                                <!-- Semestre y Grupo -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="groupSemester" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Semestre <span class="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="groupSemester" 
+                                            name="groupSemester"
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Ej: 7"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label for="groupGroup" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Grupo <span class="text-red-500">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="groupGroup" 
+                                            name="groupGroup"
+                                            required
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Ej: A"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Contraseña -->
+                                <div>
+                                    <label for="groupPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Contraseña <span class="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="password" 
+                                        id="groupPassword" 
+                                        name="groupPassword"
+                                        required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Contraseña para el grupo"
+                                    />
+                                </div>
+
+                                <!-- Alumnos -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Alumnos <span class="text-red-500">*</span>
+                                    </label>
+                                    <div id="groupStudentsInputs" class="space-y-2 mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <input 
+                                                type="email" 
+                                                class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                                placeholder="correo@ucol.mx"
+                                            />
+                                            <button type="button" class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg hidden">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addStudentEmailBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        <i class="fas fa-plus mr-1"></i>Agregar otro correo
+                                    </button>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                                    <button type="button" id="cancelCreateGroupBtn" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" id="submitCreateGroupBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-check mr-2"></i>Crear Grupo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 

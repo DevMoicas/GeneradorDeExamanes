@@ -71,8 +71,8 @@
         <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Bienvenido, Alumno!</h2>
-                    <p class="text-gray-600">Únete a exámenes y demuestra tus conocimientos</p>
+                    <h2 id="welcomeMessageAlumno" class="text-3xl font-bold text-gray-800 mb-2">Bienvenido(a)!</h2>
+                    <p class="text-gray-600"></p>
                 </div>
                 <div class="text-right">
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-2">
@@ -114,7 +114,7 @@
                 </div>
                 <div>
                     <label for="studentId" class="block text-sm font-medium text-gray-700 mb-2">
-                        Número de Cuenta <span class="text-red-500">*</span>
+                        Número de Cuenta <span class="text-red-500"></span>
                     </label>
                     <input type="text" id="studentId" name="studentId" required
                            class="input-modern w-full"
@@ -139,7 +139,7 @@
                 <div class="text-center text-gray-500 py-8">
                     <i class="fas fa-hourglass-half text-4xl mb-4 opacity-50"></i>
                     <p>No tienes exámenes pendientes</p>
-                    <p class="text-sm">Únete a un examen para verlo aquí</p>
+                    <p class="text-sm">Los exámenes pendientes aparecerán aquí</p>
                 </div>
             </div>
         </div>
@@ -213,6 +213,66 @@
         </div>
     </div>
 
+
+    <!-- Modal para Iniciar Examen Asignado -->
+    <div id="startAssignedExamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="card-modern p-8 max-w-md mx-4 w-full">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-user-check text-blue-500 mr-3"></i>
+                    Iniciar Examen
+                </h3>
+                <button id="closeStartAssignedExamModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <p class="text-gray-700 text-base leading-relaxed">
+                    Por favor ingresa tu nombre y número de cuenta para comenzar el examen.
+                </p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nombre Completo
+                        </label>
+                        <input 
+                            type="text" 
+                            id="assignedExamStudentName" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            placeholder="Nombre y Apellido"
+                            required
+                        >
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Número de Cuenta
+                        </label>
+                        <input 
+                            type="text" 
+                            id="assignedExamStudentId" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            placeholder="Número de cuenta"
+                            required
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <button id="cancelStartAssignedExamBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <button id="confirmStartAssignedExamBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                    <i class="fas fa-check mr-2"></i>
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Message Container -->
     <div id="messageContainer" class="fixed top-4 right-4 z-50 hidden">

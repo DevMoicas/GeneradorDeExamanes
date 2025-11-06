@@ -1,32 +1,88 @@
 {
-  "id": "EXAM_1762436406901",
-  "title": "Examen de palabras",
-  "subject": "ruso",
-  "difficulty": "básico",
-  "numQuestions": 9,
+  "id": "EXAM_1762444553116",
+  "title": "Examen de Ecuaciones",
+  "subject": "Matemáticas",
+  "difficulty": "intermedio",
+  "numQuestions": 10,
   "questions": [
     {
       "id": 1,
-      "question": "Traduce la palabra rusa 'Здравствуйте' al español:",
+      "question": "Resuelve la siguiente ecuación lineal: 3x - 7 = 2x + 5",
       "options": [
         {
           "letter": "A",
-          "text": "Adiós",
+          "text": "x = 2",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Por favor",
+          "text": "x = 12",
+          "isCorrect": true
+        },
+        {
+          "letter": "C",
+          "text": "x = -2",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "x = -12",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B",
+      "obligatory": true
+    },
+    {
+      "id": 2,
+      "question": "¿Cuál es el valor de 'y' en el siguiente sistema de ecuaciones?x + y = 10; x - y = 2",
+      "options": [
+        {
+          "letter": "A",
+          "text": "y = 4",
+          "isCorrect": true
+        },
+        {
+          "letter": "B",
+          "text": "y = 6",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Hola",
+          "text": "y = 8",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "y = 2",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "A",
+      "obligatory": true
+    },
+    {
+      "id": 3,
+      "question": "Encuentra las soluciones de la ecuación cuadrática: x^2 - 5x + 6 = 0",
+      "options": [
+        {
+          "letter": "A",
+          "text": "x = 1, x = 6",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "x = -2, x = -3",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "x = 2, x = 3",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Gracias",
+          "text": "x = 0, x = 5",
           "isCorrect": false
         }
       ],
@@ -34,83 +90,27 @@
       "obligatory": true
     },
     {
-      "id": 2,
-      "question": "¿Qué significa 'Спасибо' en español?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "De nada",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Gracias",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Lo siento",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Permiso",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B",
-      "obligatory": true
-    },
-    {
-      "id": 3,
-      "question": "Traduce 'Пожалуйста' al español:",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Disculpa",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Por favor",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Ayuda",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Quizás",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B",
-      "obligatory": true
-    },
-    {
       "id": 4,
-      "question": "¿Cuál es la traducción de 'Да'?",
+      "question": "Resuelve la ecuación con fracciones: (x/3) + (x/2) = 5",
       "options": [
         {
           "letter": "A",
-          "text": "No",
+          "text": "x = 3",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Sí",
+          "text": "x = 6",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Tal vez",
+          "text": "x = 10",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Siempre",
+          "text": "x = 2",
           "isCorrect": false
         }
       ],
@@ -119,26 +119,26 @@
     },
     {
       "id": 5,
-      "question": "Si quieres decir 'No' en ruso, ¿qué palabra usarías?",
+      "question": "¿Cuál es el conjunto solución de la ecuación con valor absoluto |2x - 1| = 5?",
       "options": [
         {
           "letter": "A",
-          "text": "Да",
+          "text": "{3}",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Вот",
+          "text": "{-2}",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Нет",
+          "text": "{3, -2}",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Там",
+          "text": "{2, -3}",
           "isCorrect": false
         }
       ],
@@ -147,26 +147,82 @@
     },
     {
       "id": 6,
-      "question": "¿Qué significa 'До свидания'?",
+      "question": "Si 2^(x+1) = 16, ¿cuál es el valor de x?",
       "options": [
         {
           "letter": "A",
-          "text": "Hasta luego",
-          "isCorrect": true
-        },
-        {
-          "letter": "B",
-          "text": "Buenos días",
+          "text": "x = 2",
           "isCorrect": false
         },
         {
+          "letter": "B",
+          "text": "x = 3",
+          "isCorrect": true
+        },
+        {
           "letter": "C",
-          "text": "Buenas noches",
+          "text": "x = 4",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Te amo",
+          "text": "x = 1",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B",
+      "obligatory": true
+    },
+    {
+      "id": 7,
+      "question": "Resuelve la ecuación logarítmica: log_2(x) = 3",
+      "options": [
+        {
+          "letter": "A",
+          "text": "x = 6",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "x = 8",
+          "isCorrect": true
+        },
+        {
+          "letter": "C",
+          "text": "x = 9",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "x = 16",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B",
+      "obligatory": true
+    },
+    {
+      "id": 8,
+      "question": "Encuentra el valor de 'x' en la ecuación radical: sqrt(x + 4) = 3",
+      "options": [
+        {
+          "letter": "A",
+          "text": "x = 5",
+          "isCorrect": true
+        },
+        {
+          "letter": "B",
+          "text": "x = 7",
+          "isCorrect": false
+        },
+        {
+          "letter": "C",
+          "text": "x = 1",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "x = -1",
           "isCorrect": false
         }
       ],
@@ -174,27 +230,27 @@
       "obligatory": true
     },
     {
-      "id": 7,
-      "question": "La palabra 'Я' se traduce como:",
+      "id": 9,
+      "question": "¿Cuál de las siguientes inecuaciones representa el enunciado 'un número aumentado en 5 es menor o igual que 12'?",
       "options": [
         {
           "letter": "A",
-          "text": "Tú",
+          "text": "x + 5 < 12",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Él",
+          "text": "x + 5 > 12",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Yo",
+          "text": "x + 5 <= 12",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Nosotros",
+          "text": "x + 5 >= 12",
           "isCorrect": false
         }
       ],
@@ -202,55 +258,27 @@
       "obligatory": true
     },
     {
-      "id": 8,
-      "question": "Traduce 'Как дела?' al español:",
+      "id": 10,
+      "question": "La suma de dos números es 20 y su diferencia es 4. ¿Cuáles son esos números?",
       "options": [
         {
           "letter": "A",
-          "text": "¿Quién eres?",
+          "text": "10 y 10",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "¿Cómo estás?",
+          "text": "12 y 8",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "¿Qué hora es?",
+          "text": "14 y 6",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "¿Dónde está?",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B",
-      "obligatory": true
-    },
-    {
-      "id": 9,
-      "question": "¿Cuál es la traducción correcta al español de la palabra rusa \"путешествие\"?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Trabajo",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "Viaje",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Amistad",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Felicidad",
+          "text": "16 y 4",
           "isCorrect": false
         }
       ],
@@ -258,13 +286,13 @@
       "obligatory": true
     }
   ],
-  "createdAt": "2025-11-06T13:40:06.901Z",
-  "professorId": "U_1762363249432",
+  "createdAt": "2025-11-06T15:55:53.116Z",
+  "professorId": "U_1762443473221",
   "status": "active",
   "examConfig": {
     "showExamAfter": false,
     "showCorrectAnswers": false,
     "resultOnly": true
   },
-  "examCode": "8L6Q6J"
+  "examCode": "1VX3TI"
 }

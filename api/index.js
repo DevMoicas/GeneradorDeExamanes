@@ -115,6 +115,11 @@ export default function handler(req, res) {
             }
         }
 
+        // Resetear sistema completo
+        if (method === 'DELETE' && urlPath === '/api/system/reset') {
+            return handleResetSystem(req, res, EXAMS_DIR, ANSWERS_DIR, USERS_JSON);
+        }
+
         // Exams by professor
         if (method === 'GET' && urlPath.startsWith('/api/exams/by-professor/')) {
             const profId = urlPath.split('/')[4];
@@ -374,6 +379,54 @@ function handleResultDetail(req, res, ANSWERS_DIR, code, file) {
         return res.json(data);
     } catch (err) {
         return res.status(500).json({ error: 'Error del servidor' });
+    }
+}
+
+function handleResetSystem(req, res, EXAMS_DIR, ANSWERS_DIR, USERS_JSON) {
+    try {
+        // 1. Eliminar todos los archivos de exámenes
+        if (fs.existsSync(EXAMS_DIR)) {
+            const examFiles = fs.readdirSync(EXAMS_DIR);
+            examFiles.forEach(file => {
+                try {
+                    fs.unlinkSync(path.join(EXAMS_DIR, file));
+                } catch (err) {
+                    console.error(`Error eliminando archivo de examen ${file}:`, err);
+                }
+            });
+        }
+
+        // 2. Eliminar todos los archivos de respuestas
+        if (fs.existsSync(ANSWERS_DIR)) {
+            const answerFiles = fs.readdirSync(ANSWERS_DIR);
+            answerFiles.forEach(file => {
+                try {
+                    fs.unlinkSync(path.join(ANSWERS_DIR, file));
+                } catch (err) {
+                    console.error(`Error eliminando archivo de respuesta ${file}:`, err);
+                }
+            });
+        }
+
+        // 3. Resetear archivo de usuarios
+        try {
+            fs.writeFileSync(USERS_JSON, JSON.stringify({ users: [] }, null, 2), 'utf8');
+        } catch (err) {
+            console.error('Error reseteando usuarios:', err);
+        }
+
+        return res.json({ 
+            success: true, 
+            message: 'Sistema reseteado correctamente',
+            deleted: {
+                exams: 'todos',
+                answers: 'todas',
+                users: 'todos'
+            }
+        });
+    } catch (err) {
+        console.error('Error al resetear sistema:', err);
+        return res.status(500).json({ error: 'Error del servidor al resetear sistema' });
     }
 }
 

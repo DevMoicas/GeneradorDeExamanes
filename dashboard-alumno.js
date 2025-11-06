@@ -60,7 +60,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Mostrar información del usuario
-            userName.textContent = `${currentUser.nombre} ${currentUser.apellido}`;
+            const fullName = `${currentUser.nombre} ${currentUser.apellido || ''}`.trim();
+            userName.textContent = fullName;
+            
+            // Actualizar mensaje de bienvenida
+            const welcomeMessageAlumno = document.getElementById('welcomeMessageAlumno');
+            if (welcomeMessageAlumno) {
+                welcomeMessageAlumno.textContent = `Bienvenido(a), ${fullName}`;
+            }
 
             // Cargar datos
             await loadExamData();
@@ -453,6 +460,57 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+    // Función para calificar exámenes asignados localmente
+    function gradeExamLocally(exam, answers) {
+        let correct = 0;
+        let total = exam.questions.length;
+        const questionResults = [];
+
+        exam.questions.forEach((question, index) => {
+            const questionId = question.id || question.questionNumber;
+            const answer = answers.find(a => a.questionId === questionId || a.questionId === index + 1);
+            const questionType = question.type || 'multiple_choice';
+            let isCorrect = false;
+
+            if (questionType === 'text_input') {
+                // Las preguntas de texto siempre necesitan revisión manual
+                isCorrect = false; // Se marcará como pendiente de revisión
+            } else if (questionType === 'multiple_select') {
+                // Comparar arrays de respuestas
+                const correctAnswers = question.correctAnswers || [];
+                const studentAnswers = answer?.selected || [];
+                isCorrect = correctAnswers.length === studentAnswers.length &&
+                    correctAnswers.every(ans => studentAnswers.includes(ans)) &&
+                    studentAnswers.every(ans => correctAnswers.includes(ans));
+            } else {
+                // multiple_choice
+                const correctAnswer = question.correctAnswer || question.correctAnswerLetter;
+                isCorrect = answer?.selected === correctAnswer;
+            }
+
+            if (isCorrect && questionType !== 'text_input') {
+                correct++;
+            }
+
+            questionResults.push({
+                questionId: questionId,
+                isCorrect: isCorrect,
+                correctAnswer: question.correctAnswer || question.correctAnswerLetter || question.correctAnswers,
+                studentAnswer: answer?.selected || null
+            });
+        });
+
+        return {
+            score: {
+                correct: correct,
+                total: total,
+                percentage: total > 0 ? Math.round((correct / total) * 100) : 0
+            },
+            questionResults: questionResults,
+            timestamp: new Date().toISOString()
+        };
+    }
+
     async function submitExamAnswers(event) {
         event.preventDefault();
         try {
@@ -528,14 +586,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 return { questionId, selected, type: questionType, needsManualGrading };
             });
 
-            // Enviar a backend para calificar por código
-            const resp = await fetch(getApiUrl(`/exam/code/${(exam.examCode || '').toUpperCase()}/grade`), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ student: { name: session.studentName, id: session.studentId || '' }, answers })
-            });
-            if (!resp.ok) throw new Error('No se pudieron enviar las respuestas');
-            const result = await resp.json();
+            // Verificar si es un examen asignado (sin código)
+            const isAssignedExam = session.assigned === true || !exam.examCode;
+            let result;
+            
+            if (isAssignedExam) {
+                // Calificar localmente para exámenes asignados
+                result = gradeExamLocally(exam, answers);
+            } else {
+                // Enviar a backend para calificar por código
+                const resp = await fetch(getApiUrl(`/exam/code/${(exam.examCode || '').toUpperCase()}/grade`), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student: { name: session.studentName, id: session.studentId || '' }, answers })
+                });
+                if (!resp.ok) throw new Error('No se pudieron enviar las respuestas');
+                result = await resp.json();
+            }
 
             // Verificar si hay preguntas que necesitan calificación manual
             const textQuestions = answers.filter(a => a.needsManualGrading);
@@ -553,6 +620,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessions[idx].score = result.score || { correct: 0, total: 0 }; // Guardar el score
                 sessions[idx].completedAt = new Date().toISOString(); // Marcar fecha de finalización
                 sessions[idx].examConfig = exam.examConfig || { resultOnly: true }; // Guardar configuración del examen
+                // Asegurar que el nombre y número de cuenta estén guardados
+                if (!sessions[idx].studentName) sessions[idx].studentName = session.studentName;
+                if (!sessions[idx].studentId) sessions[idx].studentId = session.studentId;
+                localStorage.setItem('examSessions', JSON.stringify(sessions));
+            } else {
+                // Si no se encuentra la sesión, crear una nueva (por si acaso)
+                const newSession = {
+                    ...session,
+                    status: hasTextQuestions ? 'pending_review' : 'completed',
+                    result: result,
+                    answers: answers,
+                    textQuestions: textQuestions,
+                    needsManualGrading: hasTextQuestions,
+                    score: result.score || { correct: 0, total: 0 },
+                    completedAt: new Date().toISOString(),
+                    examConfig: exam.examConfig || { resultOnly: true }
+                };
+                sessions.push(newSession);
                 localStorage.setItem('examSessions', JSON.stringify(sessions));
             }
 
@@ -926,13 +1011,105 @@ document.addEventListener('DOMContentLoaded', function() {
                 return sessionName.includes(currentFirstName);
             });
 
-            // Separar por estado
-            pendingExams = studentSessions.filter(session => session.status === 'in_progress' || session.status === 'pending');
-            completedExams = studentSessions.filter(session => session.status === 'completed');
+            // Separar por estado primero
+            const inProgressSessions = studentSessions.filter(session => 
+                session.status === 'in_progress' || 
+                session.status === 'pending' ||
+                session.status === 'assigned'
+            );
+            // Los exámenes completados incluyen los que están completados y los que están pendientes de revisión
+            completedExams = studentSessions.filter(session => 
+                session.status === 'completed' || 
+                session.status === 'pending_review'
+            );
             
-            // Agregar exámenes pendientes de revisión a la lista de pendientes
-            const pendingReviewExams = studentSessions.filter(session => session.status === 'pending_review');
-            pendingExams = [...pendingExams, ...pendingReviewExams];
+            // Inicializar pendingExams con las sesiones en progreso (no completadas)
+            pendingExams = [...inProgressSessions];
+
+            // Cargar exámenes asignados
+            const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+            const currentUserEmail = currentUser?.email?.toLowerCase();
+            
+            // Filtrar exámenes asignados al alumno actual
+            const myAssignedExams = assignedExams.filter(exam => {
+                if (!exam.assignedTo || !Array.isArray(exam.assignedTo)) {
+                    return false;
+                }
+                return exam.assignedTo.some(email => 
+                    String(email).toLowerCase() === currentUserEmail
+                );
+            });
+
+            // Convertir exámenes asignados a formato de sesión si no tienen sesión
+            myAssignedExams.forEach(exam => {
+                const examId = exam.id || exam.examCode || `ASSIGNED_${Date.now()}`;
+                // Buscar si ya existe una sesión para este examen del estudiante actual
+                // Primero buscar en las sesiones del estudiante que ya fueron filtradas
+                const existingSession = studentSessions.find(s => {
+                    // Comparar por examId o examCode
+                    const sessionExamId = String(s.examId || '');
+                    const sessionExamCode = String(s.examCode || '');
+                    const examIdStr = String(examId || '');
+                    const examCodeStr = String(exam.examCode || '');
+                    const examIdFromExam = String(exam.id || '');
+                    
+                    return (sessionExamId === examIdStr) || 
+                           (sessionExamCode === examIdStr) ||
+                           (sessionExamId === examCodeStr) ||
+                           (sessionExamCode === examCodeStr) ||
+                           (sessionExamId === examIdFromExam) ||
+                           (sessionExamCode === examIdFromExam);
+                });
+                
+                // Si existe una sesión y está completada, no agregar a pendientes
+                if (existingSession) {
+                    const isCompleted = existingSession.status === 'completed' || 
+                                       existingSession.status === 'pending_review';
+                    if (isCompleted) {
+                        // El examen ya está completado, no agregarlo a pendientes
+                        return;
+                    }
+                    // Si la sesión existe pero no está completada, ya está en pendingExams o inProgressSessions
+                    return;
+                }
+                
+                // No hay sesión existente, verificar que no esté ya en pendingExams o completedExams
+                const alreadyInPending = pendingExams.some(p => {
+                    const pExamId = String(p.examId || '');
+                    const pExamCode = String(p.examCode || '');
+                    const examIdStr = String(examId || '');
+                    const examCodeStr = String(exam.examCode || '');
+                    return (pExamId === examIdStr) || 
+                           (pExamCode === examIdStr) ||
+                           (pExamId === examCodeStr) ||
+                           (pExamCode === examCodeStr);
+                });
+                
+                const alreadyInCompleted = completedExams.some(c => {
+                    const cExamId = String(c.examId || '');
+                    const cExamCode = String(c.examCode || '');
+                    const examIdStr = String(examId || '');
+                    const examCodeStr = String(exam.examCode || '');
+                    return (cExamId === examIdStr) || 
+                           (cExamCode === examIdStr) ||
+                           (cExamId === examCodeStr) ||
+                           (cExamCode === examCodeStr);
+                });
+                
+                // Solo agregar si no está en ninguna lista
+                if (!alreadyInPending && !alreadyInCompleted) {
+                    const assignedSession = {
+                        examId: examId,
+                        examCode: exam.examCode || null,
+                        examTitle: exam.title || exam.examTitle,
+                        subject: exam.subject,
+                        status: 'assigned',
+                        assigned: true,
+                        joinedAt: new Date().toISOString()
+                    };
+                    pendingExams.push(assignedSession);
+                }
+            });
 
             // Actualizar todas las listas
             updatePendingExamsList();
@@ -963,8 +1140,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="flex-1">
                         <h4 class="text-lg font-semibold text-gray-800 mb-2">${session.examTitle}</h4>
                         <div class="flex flex-wrap gap-4 text-gray-600 text-sm mb-3">
-                            <span><i class="fas fa-user mr-1"></i>${session.studentName}</span>
-                            ${session.studentId ? `<span><i class="fas fa-id-card mr-1"></i>${session.studentId}</span>` : ''}
+                            ${session.status === 'assigned' ? '' : `<span><i class="fas fa-user mr-1"></i>${session.studentName || 'N/A'}</span>`}
+                            ${session.status === 'assigned' ? '' : (session.studentId ? `<span><i class="fas fa-id-card mr-1"></i>${session.studentId}</span>` : '')}
                             <span><i class="fas fa-clock mr-1"></i>${new Date(session.joinedAt).toLocaleString()}</span>
                             <span><i class="fas fa-book mr-1"></i>${typeof session.subject === 'string' ? session.subject : (session.subject?.name || session.subject?.title || 'Materia no especificada')}</span>
                         </div>
@@ -973,10 +1150,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="px-3 py-1 rounded-full text-xs font-medium ${
                             session.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
                             session.status === 'pending_review' ? 'bg-orange-100 text-orange-800' : 
+                            session.status === 'assigned' ? 'bg-purple-100 text-purple-800' :
                             'bg-yellow-100 text-yellow-800'
                         }">
                             ${session.status === 'in_progress' ? 'En Progreso' : 
                               session.status === 'pending_review' ? 'Pendiente de Revisión' : 
+                              session.status === 'assigned' ? 'Asignado' :
                               'Pendiente'}
                         </span>
                     </div>
@@ -984,12 +1163,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="flex justify-between items-center pt-4 border-t border-gray-200">
                     <div class="text-sm text-gray-500">
-                        <span>Código: <span class="font-mono font-medium">${session.examCode || session.examId}</span></span>
+                        ${session.assigned ? 
+                            '<span class="text-gray-500 italic">Examen asignado</span>' :
+                            `<span>Código: <span class="font-mono font-medium">${session.examCode || session.examId}</span></span>`
+                        }
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="startExam('${session.examId}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition-colors duration-200">
+                        ${session.status === 'assigned' ? 
+                            `<button onclick="startAssignedExam('${session.examId}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition-colors duration-200">
+                                <i class="fas fa-play mr-1"></i>Iniciar
+                            </button>` :
+                            `<button onclick="startExam('${session.examId}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition-colors duration-200">
                             <i class="fas fa-play mr-1"></i>Iniciar Examen
-                        </button>
+                            </button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -1106,6 +1293,164 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateExamCount() {
         examCount.textContent = completedExams.length;
+    }
+
+    // Variable para almacenar el examen asignado que se va a iniciar
+    let pendingAssignedExam = null;
+
+    // Función para iniciar un examen asignado
+    window.startAssignedExam = function(examId) {
+        const session = pendingExams.find(s => s.examId === examId && s.status === 'assigned');
+        if (!session) {
+            showMessage('No se encontró el examen asignado', 'error');
+            return;
+        }
+
+        // Guardar referencia al examen
+        pendingAssignedExam = { examId, session };
+
+        // Limpiar campos del modal
+        document.getElementById('assignedExamStudentName').value = '';
+        document.getElementById('assignedExamStudentId').value = '';
+
+        // Mostrar modal
+        document.getElementById('startAssignedExamModal').classList.remove('hidden');
+    }
+
+    // Event listeners para el modal de inicio de examen asignado
+    const startAssignedExamModal = document.getElementById('startAssignedExamModal');
+    const closeStartAssignedExamModal = document.getElementById('closeStartAssignedExamModal');
+    const cancelStartAssignedExamBtn = document.getElementById('cancelStartAssignedExamBtn');
+    const confirmStartAssignedExamBtn = document.getElementById('confirmStartAssignedExamBtn');
+
+    if (closeStartAssignedExamModal) {
+        closeStartAssignedExamModal.addEventListener('click', () => {
+            startAssignedExamModal.classList.add('hidden');
+            pendingAssignedExam = null;
+        });
+    }
+
+    if (cancelStartAssignedExamBtn) {
+        cancelStartAssignedExamBtn.addEventListener('click', () => {
+            startAssignedExamModal.classList.add('hidden');
+            pendingAssignedExam = null;
+        });
+    }
+
+    if (confirmStartAssignedExamBtn) {
+        confirmStartAssignedExamBtn.addEventListener('click', async () => {
+            if (!pendingAssignedExam) {
+                showMessage('Error: No hay examen pendiente', 'error');
+                return;
+            }
+
+            const studentName = document.getElementById('assignedExamStudentName').value.trim();
+            const studentId = document.getElementById('assignedExamStudentId').value.trim();
+
+            if (!studentName || !studentId) {
+                showMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+
+            try {
+                // Buscar el examen asignado (primero en localStorage, luego en backend)
+                let exam = null;
+                const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
+                const searchId = pendingAssignedExam.examId || pendingAssignedExam.session.examId;
+                const searchCode = pendingAssignedExam.session.examCode;
+                
+                exam = assignedExams.find(e => {
+                    const eId = e.id || e.examCode;
+                    const eCode = e.examCode || e.id;
+                    return (eId === searchId) || (eCode === searchId) || 
+                           (eId === searchCode) || (eCode === searchCode);
+                });
+
+                // Si no se encuentra en localStorage, buscar en backend
+                if (!exam && searchId) {
+                    try {
+                        const resp = await fetch(getApiUrl(`/exam/${searchId}/public`));
+                        if (resp.ok) {
+                            exam = await resp.json();
+                        }
+                    } catch (e) {
+                        console.warn('Error buscando examen en backend:', e);
+                    }
+                }
+                
+                // Si aún no se encuentra, buscar por título (último recurso)
+                if (!exam && pendingAssignedExam.session.examTitle) {
+                    exam = assignedExams.find(e => 
+                        (e.title === pendingAssignedExam.session.examTitle) ||
+                        (e.examTitle === pendingAssignedExam.session.examTitle)
+                    );
+                }
+
+                if (!exam) {
+                    showMessage('No se pudo encontrar el examen asignado', 'error');
+                    return;
+                }
+
+                // Transformar el examen al formato esperado
+                const transformedExam = {
+                    id: exam.id || exam.examCode,
+                    examCode: exam.examCode || exam.id,
+                    title: exam.title || exam.examTitle,
+                    subject: exam.subject,
+                    difficulty: exam.difficulty,
+                    numQuestions: exam.numQuestions || (exam.questions ? exam.questions.length : 0),
+                    examConfig: exam.examConfig || { resultOnly: true },
+                    questions: (exam.questions || []).map((q, idx) => ({
+                        id: q.id || q.questionNumber || (idx + 1),
+                        question: q.enunciado || q.question,
+                        questionNumber: q.questionNumber || (idx + 1),
+                        type: q.type || 'multiple_choice',
+                        correctAnswer: q.correctAnswerLetter || q.correctAnswer,
+                        correctAnswers: q.correctAnswers,
+                        expectedAnswer: q.expectedAnswer,
+                        explanation: q.explanation,
+                        obligatory: q.obligatory !== false,
+                        options: (q.options || []).map(o => ({ 
+                            letter: o.letter, 
+                            text: o.text 
+                        }))
+                    }))
+                };
+
+                // Crear sesión para el examen
+                const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
+                const newSession = {
+                    examId: transformedExam.id,
+                    examCode: transformedExam.examCode,
+                    examTitle: transformedExam.title,
+                    subject: transformedExam.subject,
+                    studentName: studentName,
+                    studentId: studentId,
+                    status: 'in_progress',
+                    joinedAt: new Date().toISOString(),
+                    assigned: true,
+                    examConfig: transformedExam.examConfig
+                };
+
+                examSessions.push(newSession);
+                localStorage.setItem('examSessions', JSON.stringify(examSessions));
+
+                // Cerrar modal
+                startAssignedExamModal.classList.add('hidden');
+                pendingAssignedExam = null;
+
+                // Mostrar el examen
+                renderTakeExam(transformedExam, newSession);
+                showMessage('Examen iniciado', 'success');
+
+                // Recargar datos para actualizar la lista
+                await loadExamData();
+
+            } catch (error) {
+                console.error('Error al iniciar examen asignado:', error);
+                showMessage('Error al iniciar el examen', 'error');
+            }
+        });
     }
 
     // Función para iniciar un examen pendiente

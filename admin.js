@@ -21,6 +21,7 @@
     const examViewModal = document.getElementById('examViewModal');
     const closeExamView = document.getElementById('closeExamView');
     const examViewContent = document.getElementById('examViewContent');
+    const resetSystemBtn = document.getElementById('resetSystemBtn');
 
     function showMsg(text, isError=false){
         msg.className = 'p-3 rounded text-sm ' + (isError ? 'bg-red-500 text-white' : 'bg-green-600 text-white');
@@ -210,6 +211,57 @@
     }
 
     closeExamView.addEventListener('click', ()=> examViewModal.classList.add('hidden'));
+
+    // Resetear sistema
+    resetSystemBtn.addEventListener('click', async () => {
+        const confirmMsg = '¿Estás seguro de que deseas resetear el sistema?\n\nEsta acción eliminará:\n- Todos los usuarios (alumnos y profesores)\n- Todos los exámenes creados\n- Todas las respuestas guardadas\n\nEsta acción NO se puede deshacer.';
+        if (!confirm(confirmMsg)) return;
+
+        const secondConfirm = 'Esta es tu última oportunidad. ¿Realmente deseas eliminar TODOS los datos del sistema?';
+        if (!confirm(secondConfirm)) return;
+
+        try {
+            resetSystemBtn.disabled = true;
+            resetSystemBtn.textContent = 'Reseteando...';
+            
+            // Llamar al endpoint del servidor
+            let resp = await fetch(getApiUrl('/system/reset'), { method: 'DELETE' });
+            if (!resp.ok) {
+                // Intentar con ruta de API
+                resp = await fetch(getApiUrl('/api/system/reset'), { method: 'DELETE' });
+            }
+
+            if (!resp.ok) {
+                throw new Error('Error al resetear el sistema');
+            }
+
+            // Limpiar base de datos local (SQLite)
+            const dbm = window.getDatabaseManager && window.getDatabaseManager();
+            if (dbm && dbm.db) {
+                try {
+                    dbm.db.exec('DELETE FROM sesiones_examen');
+                    dbm.db.exec('DELETE FROM examenes');
+                    dbm.db.exec('DELETE FROM sesiones');
+                    dbm.db.exec('DELETE FROM logs_autenticacion');
+                    dbm.db.exec('DELETE FROM usuarios');
+                } catch (err) {
+                    console.error('Error limpiando BD local:', err);
+                }
+            }
+
+            showMsg('Sistema reseteado correctamente. Todos los usuarios y exámenes han sido eliminados.');
+            
+            // Recargar las listas
+            loadUsers();
+            loadExams();
+        } catch (err) {
+            console.error('Error al resetear sistema:', err);
+            showMsg('Error al resetear el sistema', true);
+        } finally {
+            resetSystemBtn.disabled = false;
+            resetSystemBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Resetear Sistema';
+        }
+    });
 
     // Bootstrap
     requireAuth();
