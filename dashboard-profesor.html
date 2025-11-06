@@ -644,10 +644,23 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         let isEditing = false;
         let editDraft = null;
 
-        // Render: modo vista
+        // Función auxiliar para escapar HTML (más eficiente)
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Render: modo vista (optimizado con arrays en lugar de concatenación)
         function renderExamView(examContentData) {
-            let html = `
-                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+            const htmlParts = [
+                `<div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <i class="fas fa-info-circle text-blue-400"></i>
@@ -660,33 +673,34 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </div>
                     </div>
                 </div>
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">${examContentData.examTitle || 'Examen Generado'}</h2>
-                <p class="text-green-600 text-lg mb-6">Materia: ${examContentData.subject || 'N/A'}</p>`;
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">${escapeHtml(examContentData.examTitle || 'Examen Generado')}</h2>
+                <p class="text-green-600 text-lg mb-6">Materia: ${escapeHtml(examContentData.subject || 'N/A')}</p>`
+            ];
 
             if (!examContentData.questions || !Array.isArray(examContentData.questions)) {
-                html += '<p class="text-red-600">Error: No se pudieron generar preguntas o el formato es incorrecto.</p>';
+                htmlParts.push('<p class="text-red-600">Error: No se pudieron generar preguntas o el formato es incorrecto.</p>');
             } else {
                 examContentData.questions.forEach((q, index) => {
                     const questionNumber = q.questionNumber !== undefined ? q.questionNumber : index + 1;
                     const isObligatory = q.obligatory === true;
                     const questionType = q.type || 'multiple_choice';
                     
-                    html += `
+                    htmlParts.push(`
                         <div class="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-4">
                             <p class="font-bold text-gray-800 mb-3 text-lg">
-                                P${questionNumber}. ${q.enunciado}
+                                P${questionNumber}. ${escapeHtml(q.enunciado || '')}
                                 ${isObligatory ? '<span class="text-red-500 ml-2">*</span>' : ''}
                                 <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-2">
-                                    ${getQuestionTypeLabel(questionType)}
+                                    ${escapeHtml(getQuestionTypeLabel(questionType))}
                                 </span>
                             </p>
                             ${renderQuestionView(q, questionType)}
-                            ${q.explanation ? `<p class="mt-3 text-sm text-gray-600 border-t border-gray-300 pt-3 bg-blue-50 p-3 rounded">Explicación: ${q.explanation}</p>` : ''}
+                            ${q.explanation ? `<p class="mt-3 text-sm text-gray-600 border-t border-gray-300 pt-3 bg-blue-50 p-3 rounded">Explicación: ${escapeHtml(q.explanation)}</p>` : ''}
                         </div>
-                    `;
+                    `);
                 });
             }
-            examContent.innerHTML = html;
+            examContent.innerHTML = htmlParts.join('');
         }
 
         // Función para obtener la etiqueta del tipo de pregunta
@@ -754,30 +768,30 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             <div class="flex items-center gap-3">
                                 <input type="radio" name="radio-${qIdx}" class="edit-correct" data-qidx="${qIdx}" data-letter="${opt.letter}" ${checked} />
                                 <span class="text-gray-700 w-6 font-medium">${opt.letter})</span>
-                                <input data-qidx="${qIdx}" data-oidx="${oIdx}" type="text" class="edit-option flex-1 px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${(opt.text || '').replace(/"/g,'&quot;')}" />
+                                <input data-qidx="${qIdx}" data-oidx="${oIdx}" type="text" class="edit-option flex-1 px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${escapeHtml(opt.text || '')}" />
                             </div>`;
                     }).join('')}
                 </div>
             `;
         }
 
-        // Render: modo edición
+        // Render: modo edición (optimizado con arrays)
         function renderExamEdit(examContentData) {
-            let html = `
-                <div class="mb-6 space-y-2">
+            const htmlParts = [
+                `<div class="mb-6 space-y-2">
                     <label class="block text-sm font-medium text-gray-700">Título</label>
-                    <input id="edit-title" type="text" class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${(examContentData.examTitle || '').replace(/"/g,'&quot;')}" />
+                    <input id="edit-title" type="text" class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${escapeHtml(examContentData.examTitle || '')}" />
                     <label class="block text-sm font-medium text-gray-700 mt-3">Materia</label>
-                    <input id="edit-subject" type="text" class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${(examContentData.subject || '').replace(/"/g,'&quot;')}" />
-                </div>
-            `;
+                    <input id="edit-subject" type="text" class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${escapeHtml(examContentData.subject || '')}" />
+                </div>`
+            ];
 
             (examContentData.questions || []).forEach((q, qIdx) => {
                 const questionNumber = q.questionNumber !== undefined ? q.questionNumber : qIdx + 1;
                 const isObligatory = q.obligatory === true; // Solo obligatoria si explícitamente es true
                 const questionType = q.type || 'multiple_choice'; // Tipo de pregunta por defecto
                 
-                html += `
+                htmlParts.push(`
                     <div class="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-4 question-container" data-qidx="${qIdx}" data-ai-generated="${q.aiGenerated || false}">
                         <div class="flex justify-between items-center mb-2">
                             <div class="flex items-center space-x-3">
@@ -798,36 +812,20 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                 </button>
                             </div>
                         </div>
-                        <textarea data-qidx="${qIdx}" class="edit-question w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white mb-3" rows="2">${(q.enunciado || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+                        <textarea data-qidx="${qIdx}" class="edit-question w-full px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white mb-3" rows="2">${escapeHtml(q.enunciado || '')}</textarea>
                         <div class="question-options-container" data-qidx="${qIdx}">
                             ${renderQuestionOptions(q, qIdx, questionType)}
                         </div>
                     </div>
-                `;
+                `);
             });
-            examContent.innerHTML = html;
+            examContent.innerHTML = htmlParts.join('');
 
-            // Bind all events
+            // Resetear binding para permitir re-configuración
+            resetEventsBinding();
+            
+            // Bind all events (ahora usa event delegation, más eficiente)
             bindAllEvents();
-        }
-
-        // Función auxiliar para bind events de una pregunta específica
-        function bindQuestionEvents(qidx) {
-            // Bind edit options
-            examContent.querySelectorAll(`.edit-option[data-qidx="${qidx}"]`).forEach(el => {
-                el.addEventListener('input', (e) => {
-                    const oidx = Number(e.target.getAttribute('data-oidx'));
-                    editDraft.questions[qidx].options[oidx].text = e.target.value;
-                });
-            });
-
-            // Bind edit correct
-            examContent.querySelectorAll(`.edit-correct[data-qidx="${qidx}"]`).forEach(el => {
-                el.addEventListener('change', (e) => {
-                    const letter = String(e.target.getAttribute('data-letter'));
-                    editDraft.questions[qidx].correctAnswerLetter = letter;
-                });
-            });
         }
 
         // Variable para almacenar el índice donde se agregará la pregunta
@@ -968,9 +966,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Renumerar todas las preguntas
                 renumberQuestions();
 
-                // Re-renderizar todo el examen
+                // Re-renderizar todo el examen (reseteará el binding automáticamente)
                 renderExamEdit(editDraft);
-                bindAllEvents();
             }
         }
 
@@ -981,48 +978,126 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             });
         }
 
-        // Función para bind todos los events
+        // Cache para debouncing
+        const debounceTimers = new Map();
+        
+        // Función de debounce optimizada
+        function debounce(key, fn, delay = 300) {
+            if (debounceTimers.has(key)) {
+                clearTimeout(debounceTimers.get(key));
+            }
+            const timer = setTimeout(() => {
+                fn();
+                debounceTimers.delete(key);
+            }, delay);
+            debounceTimers.set(key, timer);
+        }
+
+        // Variable para rastrear si los event listeners ya están configurados
+        let eventsBound = false;
+
+        // Función para bind todos los events usando event delegation (más eficiente)
         function bindAllEvents() {
-            // Bind edits
-            examContent.querySelectorAll('.edit-question').forEach(el => {
-                el.addEventListener('input', (e) => {
-                    const qidx = Number(e.target.getAttribute('data-qidx'));
-                    editDraft.questions[qidx].enunciado = e.target.value;
-                });
+            // Si ya están configurados, no hacer nada (evitar duplicados)
+            if (eventsBound) {
+                return;
+            }
+            eventsBound = true;
+
+            // Event delegation: un solo listener en el contenedor en lugar de múltiples
+            examContent.addEventListener('input', (e) => {
+                const target = e.target;
+                
+                // Editar pregunta (enunciado)
+                if (target.classList.contains('edit-question')) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    if (!isNaN(qidx) && editDraft.questions[qidx]) {
+                        debounce(`edit-question-${qidx}`, () => {
+                            editDraft.questions[qidx].enunciado = target.value;
+                        });
+                    }
+                }
+                
+                // Editar opción
+                if (target.classList.contains('edit-option')) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    const oidx = Number(target.getAttribute('data-oidx'));
+                    if (!isNaN(qidx) && !isNaN(oidx) && editDraft.questions[qidx]?.options[oidx]) {
+                        debounce(`edit-option-${qidx}-${oidx}`, () => {
+                            editDraft.questions[qidx].options[oidx].text = target.value;
+                        });
+                    }
+                }
             });
 
-            // Bind add/remove question buttons
-            examContent.querySelectorAll('.add-question-btn').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    const qidx = Number(e.target.closest('.add-question-btn').getAttribute('data-qidx'));
-                    showAddQuestionModal(qidx + 1);
-                });
-            });
-            examContent.querySelectorAll('.remove-question-btn').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    const qidx = Number(e.target.getAttribute('data-qidx'));
-                    removeQuestion(qidx);
-                });
-            });
-            
-            // Bind obligatory toggles
-            examContent.querySelectorAll('.obligatory-toggle').forEach(el => {
-                el.addEventListener('change', (e) => {
-                    const qidx = Number(e.target.getAttribute('data-qidx'));
-                    editDraft.questions[qidx].obligatory = e.target.checked;
-                });
+            examContent.addEventListener('change', (e) => {
+                const target = e.target;
+                
+                // Toggle obligatoria
+                if (target.classList.contains('obligatory-toggle')) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    if (!isNaN(qidx) && editDraft.questions[qidx]) {
+                        editDraft.questions[qidx].obligatory = target.checked;
+                    }
+                }
+                
+                // Cambiar respuesta correcta
+                if (target.classList.contains('edit-correct') && target.checked) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    const letter = String(target.getAttribute('data-letter'));
+                    if (!isNaN(qidx) && editDraft.questions[qidx]) {
+                        editDraft.questions[qidx].correctAnswerLetter = letter;
+                    }
+                }
             });
 
-            // Bind title and subject
+            examContent.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+                
+                // Botón agregar pregunta
+                if (target.classList.contains('add-question-btn')) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    if (!isNaN(qidx)) {
+                        showAddQuestionModal(qidx + 1);
+                    }
+                }
+                
+                // Botón eliminar pregunta
+                if (target.classList.contains('remove-question-btn')) {
+                    const qidx = Number(target.getAttribute('data-qidx'));
+                    if (!isNaN(qidx)) {
+                        removeQuestion(qidx);
+                    }
+                }
+            });
+
+            // Bind title and subject (solo una vez, con debounce)
             const titleEl = document.getElementById('edit-title');
             const subjectEl = document.getElementById('edit-subject');
-            if (titleEl) titleEl.addEventListener('input', (e) => { editDraft.examTitle = e.target.value; });
-            if (subjectEl) subjectEl.addEventListener('input', (e) => { editDraft.subject = e.target.value; });
+            
+            if (titleEl && !titleEl.dataset.bound) {
+                titleEl.dataset.bound = 'true';
+                titleEl.addEventListener('input', (e) => {
+                    debounce('edit-title', () => {
+                        editDraft.examTitle = e.target.value;
+                    });
+                });
+            }
+            
+            if (subjectEl && !subjectEl.dataset.bound) {
+                subjectEl.dataset.bound = 'true';
+                subjectEl.addEventListener('input', (e) => {
+                    debounce('edit-subject', () => {
+                        editDraft.subject = e.target.value;
+                    });
+                });
+            }
+        }
 
-            // Bind events for each question
-            editDraft.questions.forEach((_, qidx) => {
-                bindQuestionEvents(qidx);
-            });
+        // Función para resetear el estado de eventos (cuando se re-renderiza completamente)
+        function resetEventsBinding() {
+            eventsBound = false;
         }
 
         // Controlador principal para mostrar modal según estado
@@ -1161,9 +1236,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     return;
                 }
                 
-                const resp = await fetch(getApiUrl(`/exams/by-professor/${currentUser.id}`));
-                const items = resp.ok ? await resp.json() : [];
-                examCountElement.textContent = items.length;
+                // Usar cache si está disponible para evitar fetch innecesario
+                const now = Date.now();
+                if (examsCache && (now - examsCacheTime) < EXAMS_CACHE_DURATION) {
+                    examCountElement.textContent = examsCache.length;
+                } else {
+                    // Si no hay cache, hacer fetch pero más eficiente
+                    const resp = await fetch(getApiUrl(`/exams/by-professor/${currentUser.id}`));
+                    const items = resp.ok ? await resp.json() : [];
+                    examCountElement.textContent = items.length;
+                }
             } catch (err) {
                 console.error('Error loading exam count:', err);
                 examCountElement.textContent = 0;
@@ -1540,8 +1622,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     // Guardar el código del examen recién publicado para resaltarlo
                     sessionStorage.setItem('recentlyPublishedExamCode', examToPublish.examCode);
                     
-                    // Actualizar contador de exámenes
+                    // Actualizar contador de exámenes (usará cache si está disponible)
                     await updateExamCount();
+                    
+                    // Invalidar cache para forzar refresh en la próxima carga
+                    examsCache = null;
+                    examsCacheTime = 0;
                     
                     // Ocultar todos los botones y mostrar solo "Ver en Mis Exámenes"
                     const editExamBtn = document.getElementById('editExamBtn');
@@ -1589,8 +1675,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 }
                 
                 // Recargar la lista de exámenes después de un pequeño delay para que el scroll se complete
+                // Forzar refresh para obtener datos actualizados
                 setTimeout(async () => {
-                    await loadMyExams();
+                    await loadMyExams('', true);
                 }, 300);
             });
         }
@@ -1598,81 +1685,138 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         // Variable para almacenar todos los exámenes (sin filtrar)
         let allExamsData = [];
+        
+        // Cache para evitar re-fetch innecesarios
+        let examsCache = null;
+        let examsCacheTime = 0;
+        const EXAMS_CACHE_DURATION = 5000; // 5 segundos de cache
 
-        async function loadMyExams(searchTerm = '') {
+        async function loadMyExams(searchTerm = '', forceRefresh = false) {
             try {
                 const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                if (!currentUser?.id) return;
-                const resp = await fetch(getApiUrl(`/exams/by-professor/${currentUser.id}`));
-                const items = resp.ok ? await resp.json() : [];
+                if (!currentUser?.id) {
+                    console.warn('No hay usuario actual para cargar exámenes');
+                    return;
+                }
+                
                 const tbody = document.getElementById('tableMyExams');
+                if (!tbody) {
+                    console.warn('No se encontró el elemento tableMyExams');
+                    return;
+                }
                 
-                // Cargar estadísticas de cada examen
-                allExamsData = await Promise.all(items.map(async (ex) => {
-                    try {
-                        const resultsResp = await fetch(getApiUrl(`/exam/code/${ex.examCode}/results`));
-                        const results = resultsResp.ok ? await resultsResp.json() : [];
-                        return {
-                            ...ex,
-                            totalStudents: results.length,
-                            completedStudents: results.filter(r => r.score).length,
-                            pendingStudents: results.filter(r => !r.score).length
-                        };
-                    } catch (err) {
-                        console.error(`Error loading stats for exam ${ex.examCode}:`, err);
-                        return { ...ex, totalStudents: 0, completedStudents: 0, pendingStudents: 0 };
+                // Usar cache si está disponible y no es un refresh forzado
+                const now = Date.now();
+                if (!forceRefresh && examsCache && (now - examsCacheTime) < EXAMS_CACHE_DURATION) {
+                    // Usar datos cacheados
+                    allExamsData = examsCache;
+                } else {
+                    // Fetch de datos
+                    const resp = await fetch(getApiUrl(`/exams/by-professor/${currentUser.id}`));
+                    if (!resp.ok) {
+                        console.error('Error al cargar exámenes:', resp.status, resp.statusText);
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-red-500">
+                                    <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                                    <p>Error al cargar los exámenes. Intenta refrescar la página.</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
                     }
-                }));
+                    
+                    const items = await resp.json();
+                    if (!Array.isArray(items)) {
+                        console.error('Los datos recibidos no son un array:', items);
+                        allExamsData = [];
+                    } else {
+                        // Cargar estadísticas de cada examen en paralelo (optimizado)
+                        allExamsData = await Promise.all(items.map(async (ex) => {
+                            try {
+                                const resultsResp = await fetch(getApiUrl(`/exam/code/${ex.examCode}/results`));
+                                const results = resultsResp.ok ? await resultsResp.json() : [];
+                                return {
+                                    ...ex,
+                                    totalStudents: results.length,
+                                    completedStudents: results.filter(r => r.score).length,
+                                    pendingStudents: results.filter(r => !r.score).length
+                                };
+                            } catch (err) {
+                                console.error(`Error loading stats for exam ${ex.examCode}:`, err);
+                                return { ...ex, totalStudents: 0, completedStudents: 0, pendingStudents: 0 };
+                            }
+                        }));
+                    }
+                    
+                    // Actualizar cache
+                    examsCache = allExamsData;
+                    examsCacheTime = now;
+                }
                 
-                // Filtrar exámenes si hay término de búsqueda
+                // Filtrar exámenes si hay término de búsqueda (optimizado)
                 let filteredExams = allExamsData;
                 if (searchTerm && searchTerm.trim() !== '') {
                     const searchLower = searchTerm.toLowerCase().trim();
-                    filteredExams = allExamsData.filter(ex => 
-                        (ex.examCode && ex.examCode.toLowerCase().includes(searchLower)) ||
-                        (ex.title && ex.title.toLowerCase().includes(searchLower)) ||
-                        (ex.subject && ex.subject.toLowerCase().includes(searchLower))
-                    );
+                    // Usar un solo filter en lugar de múltiples includes
+                    filteredExams = allExamsData.filter(ex => {
+                        const code = (ex.examCode || '').toLowerCase();
+                        const title = (ex.title || '').toLowerCase();
+                        const subject = (ex.subject || '').toLowerCase();
+                        return code.includes(searchLower) || title.includes(searchLower) || subject.includes(searchLower);
+                    });
                 }
                 
                 // Obtener el código del examen recién publicado
                 const recentlyPublishedCode = sessionStorage.getItem('recentlyPublishedExamCode');
                 
-                tbody.innerHTML = filteredExams.map(ex => {
-                    const isRecentlyPublished = recentlyPublishedCode && ex.examCode === recentlyPublishedCode;
-                    const rowClass = isRecentlyPublished 
-                        ? 'hover:bg-gray-50 recently-published-exam' 
-                        : 'hover:bg-gray-50';
-                    
-                    return `
-                    <tr class="${rowClass}" data-exam-code="${ex.examCode}">
-                        <td class="py-3 pr-3 font-mono text-sm">${ex.examCode}</td>
-                        <td class="py-3 pr-3 font-medium">${ex.title}</td>
-                        <td class="py-3 pr-3 text-gray-600">${ex.subject}</td>
-                        <td class="py-3 pr-3 text-center">${ex.numQuestions}</td>
-                        <td class="py-3 pr-3 text-center">
-                            <div class="text-sm">
-                                <div class="text-green-600 font-medium">${ex.completedStudents} completados</div>
-                                <div class="text-yellow-600">${ex.pendingStudents} pendientes</div>
-                                <div class="text-gray-500">${ex.totalStudents} total</div>
-                            </div>
-                        </td>
-                        <td class="py-3">
-                            <div class="flex space-x-2">
-                                <button data-view-results="${ex.examCode}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                    <i class="fas fa-chart-bar mr-1"></i>Ver resultados
-                                </button>
-                                <button data-view-students="${ex.examCode}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                    <i class="fas fa-users mr-1"></i>Ver alumnos
-                                </button>
-                                <button data-delete-exam="${ex.examCode}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                    <i class="fas fa-trash mr-1"></i>Eliminar
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                // Renderizar las filas de la tabla
+                if (filteredExams.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-2 opacity-50"></i>
+                                <p>No se encontraron exámenes</p>
+                            </td>
+                        </tr>
                     `;
-                }).join('');
+                } else {
+                    tbody.innerHTML = filteredExams.map(ex => {
+                        const isRecentlyPublished = recentlyPublishedCode && ex.examCode === recentlyPublishedCode;
+                        const rowClass = isRecentlyPublished 
+                            ? 'hover:bg-gray-50 recently-published-exam' 
+                            : 'hover:bg-gray-50';
+                        
+                        return `
+                        <tr class="${rowClass}" data-exam-code="${ex.examCode}">
+                            <td class="py-3 pr-3 font-mono text-sm">${escapeHtml(ex.examCode || '')}</td>
+                            <td class="py-3 pr-3 font-medium">${escapeHtml(ex.title || '')}</td>
+                            <td class="py-3 pr-3 text-gray-600">${escapeHtml(ex.subject || '')}</td>
+                            <td class="py-3 pr-3 text-center">${ex.numQuestions || 0}</td>
+                            <td class="py-3 pr-3 text-center">
+                                <div class="text-sm">
+                                    <div class="text-green-600 font-medium">${ex.completedStudents || 0} completados</div>
+                                    <div class="text-yellow-600">${ex.pendingStudents || 0} pendientes</div>
+                                    <div class="text-gray-500">${ex.totalStudents || 0} total</div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="flex space-x-2">
+                                    <button data-view-results="${escapeHtml(ex.examCode || '')}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                        <i class="fas fa-chart-bar mr-1"></i>Ver resultados
+                                    </button>
+                                    <button data-view-students="${escapeHtml(ex.examCode || '')}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                        <i class="fas fa-users mr-1"></i>Ver alumnos
+                                    </button>
+                                    <button data-delete-exam="${escapeHtml(ex.examCode || '')}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
+                                        <i class="fas fa-trash mr-1"></i>Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                }
                 
                 // Si hay un examen recién publicado, aplicar el efecto de parpadeo
                 if (recentlyPublishedCode) {
@@ -1698,7 +1842,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         }
 
         const refreshMyExams = document.getElementById('refreshMyExams');
-        if (refreshMyExams) refreshMyExams.addEventListener('click', () => loadMyExams());
+        if (refreshMyExams) refreshMyExams.addEventListener('click', () => loadMyExams('', true));
         
         // Event listener para la barra de búsqueda
         const searchExamsInput = document.getElementById('searchExamsInput');
@@ -2009,8 +2153,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 showMessage(`Calificación guardada. Puntos adicionales: ${additionalPoints}`, 'success');
                 document.getElementById('textGradingModal').classList.add('hidden');
                 
-                // Actualizar la vista de resultados
-                await loadMyExams();
+                // Actualizar la vista de resultados (forzar refresh)
+                await loadMyExams('', true);
 
             } catch (error) {
                 console.error('Error guardando calificación:', error);
@@ -2243,7 +2387,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             }
                             if (!resp.ok) throw new Error('Delete failed');
                             showMessage('Examen eliminado', false);
-                            await loadMyExams();
+                            // Invalidar cache y recargar
+                            examsCache = null;
+                            examsCacheTime = 0;
+                            await loadMyExams('', true);
                         } catch (err) {
                             console.error('delete exam error', err);
                             showMessage('No se pudo eliminar el examen', true);

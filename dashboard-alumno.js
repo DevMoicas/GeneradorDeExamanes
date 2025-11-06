@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const examCount = document.getElementById('examCount');
     const pendingExamsList = document.getElementById('pendingExamsList');
     const completedExamsList = document.getElementById('completedExamsList');
-    const archivedExamsList = document.getElementById('archivedExamsList');
-    const toggleArchivedExams = document.getElementById('toggleArchivedExams');
     const joinExamModal = document.getElementById('joinExamModal');
     const closeJoinModal = document.getElementById('closeJoinModal');
     const cancelJoinBtn = document.getElementById('cancelJoinBtn');
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUser = null;
     let pendingExams = [];
     let completedExams = [];
-    let archivedExams = [];
     let selectedExam = null;
     
 
@@ -107,10 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Botón de cerrar sesión
         logoutBtn.addEventListener('click', handleLogout);
         
-        // Toggle de exámenes archivados
-        if (toggleArchivedExams) {
-            toggleArchivedExams.addEventListener('click', toggleArchivedExamsView);
-        }
     }
 
     async function handleJoinExam(event) {
@@ -935,17 +928,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Separar por estado
             pendingExams = studentSessions.filter(session => session.status === 'in_progress' || session.status === 'pending');
-            completedExams = studentSessions.filter(session => session.status === 'completed' && !session.archived);
-            archivedExams = studentSessions.filter(session => session.status === 'completed' && session.archived);
+            completedExams = studentSessions.filter(session => session.status === 'completed');
             
             // Agregar exámenes pendientes de revisión a la lista de pendientes
-            const pendingReviewExams = studentSessions.filter(session => session.status === 'pending_review' && !session.archived);
+            const pendingReviewExams = studentSessions.filter(session => session.status === 'pending_review');
             pendingExams = [...pendingExams, ...pendingReviewExams];
 
             // Actualizar todas las listas
             updatePendingExamsList();
             updateCompletedExamsList();
-            updateArchivedExamsList();
             updateExamCount();
 
         } catch (error) {
@@ -1106,120 +1097,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-eye mr-1"></i>Ver Resultados
                                 </button>
                             ` : ''}
-                            <button onclick="archiveExam('${session.examId}')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                <i class="fas fa-archive mr-1"></i>Archivar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function updateArchivedExamsList() {
-        if (archivedExams.length === 0) {
-            archivedExamsList.innerHTML = `
-                <div class="text-center text-gray-500 py-8">
-                    <i class="fas fa-archive text-4xl mb-4 opacity-50"></i>
-                    <p>No tienes exámenes archivados</p>
-                    <p class="text-sm">Los exámenes archivados aparecerán aquí</p>
-                </div>
-            `;
-            return;
-        }
-
-        archivedExamsList.innerHTML = archivedExams.map(session => {
-            const hasScore = session.score && session.score.correct !== undefined;
-            const scorePercentage = hasScore ? Math.round((session.score.correct / session.score.total) * 100) : 0;
-            
-            // Determinar si se puede ver resultados según la configuración del examen
-            const examConfig = session.examConfig || { resultOnly: true };
-            // Si resultOnly o noResults es true, no puede ver resultados. Solo puede ver si showCorrectAnswers está habilitado
-            const canViewResults = examConfig.showCorrectAnswers && !examConfig.noResults;
-            
-            return `
-                <div class="exam-card bg-gray-50 border border-gray-300 rounded-lg p-6 shadow-sm">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex-1">
-                            <h4 class="text-lg font-semibold text-gray-700 mb-2">${session.examTitle}</h4>
-                            <div class="flex flex-wrap gap-4 text-gray-500 text-sm mb-3">
-                                <span><i class="fas fa-user mr-1"></i>${session.studentName}</span>
-                                ${session.studentId ? `<span><i class="fas fa-id-card mr-1"></i>${session.studentId}</span>` : ''}
-                                <span><i class="fas fa-clock mr-1"></i>${new Date(session.completedAt || session.joinedAt).toLocaleString()}</span>
-                                <span><i class="fas fa-book mr-1"></i>${typeof session.subject === 'string' ? session.subject : (session.subject?.name || session.subject?.title || 'Materia no especificada')}</span>
-                            </div>
-                            ${examConfig.noResults ? `
-                                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
-                                    <p class="text-sm text-red-600 font-medium">
-                                        <i class="fas fa-clock mr-2"></i>
-                                        Espera a que el docente te dé tus resultados de este examen.
-                                    </p>
-                                </div>
-                            ` : hasScore ? `
-                                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-3">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h5 class="font-semibold text-gray-700">Resultado del Examen</h5>
-                                        <span class="text-2xl font-bold ${scorePercentage >= 70 ? 'text-green-600' : scorePercentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">
-                                            ${scorePercentage}%
-                                        </span>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span class="text-gray-500">Respuestas correctas:</span>
-                                            <span class="font-medium text-green-600 ml-1">${session.score.correct}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Total de preguntas:</span>
-                                            <span class="font-medium text-gray-700 ml-1">${session.score.total}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Incorrectas:</span>
-                                            <span class="font-medium text-red-600 ml-1">${session.score.total - session.score.correct}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Calificación:</span>
-                                            <span class="font-medium ${scorePercentage >= 70 ? 'text-green-600' : scorePercentage >= 50 ? 'text-yellow-600' : 'text-red-600'} ml-1">
-                                                ${scorePercentage >= 70 ? 'Aprobado' : scorePercentage >= 50 ? 'Regular' : 'Reprobado'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="h-2 rounded-full ${scorePercentage >= 70 ? 'bg-green-500' : scorePercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'}" 
-                                                 style="width: ${scorePercentage}%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${!canViewResults && !examConfig.noResults ? `
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                                    <p class="text-sm text-blue-700">
-                                        <i class="fas fa-info-circle mr-2"></i>
-                                        El profesor ha configurado este examen para mostrar solo el resultado final.
-                                    </p>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="text-right ml-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                <i class="fas fa-archive mr-1"></i>Archivado
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                        <div class="text-sm text-gray-500">
-                            <span>Código: <span class="font-mono font-medium">${session.examCode || session.examId}</span></span>
-                        </div>
-                        <div class="flex space-x-2">
-                            ${canViewResults ? `
-                                <button onclick="viewExamResults('${session.examId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                    <i class="fas fa-eye mr-1"></i>Ver Resultados
-                                </button>
-                            ` : ''}
-                            <button onclick="unarchiveExam('${session.examId}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200">
-                                <i class="fas fa-undo mr-1"></i>Desarchivar
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1229,48 +1106,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateExamCount() {
         examCount.textContent = completedExams.length;
-    }
-
-    // Función para toggle de exámenes archivados
-    function toggleArchivedExamsView() {
-        const isHidden = archivedExamsList.classList.contains('hidden');
-        const icon = toggleArchivedExams.querySelector('i');
-        
-        if (isHidden) {
-            archivedExamsList.classList.remove('hidden');
-            icon.className = 'fas fa-chevron-up mr-1';
-            toggleArchivedExams.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>Ocultar archivados';
-        } else {
-            archivedExamsList.classList.add('hidden');
-            icon.className = 'fas fa-chevron-down mr-1';
-            toggleArchivedExams.innerHTML = '<i class="fas fa-chevron-down mr-1"></i>Mostrar archivados';
-        }
-    }
-
-    // Función para archivar un examen
-    window.archiveExam = function(examId) {
-        const sessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-        const sessionIndex = sessions.findIndex(s => s.examId === examId && s.studentName === `${currentUser.nombre} ${currentUser.apellido}`);
-        
-        if (sessionIndex >= 0) {
-            sessions[sessionIndex].archived = true;
-            localStorage.setItem('examSessions', JSON.stringify(sessions));
-            loadExamData();
-            showMessage('Examen archivado exitosamente', 'success');
-        }
-    }
-
-    // Función para desarchivar un examen
-    window.unarchiveExam = function(examId) {
-        const sessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-        const sessionIndex = sessions.findIndex(s => s.examId === examId && s.studentName === `${currentUser.nombre} ${currentUser.apellido}`);
-        
-        if (sessionIndex >= 0) {
-            sessions[sessionIndex].archived = false;
-            localStorage.setItem('examSessions', JSON.stringify(sessions));
-            loadExamData();
-            showMessage('Examen desarchivado exitosamente', 'success');
-        }
     }
 
     // Función para iniciar un examen pendiente
