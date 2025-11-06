@@ -1,279 +1,252 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <exam>
-  <id>EXAM_1762374401211</id>
-  <title>Examen de carros</title>
-  <subject>mecanica</subject>
-  <difficulty>intermedio</difficulty>
-  <numQuestions>10</numQuestions>
-  <createdAt>2025-11-05T20:26:41.211Z</createdAt>
+  <id>EXAM_1762436406901</id>
+  <title>Examen de palabras</title>
+  <subject>ruso</subject>
+  <difficulty>básico</difficulty>
+  <numQuestions>9</numQuestions>
+  <createdAt>2025-11-06T13:40:06.901Z</createdAt>
   <status>active</status>
   <questions>
     <question>
       <id>1</id>
-      <text>Cuál es la función principal del sistema de lubricación en un motor de combustión interna?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>Traduce la palabra rusa 'Здравствуйте' al español:</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Enfriar el motor</text>
+          <text>Adiós</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Reducir la fricción entre las piezas móviles</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Aumentar la potencia del motor</text>
+          <text>Por favor</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Hola</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Filtrar el aire de admisión</text>
+          <text>Gracias</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>2</id>
-      <text>Qué componente es responsable de convertir la energía química del combustible en energía mecánica en un motor de gasolina?</text>
-      <correctAnswer>C</correctAnswer>
+      <text>¿Qué significa 'Спасибо' en español?</text>
+      <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>El radiador</text>
+          <text>De nada</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>El carburador</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>El pistón y la biela</text>
+          <text>Gracias</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Lo siento</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>El alternador</text>
+          <text>Permiso</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>3</id>
-      <text>Cuál es el propósito del sistema de frenos ABS (Sistema Antibloqueo de Frenos)?</text>
+      <text>Traduce 'Пожалуйста' al español:</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Aumentar la potencia de frenado en todas las situaciones</text>
+          <text>Disculpa</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Evitar que las ruedas se bloqueen durante una frenada brusca</text>
+          <text>Por favor</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Reducir la distancia de frenado en pavimento seco</text>
+          <text>Ayuda</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Distribuir el líquido de frenos equitativamente a cada rueda</text>
+          <text>Quizás</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>4</id>
-      <text>Qué tipo de suspensión utiliza un brazo oscilante para conectar la rueda al chasis del vehículo?</text>
+      <text>¿Cuál es la traducción de 'Да'?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Suspensión de eje rígido</text>
+          <text>No</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Suspensión independiente</text>
+          <text>Sí</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Suspensión de ballestas</text>
+          <text>Tal vez</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Suspensión neumática</text>
+          <text>Siempre</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>5</id>
-      <text>Cuál es la función principal del termostato en el sistema de refrigeración de un motor?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>Si quieres decir 'No' en ruso, ¿qué palabra usarías?</text>
+      <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Indicar la temperatura del motor en el tablero</text>
+          <text>Да</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Regular el flujo de refrigerante hacia el radiador</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Bombear el refrigerante a través del motor</text>
+          <text>Вот</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
+          <letter>C</letter>
+          <text>Нет</text>
+          <isCorrect>true</isCorrect>
+        </option>
+        <option>
           <letter>D</letter>
-          <text>Filtrar impurezas del refrigerante</text>
+          <text>Там</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>6</id>
-      <text>Qué elemento del sistema de dirección es responsable de transmitir el movimiento giratorio del volante a las ruedas?</text>
-      <correctAnswer>B</correctAnswer>
+      <text>¿Qué significa 'До свидания'?</text>
+      <correctAnswer>A</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>La bomba de dirección asistida</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>La cremallera de dirección</text>
+          <text>Hasta luego</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
+          <letter>B</letter>
+          <text>Buenos días</text>
+          <isCorrect>false</isCorrect>
+        </option>
+        <option>
           <letter>C</letter>
-          <text>Los amortiguadores</text>
+          <text>Buenas noches</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Los neumáticos</text>
+          <text>Te amo</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>7</id>
-      <text>Qué componente del sistema eléctrico es el encargado de generar electricidad para recargar la batería y alimentar los sistemas eléctricos del vehículo mientras el motor está en marcha?</text>
+      <text>La palabra 'Я' se traduce como:</text>
       <correctAnswer>C</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>La batería</text>
+          <text>Tú</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>El motor de arranque</text>
+          <text>Él</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>El alternador</text>
+          <text>Yo</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Las bujías</text>
+          <text>Nosotros</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>8</id>
-      <text>Cuál es la función principal del embrague en un vehículo con transmisión manual?</text>
+      <text>Traduce 'Как дела?' al español:</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Cambiar las marchas automáticamente</text>
+          <text>¿Quién eres?</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Conectar y desconectar el motor de la transmisión</text>
+          <text>¿Cómo estás?</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Aumentar la velocidad del motor</text>
+          <text>¿Qué hora es?</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Reducir el consumo de combustible</text>
+          <text>¿Dónde está?</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>
     </question>
     <question>
       <id>9</id>
-      <text>Qué tipo de combustible produce principalmente monóxido de carbono (CO), hidrocarburos no quemados (HC) y óxidos de nitrógeno (NOx) como subproductos de la combustión?</text>
-      <correctAnswer>A</correctAnswer>
-      <options>
-        <option>
-          <letter>A</letter>
-          <text>Gasolina</text>
-          <isCorrect>true</isCorrect>
-        </option>
-        <option>
-          <letter>B</letter>
-          <text>Diésel</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>C</letter>
-          <text>Gas natural comprimido (GNC)</text>
-          <isCorrect>false</isCorrect>
-        </option>
-        <option>
-          <letter>D</letter>
-          <text>Electricidad</text>
-          <isCorrect>false</isCorrect>
-        </option>
-      </options>
-    </question>
-    <question>
-      <id>10</id>
-      <text>Qué indica una luz de advertencia roja con el símbolo de una batería en el tablero de instrumentos?</text>
+      <text>¿Cuál es la traducción correcta al español de la palabra rusa "путешествие"?</text>
       <correctAnswer>B</correctAnswer>
       <options>
         <option>
           <letter>A</letter>
-          <text>Nivel bajo de combustible</text>
+          <text>Trabajo</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>B</letter>
-          <text>Fallo en el sistema de carga (alternador o batería)</text>
+          <text>Viaje</text>
           <isCorrect>true</isCorrect>
         </option>
         <option>
           <letter>C</letter>
-          <text>Presión de aceite baja</text>
+          <text>Amistad</text>
           <isCorrect>false</isCorrect>
         </option>
         <option>
           <letter>D</letter>
-          <text>Temperatura del motor alta</text>
+          <text>Felicidad</text>
           <isCorrect>false</isCorrect>
         </option>
       </options>

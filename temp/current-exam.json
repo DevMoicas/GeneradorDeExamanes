@@ -1,60 +1,32 @@
 {
-  "id": "EXAM_1762374401211",
-  "title": "Examen de carros",
-  "subject": "mecanica",
-  "difficulty": "intermedio",
-  "numQuestions": 10,
+  "id": "EXAM_1762436406901",
+  "title": "Examen de palabras",
+  "subject": "ruso",
+  "difficulty": "básico",
+  "numQuestions": 9,
   "questions": [
     {
       "id": 1,
-      "question": "Cuál es la función principal del sistema de lubricación en un motor de combustión interna?",
+      "question": "Traduce la palabra rusa 'Здравствуйте' al español:",
       "options": [
         {
           "letter": "A",
-          "text": "Enfriar el motor",
+          "text": "Adiós",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Reducir la fricción entre las piezas móviles",
-          "isCorrect": true
-        },
-        {
-          "letter": "C",
-          "text": "Aumentar la potencia del motor",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Filtrar el aire de admisión",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "B",
-      "obligatory": true
-    },
-    {
-      "id": 2,
-      "question": "Qué componente es responsable de convertir la energía química del combustible en energía mecánica en un motor de gasolina?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "El radiador",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "El carburador",
+          "text": "Por favor",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "El pistón y la biela",
+          "text": "Hola",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "El alternador",
+          "text": "Gracias",
           "isCorrect": false
         }
       ],
@@ -62,27 +34,55 @@
       "obligatory": true
     },
     {
-      "id": 3,
-      "question": "Cuál es el propósito del sistema de frenos ABS (Sistema Antibloqueo de Frenos)?",
+      "id": 2,
+      "question": "¿Qué significa 'Спасибо' en español?",
       "options": [
         {
           "letter": "A",
-          "text": "Aumentar la potencia de frenado en todas las situaciones",
+          "text": "De nada",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Evitar que las ruedas se bloqueen durante una frenada brusca",
+          "text": "Gracias",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Reducir la distancia de frenado en pavimento seco",
+          "text": "Lo siento",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Distribuir el líquido de frenos equitativamente a cada rueda",
+          "text": "Permiso",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswer": "B",
+      "obligatory": true
+    },
+    {
+      "id": 3,
+      "question": "Traduce 'Пожалуйста' al español:",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Disculpa",
+          "isCorrect": false
+        },
+        {
+          "letter": "B",
+          "text": "Por favor",
+          "isCorrect": true
+        },
+        {
+          "letter": "C",
+          "text": "Ayuda",
+          "isCorrect": false
+        },
+        {
+          "letter": "D",
+          "text": "Quizás",
           "isCorrect": false
         }
       ],
@@ -91,26 +91,26 @@
     },
     {
       "id": 4,
-      "question": "Qué tipo de suspensión utiliza un brazo oscilante para conectar la rueda al chasis del vehículo?",
+      "question": "¿Cuál es la traducción de 'Да'?",
       "options": [
         {
           "letter": "A",
-          "text": "Suspensión de eje rígido",
+          "text": "No",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Suspensión independiente",
+          "text": "Sí",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Suspensión de ballestas",
+          "text": "Tal vez",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Suspensión neumática",
+          "text": "Siempre",
           "isCorrect": false
         }
       ],
@@ -119,82 +119,82 @@
     },
     {
       "id": 5,
-      "question": "Cuál es la función principal del termostato en el sistema de refrigeración de un motor?",
+      "question": "Si quieres decir 'No' en ruso, ¿qué palabra usarías?",
       "options": [
         {
           "letter": "A",
-          "text": "Indicar la temperatura del motor en el tablero",
+          "text": "Да",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Regular el flujo de refrigerante hacia el radiador",
-          "isCorrect": true
+          "text": "Вот",
+          "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "Bombear el refrigerante a través del motor",
-          "isCorrect": false
+          "text": "Нет",
+          "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Filtrar impurezas del refrigerante",
+          "text": "Там",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B",
+      "correctAnswer": "C",
       "obligatory": true
     },
     {
       "id": 6,
-      "question": "Qué elemento del sistema de dirección es responsable de transmitir el movimiento giratorio del volante a las ruedas?",
+      "question": "¿Qué significa 'До свидания'?",
       "options": [
         {
           "letter": "A",
-          "text": "La bomba de dirección asistida",
-          "isCorrect": false
-        },
-        {
-          "letter": "B",
-          "text": "La cremallera de dirección",
+          "text": "Hasta luego",
           "isCorrect": true
         },
         {
+          "letter": "B",
+          "text": "Buenos días",
+          "isCorrect": false
+        },
+        {
           "letter": "C",
-          "text": "Los amortiguadores",
+          "text": "Buenas noches",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Los neumáticos",
+          "text": "Te amo",
           "isCorrect": false
         }
       ],
-      "correctAnswer": "B",
+      "correctAnswer": "A",
       "obligatory": true
     },
     {
       "id": 7,
-      "question": "Qué componente del sistema eléctrico es el encargado de generar electricidad para recargar la batería y alimentar los sistemas eléctricos del vehículo mientras el motor está en marcha?",
+      "question": "La palabra 'Я' se traduce como:",
       "options": [
         {
           "letter": "A",
-          "text": "La batería",
+          "text": "Tú",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "El motor de arranque",
+          "text": "Él",
           "isCorrect": false
         },
         {
           "letter": "C",
-          "text": "El alternador",
+          "text": "Yo",
           "isCorrect": true
         },
         {
           "letter": "D",
-          "text": "Las bujías",
+          "text": "Nosotros",
           "isCorrect": false
         }
       ],
@@ -203,26 +203,26 @@
     },
     {
       "id": 8,
-      "question": "Cuál es la función principal del embrague en un vehículo con transmisión manual?",
+      "question": "Traduce 'Как дела?' al español:",
       "options": [
         {
           "letter": "A",
-          "text": "Cambiar las marchas automáticamente",
+          "text": "¿Quién eres?",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Conectar y desconectar el motor de la transmisión",
+          "text": "¿Cómo estás?",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Aumentar la velocidad del motor",
+          "text": "¿Qué hora es?",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Reducir el consumo de combustible",
+          "text": "¿Dónde está?",
           "isCorrect": false
         }
       ],
@@ -231,54 +231,26 @@
     },
     {
       "id": 9,
-      "question": "Qué tipo de combustible produce principalmente monóxido de carbono (CO), hidrocarburos no quemados (HC) y óxidos de nitrógeno (NOx) como subproductos de la combustión?",
+      "question": "¿Cuál es la traducción correcta al español de la palabra rusa \"путешествие\"?",
       "options": [
         {
           "letter": "A",
-          "text": "Gasolina",
-          "isCorrect": true
-        },
-        {
-          "letter": "B",
-          "text": "Diésel",
-          "isCorrect": false
-        },
-        {
-          "letter": "C",
-          "text": "Gas natural comprimido (GNC)",
-          "isCorrect": false
-        },
-        {
-          "letter": "D",
-          "text": "Electricidad",
-          "isCorrect": false
-        }
-      ],
-      "correctAnswer": "A",
-      "obligatory": true
-    },
-    {
-      "id": 10,
-      "question": "Qué indica una luz de advertencia roja con el símbolo de una batería en el tablero de instrumentos?",
-      "options": [
-        {
-          "letter": "A",
-          "text": "Nivel bajo de combustible",
+          "text": "Trabajo",
           "isCorrect": false
         },
         {
           "letter": "B",
-          "text": "Fallo en el sistema de carga (alternador o batería)",
+          "text": "Viaje",
           "isCorrect": true
         },
         {
           "letter": "C",
-          "text": "Presión de aceite baja",
+          "text": "Amistad",
           "isCorrect": false
         },
         {
           "letter": "D",
-          "text": "Temperatura del motor alta",
+          "text": "Felicidad",
           "isCorrect": false
         }
       ],
@@ -286,7 +258,7 @@
       "obligatory": true
     }
   ],
-  "createdAt": "2025-11-05T20:26:41.211Z",
+  "createdAt": "2025-11-06T13:40:06.901Z",
   "professorId": "U_1762363249432",
   "status": "active",
   "examConfig": {
@@ -294,5 +266,5 @@
     "showCorrectAnswers": false,
     "resultOnly": true
   },
-  "examCode": "407EID"
+  "examCode": "8L6Q6J"
 }
