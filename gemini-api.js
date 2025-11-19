@@ -4,7 +4,7 @@
 class GeminiAPI {
     constructor() {
         this.apiKey = 'AIzaSyB6bIvKGhvK403Hd6g0MDd6L0O05wsD2ok';
-        this.baseURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+        this.baseURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
         this.isInitialized = false;
     }
 
@@ -15,9 +15,9 @@ class GeminiAPI {
             if (!this.apiKey) {
                 throw new Error('API Key de Gemini no configurada');
             }
-            
+
             console.log('🔧 Verificando conexión con Gemini API...');
-            
+
             // Hacer una prueba real de conexión con la API
             const testPrompt = "Responde solo 'OK' si puedes procesar este mensaje.";
             const requestBody = {
@@ -46,11 +46,11 @@ class GeminiAPI {
             }
 
             const data = await response.json();
-            
+
             if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                 throw new Error('Respuesta inválida de la API');
             }
-            
+
             this.isInitialized = true;
             console.log('✅ Gemini API conectada y funcionando correctamente');
             return true;
@@ -64,14 +64,14 @@ class GeminiAPI {
     // Generar examen usando Gemini AI
     async generateExam(examData) {
         console.log('🤖 Iniciando generación de examen con Gemini AI...', examData);
-        
+
         try {
             // Validar datos de entrada
             this.validateExamData(examData);
-            
+
             const prompt = this.buildExamPrompt(examData);
             console.log('📝 Prompt enviado a Gemini:', prompt);
-            
+
             // Configuración con tokens altos para priorizar completitud
             const primaryMaxTokens = 4096; // objetivo alto
             const requestBody = {
@@ -101,7 +101,7 @@ class GeminiAPI {
             let data;
             if (!response.ok) {
                 let errorData = null;
-                try { errorData = await response.json(); } catch (_) {}
+                try { errorData = await response.json(); } catch (_) { }
                 console.warn('⚠️ Primer intento falló. Reintentando con menos tokens...', errorData);
 
                 const fallbackBody = {
@@ -122,7 +122,7 @@ class GeminiAPI {
 
                 if (!response2.ok) {
                     let errorData2 = null;
-                    try { errorData2 = await response2.json(); } catch (_) {}
+                    try { errorData2 = await response2.json(); } catch (_) { }
                     console.error('❌ Error de API en reintento:', errorData2);
                     throw new Error(`Error de API (reintento): ${errorData2?.error?.message || 'Error desconocido'}`);
                 }
@@ -131,19 +131,19 @@ class GeminiAPI {
                 data = await response.json();
             }
             console.log('✅ Datos recibidos de Gemini:', data);
-            
+
             if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
                 throw new Error('Respuesta inválida de la API');
             }
 
             const generatedText = data.candidates[0].content.parts[0].text;
             console.log('📄 Texto generado por Gemini:', generatedText);
-            
+
             return this.parseExamResponse(generatedText, examData);
 
         } catch (error) {
             console.error('❌ Error al generar examen con Gemini:', error);
-            
+
             // Fallback: crear un examen de ejemplo si la API falla
             console.log('🔄 Creando examen de ejemplo como fallback');
             return this.createFallbackExam(examData);
@@ -156,7 +156,7 @@ class GeminiAPI {
         // Permitir prompts largos (no truncar), solo normalizar espacios extremos
         let aiPrompt = (examData.aiPrompt || '').toString();
         aiPrompt = aiPrompt.replace(/\s+/g, ' ').trim();
-        
+
         return `Eres un experto en educación y creación de exámenes. Tu tarea es generar un examen completo con el número EXACTO de preguntas solicitado.
 
 PARÁMETROS OBLIGATORIOS:
@@ -222,7 +222,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
     parseExamResponse(text, examData) {
         try {
             console.log('Parseando respuesta:', text);
-            
+
             // 1) Intentar interpretar como JSON del formato alterno que recibes
             let questions = [];
             try {
@@ -314,13 +314,13 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
 
             if (finalQuestions.length !== targetQuestions) {
                 console.warn(`⚠️ Número de preguntas incorrecto: ${finalQuestions.length}/${targetQuestions}`);
-                
+
                 if (finalQuestions.length < targetQuestions) {
                     // Generar preguntas adicionales si faltan
                     console.log(`➕ Generando ${targetQuestions - finalQuestions.length} preguntas adicionales...`);
                     const additionalQuestions = this.generateAdditionalQuestions(
-                        examData, 
-                        targetQuestions - finalQuestions.length, 
+                        examData,
+                        targetQuestions - finalQuestions.length,
                         finalQuestions.length + 1
                     );
                     finalQuestions = [...finalQuestions, ...additionalQuestions];
@@ -354,7 +354,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
                 },
                 rawResponse: text
             };
-            
+
         } catch (error) {
             console.error('Error al parsear respuesta:', error);
             return {
@@ -369,14 +369,14 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
     generateAdditionalQuestions(examData, count, startId) {
         const questions = [];
         const { subject, difficulty, title } = examData;
-        
+
         // Plantillas de preguntas basadas en la materia y dificultad
         const questionTemplates = this.getQuestionTemplates(subject, difficulty);
-        
+
         for (let i = 0; i < count; i++) {
             const template = questionTemplates[i % questionTemplates.length];
             const questionNumber = startId + i;
-            
+
             questions.push({
                 id: questionNumber,
                 question: template.question.replace('{subject}', subject).replace('{title}', title),
@@ -390,7 +390,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
                 obligatory: true // Por defecto obligatoria
             });
         }
-        
+
         return questions;
     }
 
@@ -479,14 +479,14 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
     createFallbackExam(examData) {
         const questions = [];
         const numQuestions = Math.min(examData.numQuestions, 10);
-        
+
         // Preguntas de ejemplo más realistas basadas en la materia
         const sampleQuestions = this.getSampleQuestions(examData.subject, examData.difficulty);
-        
+
         for (let i = 1; i <= numQuestions; i++) {
             const questionIndex = (i - 1) % sampleQuestions.length;
             const sampleQ = sampleQuestions[questionIndex];
-            
+
             questions.push({
                 id: i,
                 question: sampleQ.question,
@@ -494,7 +494,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
                 correctAnswer: sampleQ.correctAnswer
             });
         }
-        
+
         return {
             success: true,
             exam: {
@@ -580,22 +580,22 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
     // Validar datos del examen
     validateExamData(examData) {
         const required = ['title', 'subject', 'numQuestions', 'difficulty', 'aiPrompt'];
-        
+
         for (const field of required) {
             if (!examData[field] || examData[field].toString().trim() === '') {
                 throw new Error(`El campo ${field} es requerido`);
             }
         }
-        
+
         if (examData.numQuestions < 5 || examData.numQuestions > 10) {
             throw new Error('El número de preguntas debe estar entre 5 y 10');
         }
-        
+
         const validDifficulties = ['básico', 'intermedio', 'avanzado'];
         if (!validDifficulties.includes(examData.difficulty)) {
             throw new Error('El nivel de dificultad debe ser: básico, intermedio o avanzado');
         }
-        
+
         return true;
     }
 
@@ -635,7 +635,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
     exportExamToPDF(exam) {
         // En una implementación real, aquí se usaría una librería como jsPDF
         const content = this.formatExamForPDF(exam);
-        
+
         // Simular descarga
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -655,7 +655,7 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
         content += `DIFICULTAD: ${exam.difficulty}\n`;
         content += `FECHA: ${new Date(exam.createdAt).toLocaleDateString()}\n`;
         content += `${'='.repeat(50)}\n\n`;
-        
+
         exam.questions.forEach((q, index) => {
             content += `${q.id}. ${q.question}\n\n`;
             q.options.forEach(opt => {
@@ -663,13 +663,13 @@ RECUERDA: Debes generar EXACTAMENTE ${numQuestions} preguntas. Esta es la regla 
             });
             content += '\n';
         });
-        
+
         content += `${'='.repeat(50)}\n`;
         content += `CLAVE DE RESPUESTAS:\n`;
         exam.questions.forEach(q => {
             content += `${q.id}. ${q.correctAnswer}\n`;
         });
-        
+
         return content;
     }
 }

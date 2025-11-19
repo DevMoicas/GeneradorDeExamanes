@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,41 +15,47 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        
+
         /* Estilos para el examen recién publicado */
         .recently-published-exam {
             background-color: rgba(59, 130, 246, 0.1) !important;
             transition: background-color 0.3s ease;
         }
-        
+
         .pulsing-blue {
             animation: pulseBlue 1s ease-in-out infinite;
             background-color: rgba(59, 130, 246, 0.15) !important;
         }
-        
+
         @keyframes pulseBlue {
-            0%, 100% {
+
+            0%,
+            100% {
                 background-color: rgba(59, 130, 246, 0.15);
                 box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
             }
+
             50% {
                 background-color: rgba(59, 130, 246, 0.25);
                 box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.3);
             }
         }
-        
+
         /* Estilos para pregunta generada por IA */
         .ai-generated-question {
             background-color: rgba(59, 130, 246, 0.2) !important;
             border: 2px solid rgba(59, 130, 246, 0.5) !important;
             animation: aiPulse 1s ease-in-out infinite;
         }
-        
+
         @keyframes aiPulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 background-color: rgba(59, 130, 246, 0.2);
                 box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
             }
+
             50% {
                 background-color: rgba(59, 130, 246, 0.35);
                 box-shadow: 0 0 25px 8px rgba(59, 130, 246, 0.4);
@@ -58,11 +65,11 @@
     <!-- Lógica de la Aplicación -->
     <script type="module">
         // **CLAVE API CORREGIDA: Usamos la clave proporcionada para asegurar la autenticación (resuelve el error 403).**
-        const API_KEY = "AIzaSyB6bIvKGhvK403Hd6g0MDd6L0O05wsD2ok"; 
-        const MODEL_NAME = "gemini-2.5-flash-preview-05-20"; 
+        const API_KEY = "AIzaSyB6bIvKGhvK403Hd6g0MDd6L0O05wsD2ok";
+        const MODEL_NAME = "gemini-2.0-flash";
 
         // --- Schemas JSON para la API de Gemini (Structured Output) ---
-        
+
         // Schema principal para la generación del examen
         const examResponseSchema = {
             type: "OBJECT",
@@ -98,7 +105,7 @@
             },
             required: ["examTitle", "subject", "questions"]
         };
-        
+
         // Schema secundario para clasificar la intención del prompt
         const classificationSchema = {
             type: "OBJECT",
@@ -115,26 +122,26 @@
             constructor(apiKey) {
                 this.apiKey = apiKey;
             }
-            
+
             async makeApiCall(payload) {
                 // Verificar si la generación fue cancelada antes de hacer la llamada
                 if (typeof isGenerationCancelled !== 'undefined' && isGenerationCancelled) {
                     throw new Error('Generación cancelada por el usuario');
                 }
-                
+
                 const baseURL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
-                
+
                 // CRÍTICO: Usamos la API Key en la URL si está disponible.
                 const authParam = this.apiKey ? `?key=${this.apiKey}` : '';
                 const url = `${baseURL}${authParam}`;
-                
+
                 const MAX_RETRIES = 5;
                 for (let i = 0; i < MAX_RETRIES; i++) {
                     // Verificar cancelación en cada reintento
                     if (typeof isGenerationCancelled !== 'undefined' && isGenerationCancelled) {
                         throw new Error('Generación cancelada por el usuario');
                     }
-                    
+
                     let delay = 1000 * (2 ** i);
                     try {
                         const response = await fetch(url, {
@@ -156,12 +163,12 @@
                         }
 
                         const result = await response.json();
-                        
+
                         // Verificar cancelación después de recibir la respuesta
                         if (typeof isGenerationCancelled !== 'undefined' && isGenerationCancelled) {
                             throw new Error('Generación cancelada por el usuario');
                         }
-                        
+
                         // Devuelve el objeto de resultado completo para inspección de errores de contenido
                         return result;
 
@@ -217,7 +224,7 @@
                     RECUERDA: El array 'questions' debe tener EXACTAMENTE ${examData.questions} elementos. Esta es la regla más importante.
                 `.trim();
             }
-            
+
             // Validar que el número de preguntas sea correcto
             validateQuestionCount(parsedData, expectedCount) {
                 if (!parsedData || !parsedData.questions || !Array.isArray(parsedData.questions)) {
@@ -241,7 +248,7 @@
             // Método para clasificar si el prompt es relevante
             async classifyPrompt(prompt) {
                 const systemInstruction = "Clasifica el prompt del usuario. Si es una solicitud relacionada con educación, exámenes, estudio o temas académicos, responde 'true'. Para cualquier otra solicitud (ej. chistes, recetas, código), responde 'false'.";
-                
+
                 const payload = {
                     contents: [{ parts: [{ text: prompt }] }],
                     systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -264,25 +271,25 @@
                         return { isExamRelated: true };
                     }
                 }
-                
+
                 // Manejo de error específico si el modelo no responde
                 const feedback = result.promptFeedback?.blockReason || result.candidates?.[0]?.finishReason;
                 if (feedback) {
-                     throw new Error(`La clasificación fue bloqueada. Razón: ${feedback}`);
+                    throw new Error(`La clasificación fue bloqueada. Razón: ${feedback}`);
                 }
-                return { isExamRelated: true }; 
+                return { isExamRelated: true };
             }
-            
+
             async generateExam(examData) {
                 const maxRetries = 3;
                 let lastError = null;
-                
+
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
                         console.log(`🔄 Intento ${attempt}/${maxRetries} de generación de examen...`);
-                        
+
                         const prompt = this.buildExamPrompt(examData);
-                        
+
                         const payload = {
                             contents: [{ parts: [{ text: prompt }] }],
                             generationConfig: {
@@ -291,10 +298,10 @@
                                 temperature: 0.7 + (attempt - 1) * 0.1, // Aumentar temperatura en reintentos
                                 topK: 40,
                                 topP: 0.95,
-                                maxOutputTokens: 4096 
+                                maxOutputTokens: 4096
                             }
                         };
-                        
+
                         const result = await this.makeApiCall(payload);
                         let jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -323,7 +330,7 @@
                                 lastError = new Error(`Número de preguntas incorrecto: ${parsed.questions?.length || 0}/${examData.questions}`);
                                 continue;
                             }
-                        } catch (_) {}
+                        } catch (_) { }
 
                         let cleanedText = stripBOM(stripCodeFences(smartToAscii(jsonText.trim())));
 
@@ -346,22 +353,22 @@
                         ];
 
                         for (const p of tryParsers) {
-                            try { 
+                            try {
                                 const parsed = p(cleanedText);
                                 if (this.validateQuestionCount(parsed, examData.questions)) {
                                     console.log(`✅ Examen generado correctamente en intento ${attempt} (parser alternativo)`);
                                     return this.ensureObligatoryProperty(parsed);
                                 }
-                            } catch (_) {}
+                            } catch (_) { }
                         }
 
                         // Si llegamos aquí, el intento falló
                         lastError = new Error(`Intento ${attempt} falló: formato JSON inválido o número de preguntas incorrecto`);
-                        
+
                     } catch (error) {
                         console.error(`❌ Error en intento ${attempt}:`, error);
                         lastError = error;
-                        
+
                         if (attempt === maxRetries) {
                             // En el último intento, crear un examen de fallback con el número correcto de preguntas
                             console.log(`🔄 Creando examen de fallback con ${examData.questions} preguntas...`);
@@ -369,7 +376,7 @@
                         }
                     }
                 }
-                
+
                 // Si todos los intentos fallaron, lanzar el último error
                 throw lastError || new Error('No se pudo generar el examen después de múltiples intentos');
             }
@@ -378,7 +385,7 @@
             createFallbackExam(examData) {
                 const questions = [];
                 const { title, subject, questions: numQuestions, difficulty } = examData;
-                
+
                 for (let i = 1; i <= numQuestions; i++) {
                     questions.push({
                         questionNumber: i,
@@ -394,7 +401,7 @@
                         obligatory: true // Por defecto obligatoria
                     });
                 }
-                
+
                 return this.ensureObligatoryProperty({
                     examTitle: title,
                     subject: subject,
@@ -406,7 +413,7 @@
             async generateSingleQuestion(examData) {
                 try {
                     const { title, subject, difficulty, aiPrompt } = examData;
-                    
+
                     // Construir prompt para una sola pregunta
                     const prompt = `Eres un experto en educación y creación de exámenes. Tu tarea es generar UNA SOLA pregunta de opción múltiple.
 
@@ -524,7 +531,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         const examsList = document.getElementById('examsList');
         const examCountElement = document.getElementById('examCount');
         const examModal = document.getElementById('examModal');
-        
+
         // Variable para controlar la cancelación de generación
         let isGenerationCancelled = false;
         const examContent = document.getElementById('examContent');
@@ -540,16 +547,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         const configExamBtn = document.getElementById('configExamBtn');
         const viewMyExamsBtn = document.getElementById('viewMyExamsBtn');
 
-        let lastGeneratedExam = null; 
+        let lastGeneratedExam = null;
 
         // Función de utilidad para mostrar mensajes
         function showMessage(text, isError = false) {
             const messageContainer = document.getElementById('messageContainer');
             const message = document.getElementById('message');
-            
+
             const colorClasses = isError ? 'bg-red-500 text-white' : 'bg-green-500 text-white';
             message.className = `p-4 rounded-lg text-center font-medium max-w-md ${colorClasses}`;
-            
+
             message.textContent = text;
             messageContainer.classList.remove('hidden');
             setTimeout(() => {
@@ -570,13 +577,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             } else {
                 document.getElementById('resultOnly').checked = true;
             }
-            
+
             // Actualizar estado de deshabilitación
             updateExamConfigOptions();
-            
+
             examConfigModal.classList.remove('hidden');
         }
-        
+
         // Función para actualizar estado de opciones según selección
         // Todas las opciones están siempre habilitadas (son mutuamente excluyentes por ser radio buttons)
         function updateExamConfigOptions() {
@@ -585,7 +592,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             const noResultsRadio = document.getElementById('noResults');
             const showCorrectAnswersRadio = document.getElementById('showCorrectAnswers');
             const resultOnlyRadio = document.getElementById('resultOnly');
-            
+
             // Asegurar que todas las opciones estén siempre habilitadas
             if (noResultsContainer) noResultsContainer.classList.remove('opacity-50', 'pointer-events-none');
             if (showCorrectAnswersContainer) showCorrectAnswersContainer.classList.remove('opacity-50', 'pointer-events-none');
@@ -602,7 +609,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             }
 
             const config = selectedConfig.value;
-            
+
             // Guardar configuración en el examen
             if (lastGeneratedExam) {
                 lastGeneratedExam.examConfig = {
@@ -610,7 +617,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     showCorrectAnswers: config === 'showCorrectAnswers',
                     resultOnly: config === 'resultOnly'
                 };
-                
+
                 // Guardar en localStorage también
                 const savedExams = JSON.parse(localStorage.getItem('generatedExams') || '[]');
                 const examIndex = savedExams.findIndex(exam => exam.id === lastGeneratedExam.id);
@@ -622,7 +629,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             showMessage('Configuración guardada exitosamente', false);
             examConfigModal.classList.add('hidden');
-            
+
             // Regresar al modal de edición del examen
             if (isEditing && editDraft) {
                 showExamInModal(editDraft);
@@ -689,7 +696,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     const questionNumber = q.questionNumber !== undefined ? q.questionNumber : index + 1;
                     const isObligatory = q.obligatory === true;
                     const questionType = q.type || 'multiple_choice';
-                    
+
                     htmlParts.push(`
                         <div class="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-4">
                             <p class="font-bold text-gray-800 mb-3 text-lg">
@@ -710,17 +717,17 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         // Función para obtener la etiqueta del tipo de pregunta
         function getQuestionTypeLabel(type) {
-            switch(type) {
+            switch (type) {
                 case 'text_input': return 'Texto Plano';
                 case 'multiple_select': return 'Selección Múltiple';
-                case 'multiple_choice': 
+                case 'multiple_choice':
                 default: return 'Opción Múltiple';
             }
         }
 
         // Función para renderizar la vista de una pregunta según su tipo
         function renderQuestionView(question, questionType) {
-            switch(questionType) {
+            switch (questionType) {
                 case 'text_input':
                     return `
                         <div class="bg-white border border-gray-300 rounded p-3">
@@ -728,24 +735,24 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             ${question.expectedAnswer ? `<p class="text-xs text-gray-500">Respuesta esperada: <em>${question.expectedAnswer}</em></p>` : ''}
                         </div>
                     `;
-                
+
                 case 'multiple_select':
                     const correctAnswers = question.correctAnswers || [];
                     return `
                             <ul class="text-sm space-y-2 text-gray-700 pl-4">
                             ${question.options.map(opt => {
-                                const isCorrect = correctAnswers.includes(opt.letter);
-                                return `
+                        const isCorrect = correctAnswers.includes(opt.letter);
+                        return `
                                     <li class="${isCorrect ? 'font-semibold text-green-700 bg-green-50 p-2 rounded' : 'p-2 rounded hover:bg-gray-100'}">
                                         ${opt.letter}) ${opt.text}
                                         ${isCorrect ? '<i class="fas fa-check-circle ml-2 text-green-600"></i> [CORRECTA]' : ''}
                                     </li>
                                 `;
-                            }).join('')}
+                    }).join('')}
                         </ul>
                         <p class="text-xs text-gray-500 mt-2">Selecciona todas las opciones correctas</p>
                     `;
-                
+
                 case 'multiple_choice':
                 default:
                     return `
@@ -767,15 +774,15 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             return `
                 <div class="space-y-2">
                     ${(question.options || []).map((opt, oIdx) => {
-                        const idBase = `q${qIdx}-opt${oIdx}`;
-                        const checked = (opt.letter === question.correctAnswerLetter) ? 'checked' : '';
-                        return `
+                const idBase = `q${qIdx}-opt${oIdx}`;
+                const checked = (opt.letter === question.correctAnswerLetter) ? 'checked' : '';
+                return `
                             <div class="flex items-center gap-3">
                                 <input type="radio" name="radio-${qIdx}" class="edit-correct" data-qidx="${qIdx}" data-letter="${opt.letter}" ${checked} />
                                 <span class="text-gray-700 w-6 font-medium">${opt.letter})</span>
                                 <input data-qidx="${qIdx}" data-oidx="${oIdx}" type="text" class="edit-option flex-1 px-3 py-2 rounded border border-gray-300 text-gray-800 bg-white" value="${escapeHtml(opt.text || '')}" />
                             </div>`;
-                    }).join('')}
+            }).join('')}
                 </div>
             `;
         }
@@ -795,7 +802,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 const questionNumber = q.questionNumber !== undefined ? q.questionNumber : qIdx + 1;
                 const isObligatory = q.obligatory === true; // Solo obligatoria si explícitamente es true
                 const questionType = q.type || 'multiple_choice'; // Tipo de pregunta por defecto
-                
+
                 htmlParts.push(`
                     <div class="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-4 question-container" data-qidx="${qIdx}" data-ai-generated="${q.aiGenerated || false}">
                         <div class="flex justify-between items-center mb-2">
@@ -828,7 +835,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             // Resetear binding para permitir re-configuración
             resetEventsBinding();
-            
+
             // Bind all events (ahora usa event delegation, más eficiente)
             bindAllEvents();
         }
@@ -880,7 +887,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             // Re-renderizar todo el examen
             renderExamEdit(editDraft);
             bindAllEvents();
-            
+
             // Cerrar el modal
             closeAddQuestionModal();
         }
@@ -890,10 +897,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             try {
                 // Cerrar el modal primero
                 closeAddQuestionModal();
-                
+
                 // Mostrar indicador de carga
                 showMessage('Generando pregunta con IA...', false);
-                
+
                 // Obtener datos del examen original
                 const examData = {
                     title: editDraft.examTitle || lastGeneratedExam?.examTitle || 'Examen',
@@ -904,7 +911,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Generar una sola pregunta usando la API
                 const generatedQuestion = await api.generateSingleQuestion(examData);
-                
+
                 // Convertir el formato de la pregunta generada al formato del examen
                 const newQuestion = {
                     questionNumber: afterIndex + 1,
@@ -928,7 +935,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Iluminar y parpadear la pregunta generada
                 highlightAIGeneratedQuestion(afterIndex);
-                
+
                 showMessage('✅ Pregunta generada con IA exitosamente', false);
             } catch (error) {
                 console.error('Error al generar pregunta con IA:', error);
@@ -943,7 +950,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             // Agregar clase de animación
             questionContainer.classList.add('ai-generated-question');
-            
+
             // Hacer scroll a la pregunta
             setTimeout(() => {
                 questionContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -967,7 +974,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             if (confirmed) {
                 editDraft.questions.splice(qidx, 1);
-                
+
                 // Renumerar todas las preguntas
                 renumberQuestions();
 
@@ -985,7 +992,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         // Cache para debouncing
         const debounceTimers = new Map();
-        
+
         // Función de debounce optimizada
         function debounce(key, fn, delay = 300) {
             if (debounceTimers.has(key)) {
@@ -1012,7 +1019,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             // Event delegation: un solo listener en el contenedor en lugar de múltiples
             examContent.addEventListener('input', (e) => {
                 const target = e.target;
-                
+
                 // Editar pregunta (enunciado)
                 if (target.classList.contains('edit-question')) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1022,7 +1029,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         });
                     }
                 }
-                
+
                 // Editar opción
                 if (target.classList.contains('edit-option')) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1037,7 +1044,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             examContent.addEventListener('change', (e) => {
                 const target = e.target;
-                
+
                 // Toggle obligatoria
                 if (target.classList.contains('obligatory-toggle')) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1045,7 +1052,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         editDraft.questions[qidx].obligatory = target.checked;
                     }
                 }
-                
+
                 // Cambiar respuesta correcta
                 if (target.classList.contains('edit-correct') && target.checked) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1059,7 +1066,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             examContent.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
                 if (!target) return;
-                
+
                 // Botón agregar pregunta
                 if (target.classList.contains('add-question-btn')) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1067,7 +1074,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         showAddQuestionModal(qidx + 1);
                     }
                 }
-                
+
                 // Botón eliminar pregunta
                 if (target.classList.contains('remove-question-btn')) {
                     const qidx = Number(target.getAttribute('data-qidx'));
@@ -1080,7 +1087,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             // Bind title and subject (solo una vez, con debounce)
             const titleEl = document.getElementById('edit-title');
             const subjectEl = document.getElementById('edit-subject');
-            
+
             if (titleEl && !titleEl.dataset.bound) {
                 titleEl.dataset.bound = 'true';
                 titleEl.addEventListener('input', (e) => {
@@ -1089,7 +1096,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     });
                 });
             }
-            
+
             if (subjectEl && !subjectEl.dataset.bound) {
                 subjectEl.dataset.bound = 'true';
                 subjectEl.addEventListener('input', (e) => {
@@ -1113,12 +1120,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 renderExamView(examContentData);
             }
             examModal.classList.remove('hidden');
-            
+
             // Verificar si es un examen publicado (tiene código de examen)
             const hasExamCode = examContentData && examContentData.examCode && examContentData.examCode.trim() !== '';
             const isPublished = hasExamCode;
             const isAssigned = examContentData && (examContentData.assigned === true || examContentData.isPrivate === true);
-            
+
             // Actualizar código del examen o mostrar mensaje de privado
             const examCodeDisplay = document.getElementById('examCodeDisplay');
             const examCodeContainer = examCodeDisplay?.parentElement;
@@ -1137,7 +1144,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     `;
                 }
             }
-            
+
             // Toggle botones del pie del modal
             const editBtn = document.getElementById('editExamBtn');
             const applyBtn = document.getElementById('applyChangesBtn');
@@ -1145,17 +1152,17 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             const saveBtn = document.getElementById('saveExamBtn');
             const assignBtn = document.getElementById('assignExamBtn');
             const configBtn = document.getElementById('configExamBtn');
-            
+
             if (editBtn && applyBtn && cancelBtn) {
                 // Mostrar botón de editar solo si NO está en modo edición y NO es un examen publicado
                 const shouldHideEdit = Boolean(isEditing || isPublished);
                 editBtn.classList.toggle('hidden', shouldHideEdit);
-                
+
                 // Mostrar botones de aplicar/cancelar solo si está en modo edición
                 applyBtn.classList.toggle('hidden', !isEditing);
                 cancelBtn.classList.toggle('hidden', !isEditing);
             }
-            
+
             // Mostrar/ocultar botón de publicar: mostrar solo si NO está asignado y NO está publicado
             if (saveBtn) {
                 if (isAssigned || isPublished) {
@@ -1164,14 +1171,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     saveBtn.classList.remove('hidden');
                 }
             }
-            
+
             // Sincronizar botones móviles después de actualizar los botones desktop
             if (typeof syncMobileButtonsVisibility === 'function') {
                 setTimeout(() => {
                     syncMobileButtonsVisibility();
                 }, 100);
             }
-            
+
             // Mostrar/ocultar botón de asignar: mostrar solo si NO está publicado y NO está asignado
             if (assignBtn) {
                 if (isPublished || isAssigned) {
@@ -1180,7 +1187,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     assignBtn.classList.remove('hidden');
                 }
             }
-            
+
             // Asegurar que el botón de configurar siempre esté visible (a menos que esté en edición)
             if (configBtn) {
                 if (isEditing) {
@@ -1189,7 +1196,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     configBtn.classList.remove('hidden');
                 }
             }
-            
+
             // Mostrar mensaje si es un examen publicado
             if (isPublished) {
                 const existingMessage = document.getElementById('published-warning');
@@ -1223,7 +1230,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             const stepDuration = duration / totalSteps;
             const progressCircle = document.getElementById('progressCircle');
             const circumference = 2 * Math.PI * 45; // 282.74
-            
+
             // Resetear animación y texto
             document.getElementById('progressIcon').className = 'fas fa-brain text-2xl text-blue-400';
             document.getElementById('statusText').textContent = 'Conectando con Gemini AI...';
@@ -1235,7 +1242,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             progressInterval = setInterval(() => {
                 progress += 1;
                 const offset = circumference - (progress / 100) * circumference;
-                
+
                 document.getElementById('loadingProgress').style.width = `${progress}%`;
                 document.getElementById('progressPercentage').textContent = progress;
                 progressCircle.style.strokeDashoffset = offset;
@@ -1261,36 +1268,36 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             try {
                 // Actualizar nombre del usuario inmediatamente
                 updateUserName();
-            
-            // Cargar contador de exámenes real
-            await updateExamCount();
-            
-            // Actualizar estado de API (solo en consola)
-            console.log('✅ API Conectada - Estado: Conectado');
-                
-            showMessage("Sistema listo. Genera tu primer examen.", false);
-                
+
+                // Cargar contador de exámenes real
+                await updateExamCount();
+
+                // Actualizar estado de API (solo en consola)
+                console.log('✅ API Conectada - Estado: Conectado');
+
+                showMessage("Sistema listo. Genera tu primer examen.", false);
+
             } catch (error) {
                 console.error('Error en initApp:', error);
                 // Asegurar que el nombre se muestre incluso si hay error
                 updateUserName();
-                
+
                 // Mostrar estado de error (solo en consola)
                 console.error('❌ API Error - Estado: Error de conexión');
-                
+
                 showMessage("Error al inicializar el sistema. Algunas funciones pueden no estar disponibles.", true);
             }
         }
-        
+
         // Función para actualizar el contador de exámenes
         async function updateExamCount() {
             try {
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
                 if (!currentUser?.id) {
                     examCountElement.textContent = 0;
                     return;
                 }
-                
+
                 // Usar cache si está disponible para evitar fetch innecesario
                 const now = Date.now();
                 if (examsCache && (now - examsCacheTime) < EXAMS_CACHE_DURATION) {
@@ -1306,7 +1313,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 examCountElement.textContent = 0;
             }
         }
-        
+
         // Función auxiliar para detener el spinner y restablecer botones
         function resetUI(text = 'Generar Examen con IA') {
             loadingModal.classList.add('hidden');
@@ -1315,7 +1322,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             generateBtnText.textContent = text;
             if (progressInterval) clearInterval(progressInterval);
         }
-        
+
         // Función para cancelar la generación del examen
         function cancelGeneration() {
             isGenerationCancelled = true;
@@ -1324,14 +1331,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         }
 
         // --- Event Listeners ---
-        
+
         // Event listener para el botón de cancelar generación
         document.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'cancelGenerationBtn') {
                 cancelGeneration();
             }
         });
-        
+
         // Función para actualizar el nombre del usuario y mensaje de bienvenida
         function updateUserName() {
             try {
@@ -1361,7 +1368,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         document.addEventListener('DOMContentLoaded', () => {
             // Asegurar que el nombre del usuario se muestre inmediatamente
             updateUserName();
-            
+
             // Luego ejecutar la inicialización completa
             initApp().catch(error => {
                 console.error('Error en inicialización:', error);
@@ -1372,15 +1379,15 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         examForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Resetear flag de cancelación
             isGenerationCancelled = false;
-            
+
             const examData = {
                 title: document.getElementById('examTitle').value,
                 subject: document.getElementById('subject').value,
                 difficulty: document.getElementById('difficulty').value,
-                questions: parseInt(document.getElementById('numQuestions').value, 10), 
+                questions: parseInt(document.getElementById('numQuestions').value, 10),
                 prompt: document.getElementById('aiPrompt').value,
                 originalPrompt: document.getElementById('aiPrompt').value // Guardar el prompt original
             };
@@ -1390,8 +1397,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             generateBtn.disabled = true;
             generateBtnSpinner.classList.remove('hidden');
             generateBtnText.textContent = 'Verificando...';
-            startProgressSimulation(); 
-            
+            startProgressSimulation();
+
             // 1. Clasificación Rápida de la Solicitud
             try {
                 loadingText.textContent = 'Verificando intención del prompt...';
@@ -1409,25 +1416,25 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     showMessage("🚨 Recuerda que esta herramienta solo es para generar exámenes. Prueba con una solicitud de contenido académico.", true);
                     return;
                 }
-                
+
                 // 2. Llamada a la API de Gemini para la Generación
                 loadingText.textContent = 'Generando contenido del examen...';
                 generateBtnText.textContent = 'Generando...';
-                
+
                 // Verificar si fue cancelado antes de la generación
                 if (isGenerationCancelled) {
                     resetUI();
                     return;
                 }
-                
+
                 const examResult = await api.generateExam(examData);
-                
+
                 // Verificar si fue cancelado después de la generación
                 if (isGenerationCancelled) {
                     resetUI();
                     return;
                 }
-                
+
                 // 3. Mostrar Resultado
                 lastGeneratedExam = examResult;
                 // Guardar el prompt original para poder generar preguntas adicionales
@@ -1435,7 +1442,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     lastGeneratedExam.originalPrompt = examData.originalPrompt || examData.prompt;
                 }
                 showExamInModal(lastGeneratedExam);
-                
+
                 // 4. Finalizar UI
                 examCountElement.textContent = parseInt(examCountElement.textContent) + 1;
                 resetUI();
@@ -1443,12 +1450,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             } catch (error) {
                 console.error("Error al generar el examen:", error);
-                
+
                 // Si fue cancelado por el usuario, no mostrar error
                 if (error.message === 'Generación cancelada por el usuario') {
                     return; // Ya se manejó en cancelGeneration()
                 }
-                
+
                 // === MANEJO DEL FAIL-SAFE DEL PROGRAMADOR SENIOR ===
                 if (error.rawJson) {
                     showRawJsonInModal(error.rawJson, examData.title);
@@ -1476,7 +1483,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     }]
                 };
                 showExamInModal(lastGeneratedExam);
-                
+
                 resetUI();
                 showMessage(`❌ Error de Generación: ${error.message}. Se mostró un examen de ejemplo.`, true);
 
@@ -1487,7 +1494,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         closeExamModal.addEventListener('click', () => {
             examModal.classList.add('hidden');
         });
-        
+
         // Event listeners para el modal de agregar pregunta
         const closeAddQuestionModalBtn = document.getElementById('closeAddQuestionModal');
         if (closeAddQuestionModalBtn) {
@@ -1513,7 +1520,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 }
             });
         }
-        
+
         // Botones de edición
         document.addEventListener('click', async (e) => {
             const target = e.target;
@@ -1544,29 +1551,29 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     isEditing = false;
 
                     {
-                    // Si ya existe un código publicado en esta sesión, enviar PUT para sobrescribir archivo temporal
-                    const meta = {
-                        title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
-                        subject: document.getElementById('subject')?.value || lastGeneratedExam.subject,
-                        difficulty: document.getElementById('difficulty')?.value || 'intermedio'
-                    };
-                    const examToUpdate = transformExamForBackend(lastGeneratedExam, meta);
-                    if (window.__currentExamCode) {
-                        examToUpdate.examCode = window.__currentExamCode;
-                        const resp = await fetch(getApiUrl('/exam'), {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(examToUpdate)
-                        });
-                        if (!resp.ok) throw new Error('Fallo al actualizar el examen');
-                            
+                        // Si ya existe un código publicado en esta sesión, enviar PUT para sobrescribir archivo temporal
+                        const meta = {
+                            title: document.getElementById('examTitle')?.value || lastGeneratedExam.examTitle,
+                            subject: document.getElementById('subject')?.value || lastGeneratedExam.subject,
+                            difficulty: document.getElementById('difficulty')?.value || 'intermedio'
+                        };
+                        const examToUpdate = transformExamForBackend(lastGeneratedExam, meta);
+                        if (window.__currentExamCode) {
+                            examToUpdate.examCode = window.__currentExamCode;
+                            const resp = await fetch(getApiUrl('/exam'), {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(examToUpdate)
+                            });
+                            if (!resp.ok) throw new Error('Fallo al actualizar el examen');
+
                             // Actualizar también en localStorage para que los alumnos vean los cambios
                             localStorage.setItem('generatedExams', JSON.stringify([{ ...examToUpdate }]));
-                            
-                        showMessage('Cambios aplicados y guardados.', false);
-                    } else {
-                        // Aún no publicado: solo actualizar memoria
-                        showMessage('Cambios aplicados (no publicado).', false);
+
+                            showMessage('Cambios aplicados y guardados.', false);
+                        } else {
+                            // Aún no publicado: solo actualizar memoria
+                            showMessage('Cambios aplicados (no publicado).', false);
                         }
                     }
                     showExamInModal(lastGeneratedExam);
@@ -1576,7 +1583,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 }
             }
         });
-        
+
         // Gestión de Grupos
         const createGroupBtn = document.getElementById('createGroupBtn');
         const groupsModal = document.getElementById('groupsModal');
@@ -1662,7 +1669,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 </button>
             `;
             groupStudentsInputs.appendChild(wrapper);
-            
+
             // Event listener para remover input
             const removeBtn = wrapper.querySelector('.remove-student-email-btn');
             removeBtn.addEventListener('click', () => {
@@ -1671,7 +1678,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     updateRemoveButtons();
                 }
             });
-            
+
             // Event listener para agregar automáticamente otro campo cuando se completa uno
             const input = wrapper.querySelector('.group-student-email');
             input.addEventListener('blur', () => {
@@ -1680,7 +1687,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     addStudentEmailInput();
                 }
             });
-            
+
             updateRemoveButtons();
         }
 
@@ -1700,7 +1707,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         if (createGroupForm) {
             createGroupForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                
+
                 const formData = new FormData(createGroupForm);
                 const groupName = formData.get('groupName').trim();
                 const groupDescription = formData.get('groupDescription').trim();
@@ -1742,7 +1749,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     }
 
                     // Crear el grupo
-                    const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                    const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
                     const newGroup = {
                         id: 'GROUP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                         name: groupName,
@@ -1761,7 +1768,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     localStorage.setItem('teacherGroups', JSON.stringify(groups));
 
                     showMessage(`Grupo "${groupName}" creado exitosamente con ${validEmails.length} alumno(s)`, false);
-                    
+
                     // Limpiar formulario y ocultar
                     createGroupForm.reset();
                     createGroupFormContainer.classList.add('hidden');
@@ -1777,7 +1784,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             </button>
                         </div>
                     `;
-                    
+
                     // Recargar lista de grupos
                     loadGroups();
                 } catch (error) {
@@ -1790,11 +1797,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         // Función para cargar y mostrar grupos
         function loadGroups() {
             const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-            
+            const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
             // Filtrar grupos del profesor actual
             const teacherGroups = groups.filter(g => g.professorId === currentUser?.id);
-            
+
             if (teacherGroups.length === 0) {
                 groupsListContainer.innerHTML = `
                     <div class="text-center py-12 text-gray-500">
@@ -1864,10 +1871,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         function showDeleteGroupModal(groupId) {
             try {
                 const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
                 const group = groups.find(g => g.id === groupId && g.professorId === currentUser?.id);
-                
+
                 if (!group) {
                     showMessage('Grupo no encontrado', true);
                     return;
@@ -1891,10 +1898,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         async function deleteGroup(groupId) {
             try {
                 const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
                 const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
-                
+
                 if (groupIndex === -1) {
                     showMessage('Grupo no encontrado', true);
                     return;
@@ -1907,11 +1914,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 localStorage.setItem('teacherGroups', JSON.stringify(groups));
 
                 showMessage(`Grupo "${groupName}" eliminado exitosamente`, false);
-                
+
                 // Cerrar modal
                 document.getElementById('deleteGroupModal').classList.add('hidden');
                 groupToDelete = null;
-                
+
                 // Recargar lista de grupos
                 loadGroups();
             } catch (error) {
@@ -1955,7 +1962,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             searchGroupsInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 const searchTerm = e.target.value.trim().toLowerCase();
-                
+
                 searchTimeout = setTimeout(() => {
                     filterGroups(searchTerm);
                 }, 300);
@@ -1965,11 +1972,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         // Función para filtrar grupos
         function filterGroups(searchTerm) {
             const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-            
+            const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
             // Filtrar grupos del profesor actual
             let teacherGroups = groups.filter(g => g.professorId === currentUser?.id);
-            
+
             // Si hay término de búsqueda, filtrar
             if (searchTerm) {
                 teacherGroups = teacherGroups.filter(group => {
@@ -1977,14 +1984,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     const description = (group.description || '').toLowerCase();
                     const semester = (group.semester || '').toLowerCase();
                     const groupName = (group.group || '').toLowerCase();
-                    
-                    return name.includes(searchTerm) || 
-                           description.includes(searchTerm) ||
-                           semester.includes(searchTerm) ||
-                           groupName.includes(searchTerm);
+
+                    return name.includes(searchTerm) ||
+                        description.includes(searchTerm) ||
+                        semester.includes(searchTerm) ||
+                        groupName.includes(searchTerm);
                 });
             }
-            
+
             // Renderizar grupos filtrados
             if (teacherGroups.length === 0) {
                 groupsListContainer.innerHTML = `
@@ -2065,10 +2072,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         async function openManageGroupModal(groupId) {
             try {
                 const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
                 const group = groups.find(g => g.id === groupId && g.professorId === currentUser?.id);
-                
+
                 if (!group) {
                     showMessage('Grupo no encontrado', true);
                     return;
@@ -2095,8 +2102,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </div>
                         
                         <div id="groupStudentsList" class="space-y-2">
-                            ${group.students && group.students.length > 0 ? 
-                                group.students.map(email => `
+                            ${group.students && group.students.length > 0 ?
+                        group.students.map(email => `
                                     <div class="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center hover:shadow-md transition-shadow duration-200">
                                         <div class="flex items-center">
                                             <i class="fas fa-user-circle text-gray-400 mr-3 text-xl"></i>
@@ -2110,8 +2117,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                         </button>
                                     </div>
                                 `).join('') :
-                                '<div class="text-center py-8 text-gray-500"><p>No hay alumnos en este grupo</p></div>'
-                            }
+                        '<div class="text-center py-8 text-gray-500"><p>No hay alumnos en este grupo</p></div>'
+                    }
                         </div>
                     </div>
 
@@ -2195,7 +2202,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </button>
                     `;
                     addStudentsToGroupInputs.appendChild(wrapper);
-                    
+
                     const removeBtn = wrapper.querySelector('.remove-add-student-btn');
                     removeBtn.addEventListener('click', () => {
                         if (addStudentsToGroupInputs.children.length > 1) {
@@ -2203,7 +2210,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             updateRemoveButtonsForGroup();
                         }
                     });
-                    
+
                     const input = wrapper.querySelector('.add-student-email');
                     input.addEventListener('blur', () => {
                         const lastInput = addStudentsToGroupInputs.querySelector('.add-student-email:last-of-type');
@@ -2211,7 +2218,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             addStudentInputToGroup();
                         }
                     });
-                    
+
                     updateRemoveButtonsForGroup();
                 }
 
@@ -2238,19 +2245,19 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         async function removeStudentFromGroup(groupId, emailToRemove) {
             try {
                 const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
                 const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
-                
+
                 if (groupIndex === -1) {
                     showMessage('Grupo no encontrado', true);
                     return;
                 }
 
                 const group = groups[groupIndex];
-                
+
                 // Eliminar el correo del array de estudiantes
-                group.students = (group.students || []).filter(email => 
+                group.students = (group.students || []).filter(email =>
                     String(email).toLowerCase() !== String(emailToRemove).toLowerCase()
                 );
 
@@ -2259,7 +2266,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 localStorage.setItem('teacherGroups', JSON.stringify(groups));
 
                 showMessage(`Alumno ${emailToRemove} eliminado del grupo`, false);
-                
+
                 // Recargar modal y lista de grupos
                 openManageGroupModal(groupId);
                 loadGroups();
@@ -2292,10 +2299,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Obtener grupo actual
                 const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
-                
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
+
                 const groupIndex = groups.findIndex(g => g.id === groupId && g.professorId === currentUser?.id);
-                
+
                 if (groupIndex === -1) {
                     showMessage('Grupo no encontrado', true);
                     return;
@@ -2326,11 +2333,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 localStorage.setItem('teacherGroups', JSON.stringify(groups));
 
                 showMessage(`Se agregaron ${validEmails.length} alumno(s) al grupo`, false);
-                
+
                 // Limpiar inputs y ocultar sección
                 inputsContainer.innerHTML = '';
                 document.getElementById('addStudentsToGroupSection').classList.add('hidden');
-                
+
                 // Recargar modal y lista de grupos
                 openManageGroupModal(groupId);
                 loadGroups();
@@ -2346,7 +2353,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 try {
                     sessionStorage.clear();
                     localStorage.removeItem('sessionToken');
-                } catch (_) {}
+                } catch (_) { }
                 window.location.href = 'index.html';
             });
         }
@@ -2408,7 +2415,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     const confirmed = await showConfirmPublishModal();
 
                     if (!confirmed) return;
-                    const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                    const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
                     const meta = {
                         title: document.getElementById('examTitle').value,
                         subject: document.getElementById('subject').value,
@@ -2436,26 +2443,26 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                     // Guardar también localmente reemplazando cualquier examen previo: solo el último
                     localStorage.setItem('generatedExams', JSON.stringify([{ ...examToPublish }]));
-                    
+
                     // También actualizar lastGeneratedExam con el código
                     lastGeneratedExam.examCode = examToPublish.examCode;
 
 
                     showMessage('Examen publicado. Código disponible para alumnos.', false);
-                    
+
                     // Guardar el código del examen recién publicado para resaltarlo
                     sessionStorage.setItem('recentlyPublishedExamCode', examToPublish.examCode);
-                    
+
                     // Actualizar contador de exámenes (usará cache si está disponible)
                     await updateExamCount();
-                    
+
                     // Invalidar cache para forzar refresh en la próxima carga
                     examsCache = null;
                     examsCacheTime = 0;
-                    
+
                     // Ocultar todos los botones y mostrar solo "Ver en Mis Exámenes"
                     // Los botones ya están declarados globalmente, solo actualizar su visibilidad
-                    
+
                     if (editExamBtn) editExamBtn.classList.add('hidden');
                     if (applyChangesBtn) applyChangesBtn.classList.add('hidden');
                     if (cancelEditBtn) cancelEditBtn.classList.add('hidden');
@@ -2553,7 +2560,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             if (!selectGroup) return;
 
             const groups = JSON.parse(localStorage.getItem('teacherGroups') || '[]');
-            const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+            const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
 
             // Filtrar grupos del profesor actual
             teacherGroupsForAssignment = groups.filter(g => g.professorId === currentUser?.id);
@@ -2625,7 +2632,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         // Función para configurar los event listeners de los inputs de correo
         function setupEmailInputs() {
             const emailInputs = emailInputsContainer.querySelectorAll('.email-input');
-            
+
             emailInputs.forEach((input, index) => {
                 // Remover listeners anteriores
                 const newInput = input.cloneNode(true);
@@ -2633,7 +2640,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             });
 
             const newEmailInputs = emailInputsContainer.querySelectorAll('.email-input');
-            
+
             newEmailInputs.forEach((input, index) => {
                 const wrapper = input.closest('.email-input-wrapper');
                 const addBtn = wrapper.querySelector('.add-email-btn');
@@ -2683,13 +2690,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 }
                 const data = await resp.json();
                 const users = data.users || [];
-                
+
                 const invalidEmails = [];
                 const validEmails = [];
 
                 for (const email of emails) {
-                    const user = users.find(u => 
-                        String(u.email).toLowerCase() === String(email).toLowerCase() && 
+                    const user = users.find(u =>
+                        String(u.email).toLowerCase() === String(email).toLowerCase() &&
                         String(u.tipo_usuario) === 'alumno'
                     );
                     if (!user) {
@@ -2709,7 +2716,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         // Función para asignar examen a alumnos
         async function assignExamToStudents(emails) {
             try {
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
                 if (!currentUser?.id) {
                     throw new Error('No hay usuario actual');
                 }
@@ -2737,7 +2744,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Guardar también localmente primero
                 const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
-                
+
                 // Verificar que no exista ya un examen con el mismo ID (evitar duplicados)
                 const existingIndex = assignedExams.findIndex(ex => String(ex.id) === String(examToAssign.id));
                 if (existingIndex >= 0) {
@@ -2747,7 +2754,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     // Si no existe, agregarlo
                     assignedExams.push(examToAssign);
                 }
-                
+
                 localStorage.setItem('assignedExams', JSON.stringify(assignedExams));
 
                 // Intentar guardar en backend (pero no fallar si no funciona, ya que los exámenes asignados se manejan principalmente en localStorage)
@@ -3148,13 +3155,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             viewMyExamsBtn.addEventListener('click', async () => {
                 // Cerrar el modal
                 examModal.classList.add('hidden');
-                
+
                 // Hacer scroll a la sección de exámenes generados primero
                 const myExamsSection = document.getElementById('myExamsSection');
                 if (myExamsSection) {
                     myExamsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-                
+
                 // Recargar la lista de exámenes después de un pequeño delay para que el scroll se complete
                 // Forzar refresh para obtener datos actualizados
                 setTimeout(async () => {
@@ -3166,7 +3173,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         // Variable para almacenar todos los exámenes (sin filtrar)
         let allExamsData = [];
-        
+
         // Cache para evitar re-fetch innecesarios
         let examsCache = null;
         let examsCacheTime = 0;
@@ -3174,18 +3181,18 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         async function loadMyExams(searchTerm = '', forceRefresh = false) {
             try {
-                const currentUser = (function(){ try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch(_) { return null; } })();
+                const currentUser = (function () { try { return JSON.parse(sessionStorage.getItem('currentUser')); } catch (_) { return null; } })();
                 if (!currentUser?.id) {
                     console.warn('No hay usuario actual para cargar exámenes');
                     return;
                 }
-                
+
                 const tbody = document.getElementById('tableMyExams');
                 if (!tbody) {
                     console.warn('No se encontró el elemento tableMyExams');
                     return;
                 }
-                
+
                 // Usar cache si está disponible y no es un refresh forzado
                 const now = Date.now();
                 if (!forceRefresh && examsCache && (now - examsCacheTime) < EXAMS_CACHE_DURATION) {
@@ -3206,7 +3213,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         `;
                         return;
                     }
-                    
+
                     const items = await resp.json();
                     if (!Array.isArray(items)) {
                         console.error('Los datos recibidos no son un array:', items);
@@ -3229,7 +3236,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                     // Para exámenes privados/asignados, contar desde localStorage
                                     const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
                                     const examId = ex.id || ex.examCode;
-                                    const sessions = examSessions.filter(s => 
+                                    const sessions = examSessions.filter(s =>
                                         (s.examId === examId) || (s.examCode === examId)
                                     );
                                     return {
@@ -3245,13 +3252,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             }
                         }));
                     }
-                    
+
                     // Agregar exámenes asignados desde localStorage
                     const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
                     const assignedExamsData = assignedExams.map(ex => {
                         const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
                         const examId = ex.id || ex.examCode;
-                        const sessions = examSessions.filter(s => 
+                        const sessions = examSessions.filter(s =>
                             (s.examId === examId) || (s.examCode === examId)
                         );
                         return {
@@ -3261,19 +3268,19 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             pendingStudents: sessions.filter(s => s.status === 'in_progress' || s.status === 'pending').length
                         };
                     });
-                    
+
                     // Combinar exámenes del backend con asignados (evitar duplicados)
                     const existingIds = new Set(allExamsData.map(e => e.id));
                     const newAssigned = assignedExamsData.filter(e => !existingIds.has(e.id));
                     allExamsData = [...allExamsData, ...newAssigned];
-                    
+
                     // Actualizar cache
                     examsCache = allExamsData;
                     examsCacheTime = now;
                     // Actualizar contador de exámenes cuando se actualiza el cache
                     examCountElement.textContent = allExamsData.length;
                 }
-                
+
                 // Filtrar exámenes si hay término de búsqueda (optimizado)
                 let filteredExams = allExamsData;
                 if (searchTerm && searchTerm.trim() !== '') {
@@ -3286,10 +3293,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         return code.includes(searchLower) || title.includes(searchLower) || subject.includes(searchLower);
                     });
                 }
-                
+
                 // Obtener el código del examen recién publicado
                 const recentlyPublishedCode = sessionStorage.getItem('recentlyPublishedExamCode');
-                
+
                 // Renderizar las filas de la tabla
                 if (filteredExams.length === 0) {
                     tbody.innerHTML = `
@@ -3303,18 +3310,18 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 } else {
                     tbody.innerHTML = filteredExams.map(ex => {
                         const isRecentlyPublished = recentlyPublishedCode && ex.examCode === recentlyPublishedCode;
-                        const rowClass = isRecentlyPublished 
-                            ? 'hover:bg-gray-50 recently-published-exam' 
+                        const rowClass = isRecentlyPublished
+                            ? 'hover:bg-gray-50 recently-published-exam'
                             : 'hover:bg-gray-50';
-                        
+
                         const examIdentifier = ex.examCode || ex.id || '';
                         return `
                         <tr class="${rowClass}" data-exam-code="${examIdentifier}" data-exam-id="${ex.id || ''}">
                             <td class="py-3 pr-3 font-mono text-sm">
-                                ${ex.isPrivate || ex.assigned ? 
-                                    '<span class="text-gray-500 italic">Este examen es privado</span>' : 
-                                    escapeHtml(ex.examCode || '')
-                                }
+                                ${ex.isPrivate || ex.assigned ?
+                                '<span class="text-gray-500 italic">Este examen es privado</span>' :
+                                escapeHtml(ex.examCode || '')
+                            }
                             </td>
                             <td class="py-3 pr-3 font-medium">${escapeHtml(ex.title || '')}</td>
                             <td class="py-3 pr-3 text-gray-600">${escapeHtml(ex.subject || '')}</td>
@@ -3352,7 +3359,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         `;
                     }).join('');
                 }
-                
+
                 // Si hay un examen recién publicado, aplicar el efecto de parpadeo
                 if (recentlyPublishedCode) {
                     setTimeout(() => {
@@ -3360,7 +3367,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         if (recentlyPublishedRow) {
                             // Aplicar el efecto de parpadeo por 3 segundos
                             recentlyPublishedRow.classList.add('pulsing-blue');
-                            
+
                             setTimeout(() => {
                                 // Quitar el parpadeo y la iluminación después de 3 segundos
                                 recentlyPublishedRow.classList.remove('pulsing-blue');
@@ -3378,7 +3385,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
         const refreshMyExams = document.getElementById('refreshMyExams');
         if (refreshMyExams) refreshMyExams.addEventListener('click', () => loadMyExams('', true));
-        
+
         // Event listener para la barra de búsqueda
         const searchExamsInput = document.getElementById('searchExamsInput');
         if (searchExamsInput) {
@@ -3392,7 +3399,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 }, 300);
             });
         }
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             loadMyExams();
         });
@@ -3414,16 +3421,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         const closeExamConfigModal = document.getElementById('closeExamConfigModal');
         const cancelExamConfig = document.getElementById('cancelExamConfig');
         const saveExamConfig = document.getElementById('saveExamConfig');
-        
+
         if (closeExamConfigModal) closeExamConfigModal.addEventListener('click', () => examConfigModal.classList.add('hidden'));
         if (cancelExamConfig) cancelExamConfig.addEventListener('click', () => examConfigModal.classList.add('hidden'));
         if (saveExamConfig) saveExamConfig.addEventListener('click', saveExamConfiguration);
-        
+
         // Agregar event listeners para los radio buttons de configuración
         const resultOnlyRadio = document.getElementById('resultOnly');
         const noResultsRadio = document.getElementById('noResults');
         const showCorrectAnswersRadio = document.getElementById('showCorrectAnswers');
-        
+
         if (resultOnlyRadio) {
             resultOnlyRadio.addEventListener('change', updateExamConfigOptions);
         }
@@ -3439,7 +3446,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         const closeTextGradingModal = document.getElementById('closeTextGradingModal');
         const cancelTextGrading = document.getElementById('cancelTextGrading');
         const saveTextGrading = document.getElementById('saveTextGrading');
-        
+
         if (closeTextGradingModal) closeTextGradingModal.addEventListener('click', () => textGradingModal.classList.add('hidden'));
         if (cancelTextGrading) cancelTextGrading.addEventListener('click', () => textGradingModal.classList.add('hidden'));
 
@@ -3475,7 +3482,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Handlers
                 const cancelHandler = () => closeModal(false);
                 const confirmHandler = () => closeModal(true);
-                
+
                 // Cerrar al hacer clic en el overlay (fondo)
                 const overlayHandler = (e) => {
                     if (e.target === confirmPublishModal) {
@@ -3523,7 +3530,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Handlers
                 const cancelHandler = () => closeModal(false);
                 const confirmHandler = () => closeModal(true);
-                
+
                 // Cerrar al hacer clic en el overlay (fondo)
                 const overlayHandler = (e) => {
                     if (e.target === confirmDeleteQuestionModal) {
@@ -3548,10 +3555,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             try {
                 // Buscar la sesión del alumno
                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                const session = examSessions.find(s => 
+                const session = examSessions.find(s =>
                     s.examId === examId && s.studentId === studentId && s.status === 'pending_review'
                 );
-                
+
                 if (!session) {
                     showMessage('No se encontró la sesión del alumno', 'error');
                     return;
@@ -3580,7 +3587,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 const content = textQuestions.map((question, index) => {
                     const answer = textAnswers.find(a => a.questionId === question.id || a.questionId === question.questionNumber);
                     const studentAnswer = answer ? answer.selected : 'Sin respuesta';
-                    
+
                     return `
                         <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
                             <div class="mb-4">
@@ -3653,11 +3660,11 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 textQuestions.forEach(question => {
                     const gradeInput = document.querySelector(`input[name="grade_${question.id || question.questionNumber}"]:checked`);
                     const commentInput = document.querySelector(`textarea[name="comment_${question.id || question.questionNumber}"]`);
-                    
+
                     if (gradeInput) {
                         const isCorrect = gradeInput.value === 'correct';
                         if (isCorrect) additionalPoints++;
-                        
+
                         gradingResults.push({
                             questionId: question.id || question.questionNumber,
                             isCorrect: isCorrect,
@@ -3668,9 +3675,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Actualizar la sesión del alumno
                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                const sessionIndex = examSessions.findIndex(s => 
-                    s.examId === currentGradingSession.examId && 
-                    s.studentId === currentGradingSession.studentId && 
+                const sessionIndex = examSessions.findIndex(s =>
+                    s.examId === currentGradingSession.examId &&
+                    s.studentId === currentGradingSession.studentId &&
                     s.joinedAt === currentGradingSession.joinedAt
                 );
 
@@ -3687,7 +3694,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 showMessage(`Calificación guardada. Puntos adicionales: ${additionalPoints}`, 'success');
                 document.getElementById('textGradingModal').classList.add('hidden');
-                
+
                 // Actualizar la vista de resultados (forzar refresh)
                 await loadMyExams('', true);
 
@@ -3702,7 +3709,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Buscar el examen asignado
                 const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
                 const exam = assignedExams.find(e => e.id === examId || e.examCode === examId);
-                
+
                 if (!exam) {
                     showMessage('No se encontró el examen asignado', 'error');
                     return;
@@ -3710,8 +3717,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                 // Buscar sesiones del examen
                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                const sessions = examSessions.filter(s => 
-                    (s.examId === examId) || (s.examCode === examId) || 
+                const sessions = examSessions.filter(s =>
+                    (s.examId === examId) || (s.examCode === examId) ||
                     (s.examId === exam.id) || (s.examCode === exam.examCode)
                 );
 
@@ -3739,12 +3746,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                 <td class="py-2 pr-3">${scoreText}</td>
                                 <td class="py-2 pr-3">${new Date(session.completedAt || session.joinedAt).toLocaleString()}</td>
                                 <td class="py-2">
-                                    ${session.status === 'completed' ? 
-                                        '<span class="text-green-600">Completado</span>' : 
-                                        session.status === 'pending_review' ?
-                                        '<span class="text-orange-600">Pendiente revisión</span>' :
-                                        '<span class="text-yellow-600">En progreso</span>'
-                                    }
+                                    ${session.status === 'completed' ?
+                                '<span class="text-green-600">Completado</span>' :
+                                session.status === 'pending_review' ?
+                                    '<span class="text-orange-600">Pendiente revisión</span>' :
+                                    '<span class="text-yellow-600">En progreso</span>'
+                            }
                                 </td>
                             </tr>
                         `;
@@ -3779,13 +3786,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             try {
                 const resp = await fetch(getApiUrl(`/exam/code/${code}/results`));
                 const items = resp.ok ? await resp.json() : [];
-                
+
                 // También buscar en localStorage para exámenes con preguntas de texto pendientes
                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                const textPendingSessions = examSessions.filter(session => 
+                const textPendingSessions = examSessions.filter(session =>
                     session.examCode === code && session.status === 'pending_review'
                 );
-                
+
                 const rows = items.map(r => `
                     <tr>
                         <td class=\"py-2 pr-3 text-gray-800\">${r.student?.name || r.student?.email || '-'}</td>
@@ -3794,7 +3801,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         <td class=\"py-2\"><button data-view-sub=\"${code}::${r.file}\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs\">Ver detalle</button></td>
                     </tr>
                 `).join('');
-                
+
                 // Agregar filas para exámenes con preguntas de texto pendientes
                 const textPendingRows = textPendingSessions.map(session => `
                     <tr class="bg-orange-50">
@@ -3808,7 +3815,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </td>
                     </tr>
                 `).join('');
-                
+
                 resultsContent.innerHTML = `
                     <div class=\"text-sm text-gray-800\">Examen: <span class=\"font-mono\">${code}</span></div>
                     <div class=\"overflow-auto\">
@@ -3837,7 +3844,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Buscar resultados completados en el backend
                 const resp = await fetch(getApiUrl(`/exam/code/${code}/results`));
                 const completedResults = resp.ok ? await resp.json() : [];
-                
+
                 // Buscar sesiones pendientes en localStorage (simulando backend)
                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
                 const pendingSessions = examSessions.filter(session => {
@@ -3846,7 +3853,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     const exam = savedExams.find(ex => ex.examCode === code);
                     return exam && session.examId === exam.id && (session.status === 'pending' || session.status === 'in_progress');
                 });
-                
+
                 // Combinar resultados completados y sesiones pendientes
                 const allStudents = [
                     ...completedResults.map(item => ({
@@ -3862,7 +3869,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         status: session.status
                     }))
                 ];
-                
+
                 if (allStudents.length === 0) {
                     studentsContent.innerHTML = `
                         <div class="text-center py-8 text-gray-600">
@@ -3949,7 +3956,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 // Buscar el examen asignado
                 const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
                 const exam = assignedExams.find(e => e.id === examId || e.examCode === examId);
-                
+
                 if (!exam) {
                     showMessage('No se encontró el examen asignado', true);
                     return;
@@ -4066,7 +4073,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                         // Agregar nuevos alumnos al examen
                         exam.assignedTo = [...assignedEmails, ...validEmails];
-                        
+
                         // Actualizar en localStorage
                         const examIndex = assignedExams.findIndex(e => e.id === examId || e.examCode === examId);
                         if (examIndex !== -1) {
@@ -4075,7 +4082,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         }
 
                         showMessage(`Se agregaron ${validEmails.length} alumno(s) al examen`, false);
-                        
+
                         // Recargar la vista
                         openStudentsForAssignedExam(examId);
                     });
@@ -4096,10 +4103,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </button>
                     `;
                     newStudentsInputs.appendChild(wrapper);
-                    
+
                     // Mostrar botones de remover si hay más de un input
                     updateRemoveButtons();
-                    
+
                     // Event listener para agregar más inputs
                     const input = wrapper.querySelector('.new-student-email');
                     input.addEventListener('blur', () => {
@@ -4108,7 +4115,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             addEmailInput();
                         }
                     });
-                    
+
                     // Event listener para remover input
                     const removeBtn = wrapper.querySelector('.remove-email-btn');
                     removeBtn.addEventListener('click', () => {
@@ -4118,7 +4125,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         }
                     });
                 }
-                
+
                 // Función para actualizar visibilidad de botones de remover
                 function updateRemoveButtons() {
                     const removeButtons = newStudentsInputs.querySelectorAll('.remove-email-btn');
@@ -4140,7 +4147,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         }
 
         // Función para ver detalles de un estudiante específico
-        window.viewStudentDetails = function(examCode, studentId) {
+        window.viewStudentDetails = function (examCode, studentId) {
             // Por ahora, simplemente abrimos los resultados generales
             // En el futuro se puede implementar una vista más detallada
             openResultsForExam(examCode);
@@ -4197,21 +4204,21 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 const examIdentifier = t.getAttribute('data-delete-exam');
                 const examRow = t.closest('tr');
                 const examId = examRow ? examRow.getAttribute('data-exam-id') : null;
-                
+
                 if (confirm(`¿Eliminar examen? Esta acción lo eliminará también para todos los alumnos asignados.`)) {
                     (async () => {
                         try {
                             // Verificar si es un examen asignado (privado)
                             const assignedExams = JSON.parse(localStorage.getItem('assignedExams') || '[]');
-                            
+
                             // Buscar el examen exacto usando el ID o el identificador
                             let assignedExam = null;
                             if (examId) {
                                 assignedExam = assignedExams.find(ex => String(ex.id) === String(examId));
                             }
                             if (!assignedExam && examIdentifier) {
-                                assignedExam = assignedExams.find(ex => 
-                                    String(ex.id) === String(examIdentifier) || 
+                                assignedExam = assignedExams.find(ex =>
+                                    String(ex.id) === String(examIdentifier) ||
                                     String(ex.examCode) === String(examIdentifier)
                                 );
                             }
@@ -4219,16 +4226,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             if (assignedExam) {
                                 // Es un examen asignado, eliminarlo de localStorage
                                 const examToDeleteId = assignedExam.id;
-                                
+
                                 // Eliminar SOLO el examen específico usando su ID exacto
-                                const updatedAssignedExams = assignedExams.filter(ex => 
+                                const updatedAssignedExams = assignedExams.filter(ex =>
                                     String(ex.id) !== String(examToDeleteId)
                                 );
                                 localStorage.setItem('assignedExams', JSON.stringify(updatedAssignedExams));
 
                                 // Eliminar sesiones relacionadas usando el ID exacto
                                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                                const updatedSessions = examSessions.filter(session => 
+                                const updatedSessions = examSessions.filter(session =>
                                     String(session.examId) !== String(examToDeleteId)
                                 );
                                 localStorage.setItem('examSessions', JSON.stringify(updatedSessions));
@@ -4241,10 +4248,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                     resp = await fetch(getApiUrl(`/api/exam/code/${examIdentifier}`), { method: 'DELETE' });
                                 }
                                 if (!resp.ok) throw new Error('Delete failed');
-                                
+
                                 // También eliminar sesiones relacionadas si existen
                                 const examSessions = JSON.parse(localStorage.getItem('examSessions') || '[]');
-                                const updatedSessions = examSessions.filter(session => 
+                                const updatedSessions = examSessions.filter(session =>
                                     String(session.examCode) !== String(examIdentifier) &&
                                     String(session.examId) !== String(examIdentifier)
                                 );
@@ -4276,26 +4283,32 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
         }
+
         .card-modern:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+
         .input-modern {
             transition: all 0.2s ease;
         }
+
         .input-modern:focus {
             box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
             border-color: #22c55e;
         }
+
         .btn-modern {
             transition: all 0.3s ease;
         }
+
         .btn-modern:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
+
 <body class="min-h-screen bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-gray-200">
@@ -4309,11 +4322,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 </div>
                 <div class="flex items-center space-x-4">
                     <span id="userName" class="text-gray-700 text-sm font-medium">Profesor</span>
-                    <button id="createGroupBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="createGroupBtn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-users mr-2"></i>
                         Tus Grupos
                     </button>
-                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="logoutBtn"
+                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-sign-out-alt mr-2"></i>
                         Cerrar Sesión
                     </button>
@@ -4353,46 +4368,31 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     <span>Powered by Gemini AI</span>
                 </div>
             </div>
-            
+
             <form id="examForm" class="space-y-6">
                 <!-- Exam Title -->
                 <div class="space-y-2">
                     <label for="examTitle" class="block text-sm font-medium text-gray-700">Título del Examen</label>
-                    <input 
-                        type="text" 
-                        id="examTitle" 
-                        name="examTitle" 
-                        required
-                        value="Examen de Ecuaciones Cuadráticas"
+                    <input type="text" id="examTitle" name="examTitle" required value="Examen de Ecuaciones Cuadráticas"
                         class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Ej: Examen de Matemáticas - Álgebra Lineal"
-                    >
+                        placeholder="Ej: Examen de Matemáticas - Álgebra Lineal">
                 </div>
 
                 <!-- Subject -->
                 <div class="space-y-2">
                     <label for="subject" class="block text-sm font-medium text-gray-700">Materia</label>
-                    <input 
-                        type="text" 
-                        id="subject" 
-                        name="subject" 
-                        required
-                        value="Matemáticas"
+                    <input type="text" id="subject" name="subject" required value="Matemáticas"
                         class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Ej: Matemáticas, Física, Química, etc."
-                    >
+                        placeholder="Ej: Matemáticas, Física, Química, etc.">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                     <!-- Number of Questions -->
+                    <!-- Number of Questions -->
                     <div class="space-y-2">
-                        <label for="numQuestions" class="block text-sm font-medium text-gray-700">Número de Preguntas</label>
-                        <select 
-                            id="numQuestions" 
-                            name="numQuestions" 
-                            required
-                            class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                        >
+                        <label for="numQuestions" class="block text-sm font-medium text-gray-700">Número de
+                            Preguntas</label>
+                        <select id="numQuestions" name="numQuestions" required
+                            class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
                             <option value="5">5 preguntas</option>
                             <option value="10" selected>10 preguntas</option>
                         </select>
@@ -4400,13 +4400,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
                     <!-- Difficulty Level -->
                     <div class="space-y-2">
-                        <label for="difficulty" class="block text-sm font-medium text-gray-700">Nivel de Dificultad</label>
-                        <select 
-                            id="difficulty" 
-                            name="difficulty" 
-                            required
-                            class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                        >
+                        <label for="difficulty" class="block text-sm font-medium text-gray-700">Nivel de
+                            Dificultad</label>
+                        <select id="difficulty" name="difficulty" required
+                            class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200">
                             <option value="básico">Básico</option>
                             <option value="intermedio" selected>Intermedio</option>
                             <option value="avanzado">Avanzado</option>
@@ -4420,22 +4417,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         Prompt para la IA
                         <span class="text-gray-500 text-xs">(Describe el contenido específico del examen)</span>
                     </label>
-                    <textarea 
-                        id="aiPrompt" 
-                        name="aiPrompt" 
-                        rows="4"
-                        required
+                    <textarea id="aiPrompt" name="aiPrompt" rows="4" required
                         class="input-modern w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none"
-                        placeholder="Ej: Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real."
-                    >Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real.</textarea>
+                        placeholder="Ej: Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real.">Genera preguntas sobre ecuaciones cuadráticas, incluyendo métodos de factorización, fórmula general y aplicaciones en problemas de la vida real.</textarea>
                 </div>
 
                 <!-- Generate Button -->
-                <button 
-                    type="submit" 
-                    id="generateBtn"
-                    class="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-modern"
-                >
+                <button type="submit" id="generateBtn"
+                    class="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-modern">
                     <i class="fas fa-robot mr-2"></i>
                     <span id="generateBtnText">Generar Examen con IA</span>
                     <i id="generateBtnSpinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
@@ -4449,7 +4438,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 <i class="fas fa-file-alt mr-2 text-green-600"></i>
                 Historial de Exámenes Guardados
             </h3>
-            
+
             <div id="examsList" class="space-y-4">
                 <!-- El contenido se elimina al ocultar la sección -->
             </div>
@@ -4464,10 +4453,10 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 <div class="w-24 h-24 mx-auto relative">
                     <!-- Círculo de fondo -->
                     <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="8" fill="none"/>
-                        <circle id="progressCircle" cx="50" cy="50" r="45" stroke="#22c55e" stroke-width="8" fill="none" 
-                                stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
-                                class="transition-all duration-500 ease-out"/>
+                        <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="8" fill="none" />
+                        <circle id="progressCircle" cx="50" cy="50" r="45" stroke="#22c55e" stroke-width="8" fill="none"
+                            stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
+                            class="transition-all duration-500 ease-out" />
                     </svg>
                     <!-- Icono central -->
                     <div class="absolute inset-0 flex items-center justify-center">
@@ -4475,34 +4464,37 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     </div>
                 </div>
             </div>
-            
+
             <h3 class="text-2xl font-bold text-gray-800 mb-4">🤖 IA Generando Examen</h3>
-            
+
             <!-- Barra de progreso -->
             <div class="mb-4">
                 <div class="bg-gray-200 rounded-full h-3 mb-2 overflow-hidden">
-                    <div id="loadingProgress" class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    <div id="loadingProgress"
+                        class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 ease-out"
+                        style="width: 0%"></div>
                 </div>
                 <div class="text-2xl font-bold text-gray-800">
                     <span id="progressPercentage">0</span>%
                 </div>
             </div>
-            
+
             <!-- Mensaje de progreso -->
             <div class="space-y-3">
                 <p id="loadingText" class="text-gray-600 text-lg">Iniciando generación...</p>
                 <p id="statusText" class="text-green-600 text-sm">Conectando con Gemini AI...</p>
-                
+
                 <!-- Indicadores de estado -->
                 <div class="flex items-center justify-center space-x-2 text-green-600">
                     <div id="statusIndicator" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                 </div>
-                
+
                 <!-- Botón de cancelar -->
                 <div class="mt-6">
-                    <button id="cancelGenerationBtn" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center space-x-2 mx-auto">
+                    <button id="cancelGenerationBtn"
+                        class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 flex items-center space-x-2 mx-auto">
                         <i class="fas fa-times"></i>
                         <span>Cancelar Generación</span>
                     </button>
@@ -4515,18 +4507,17 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     <div id="myExamsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="card-modern p-8 mb-8">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-list mr-2 text-green-600"></i>Exámenes generados</h3>
-                <button id="refreshMyExams" class="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-sm transition-colors duration-200">Refrescar</button>
+                <h3 class="text-xl font-bold text-gray-800"><i class="fas fa-list mr-2 text-green-600"></i>Exámenes
+                    generados</h3>
+                <button id="refreshMyExams"
+                    class="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-sm transition-colors duration-200">Refrescar</button>
             </div>
             <!-- Barra de búsqueda -->
             <div class="mb-6">
                 <div class="relative">
-                    <input 
-                        type="text" 
-                        id="searchExamsInput" 
-                        placeholder="Buscar exámenes por código, título o materia..." 
-                        class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
+                    <input type="text" id="searchExamsInput"
+                        placeholder="Buscar exámenes por código, título o materia..."
+                        class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
@@ -4553,7 +4544,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         <div class="card-modern p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h4 class="text-gray-800 font-semibold">Resultados del Examen</h4>
-                <button id="closeResultsModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200"><i class="fas fa-times"></i></button>
+                <button id="closeResultsModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div id="resultsContent" class="space-y-4 text-gray-700"></div>
         </div>
@@ -4564,22 +4557,26 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         <div class="card-modern p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h4 class="text-gray-800 font-semibold">Alumnos del Examen</h4>
-                <button id="closeStudentsModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200"><i class="fas fa-times"></i></button>
+                <button id="closeStudentsModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div id="studentsContent" class="space-y-4 text-gray-800"></div>
         </div>
     </div>
 
     <!-- Configuración de Examen Modal -->
-    <div id="examConfigModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
+    <div id="examConfigModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
         <div class="card-modern p-8 max-w-2xl mx-4 max-h-[90vh] overflow-y-auto w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800">Configuración de Examen</h3>
-                <button id="closeExamConfigModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeExamConfigModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-6">
                 <!-- Opción 1: Mostrar solo resultado -->
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4" id="resultOnlyContainer">
@@ -4589,57 +4586,74 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                 <i class="fas fa-chart-line mr-2 text-purple-600"></i>
                                 Mostrar Solo Resultado
                             </h4>
-                            <p class="text-sm text-gray-600 mb-2">El alumno únicamente verá su calificación (número de aciertos obtenidos en el examen). No podrá ver el examen, las preguntas ni las respuestas.</p>
+                            <p class="text-sm text-gray-600 mb-2">El alumno únicamente verá su calificación (número de
+                                aciertos obtenidos en el examen). No podrá ver el examen, las preguntas ni las
+                                respuestas.</p>
                             <p class="text-xs text-gray-500">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 Solo se puede habilitar una opción a la vez.
                             </p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer ml-4">
-                            <input type="radio" name="examConfig" value="resultOnly" class="sr-only peer" id="resultOnly" checked>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            <input type="radio" name="examConfig" value="resultOnly" class="sr-only peer"
+                                id="resultOnly" checked>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                            </div>
                         </label>
                     </div>
                 </div>
 
                 <!-- Opción 2: No permitir ver ni que el alumno sepa su resultado -->
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity" id="noResultsContainer">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity"
+                    id="noResultsContainer">
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <h4 class="text-lg font-semibold text-gray-800 mb-2">
                                 <i class="fas fa-lock mr-2 text-red-600"></i>
                                 No Permitir Ver Resultados
                             </h4>
-                            <p class="text-sm text-gray-600 mb-2">El alumno no podrá ver su resultado ni el examen después de enviarlo. Solo recibirá un mensaje confirmando que su examen fue enviado y deberá esperar a que el docente le entregue los resultados.</p>
+                            <p class="text-sm text-gray-600 mb-2">El alumno no podrá ver su resultado ni el examen
+                                después de enviarlo. Solo recibirá un mensaje confirmando que su examen fue enviado y
+                                deberá esperar a que el docente le entregue los resultados.</p>
                             <p class="text-xs text-gray-500">
                                 <i class="fas fa-info-circle mr-1"></i>
-                                El alumno no verá su calificación ni las respuestas hasta que el docente se la proporcione.
+                                El alumno no verá su calificación ni las respuestas hasta que el docente se la
+                                proporcione.
                             </p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer ml-4">
                             <input type="radio" name="examConfig" value="noResults" class="sr-only peer" id="noResults">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600">
+                            </div>
                         </label>
                     </div>
                 </div>
 
                 <!-- Opción 3: Mostrar respuestas correctas -->
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity" id="showCorrectAnswersContainer">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 transition-opacity"
+                    id="showCorrectAnswersContainer">
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <h4 class="text-lg font-semibold text-gray-800 mb-2">
                                 <i class="fas fa-check-double mr-2 text-green-600"></i>
                                 Mostrar Respuestas Correctas
                             </h4>
-                            <p class="text-sm text-gray-600 mb-2">El alumno podrá ver sus respuestas y cuál era la respuesta correcta para cada pregunta. Se mostrará su respuesta seleccionada y la respuesta correcta.</p>
+                            <p class="text-sm text-gray-600 mb-2">El alumno podrá ver sus respuestas y cuál era la
+                                respuesta correcta para cada pregunta. Se mostrará su respuesta seleccionada y la
+                                respuesta correcta.</p>
                             <p class="text-xs text-gray-500">
                                 <i class="fas fa-lightbulb mr-1"></i>
                                 El alumno verá su respuesta y la respuesta correcta marcada.
                             </p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer ml-4">
-                            <input type="radio" name="examConfig" value="showCorrectAnswers" class="sr-only peer" id="showCorrectAnswers">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            <input type="radio" name="examConfig" value="showCorrectAnswers" class="sr-only peer"
+                                id="showCorrectAnswers">
+                            <div
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                            </div>
                         </label>
                     </div>
                 </div>
@@ -4650,7 +4664,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
                         <div>
                             <h4 class="text-sm font-semibold text-blue-800 mb-1">Información Importante</h4>
-                            <p class="text-sm text-blue-700">Solo puedes habilitar una opción a la vez. Elige la opción que mejor se adapte a cómo quieres que los alumnos vean sus resultados después de completar el examen.</p>
+                            <p class="text-sm text-blue-700">Solo puedes habilitar una opción a la vez. Elige la opción
+                                que mejor se adapte a cómo quieres que los alumnos vean sus resultados después de
+                                completar el examen.</p>
                         </div>
                     </div>
                 </div>
@@ -4658,10 +4674,12 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
 
             <!-- Botones de acción -->
             <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                <button id="cancelExamConfig" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                <button id="cancelExamConfig"
+                    class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
                     Cancelar
                 </button>
-                <button id="saveExamConfig" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                <button id="saveExamConfig"
+                    class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-save mr-2"></i>
                     Guardar Configuración
                 </button>
@@ -4670,24 +4688,28 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Calificación de Texto -->
-    <div id="textGradingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] hidden">
+    <div id="textGradingModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] hidden">
         <div class="card-modern p-8 max-w-6xl mx-4 max-h-[90vh] overflow-y-auto w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800">Calificar Preguntas de Texto</h3>
-                <button id="closeTextGradingModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeTextGradingModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div id="textGradingContent" class="space-y-6">
                 <!-- Contenido dinámico -->
             </div>
-            
+
             <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                <button id="cancelTextGrading" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                <button id="cancelTextGrading"
+                    class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
                     Cancelar
                 </button>
-                <button id="saveTextGrading" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                <button id="saveTextGrading"
+                    class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-save mr-2"></i>
                     Guardar Calificaciones
                 </button>
@@ -4696,22 +4718,26 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal para agregar pregunta -->
-    <div id="addQuestionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
+    <div id="addQuestionModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
         <div class="card-modern p-8 max-w-md mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800">Agregar Nueva Pregunta</h3>
-                <button id="closeAddQuestionModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeAddQuestionModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4">
-                <button id="generateQuestionWithAIBtn" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg">
+                <button id="generateQuestionWithAIBtn"
+                    class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg">
                     <i class="fas fa-robot text-2xl"></i>
                     <span class="text-lg font-semibold">Generar pregunta con IA</span>
                 </button>
-                
-                <button id="addCustomQuestionBtn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg">
+
+                <button id="addCustomQuestionBtn"
+                    class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg">
                     <i class="fas fa-edit text-2xl"></i>
                     <span class="text-lg font-semibold">Agregar pregunta personalizada</span>
                 </button>
@@ -4724,86 +4750,103 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
         <div class="card-modern p-8 max-w-4xl mx-4 max-h-[90vh] overflow-y-auto w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800">Examen Generado (Vista Previa)</h3>
-                <button id="closeExamModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeExamModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div id="examContent" class="space-y-6">
                 <!-- El contenido del examen se mostrará aquí -->
             </div>
-            
+
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-8 gap-4">
                 <div class="text-green-600 text-sm">
                     <span class="opacity-80">Código del examen:</span>
                     <span id="examCodeDisplay" class="font-mono font-semibold ml-2">—</span>
                 </div>
-                
+
                 <!-- Botones para desktop (ocultos en móvil) -->
                 <div class="hidden md:flex justify-end space-x-2 w-full sm:w-auto">
-                    <button id="editExamBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="editExamBtn"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-edit mr-2"></i>
                         Editar Examen
                     </button>
-                    <button id="applyChangesBtn" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="applyChangesBtn"
+                        class="hidden bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-check mr-2"></i>
                         Aplicar Cambios
                     </button>
-                    <button id="cancelEditBtn" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="cancelEditBtn"
+                        class="hidden bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </button>
-                    <button id="saveExamBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="saveExamBtn"
+                        class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-bullhorn mr-2"></i>
                         Publicar Examen
                     </button>
-                    <button id="assignExamBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="assignExamBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-envelope mr-2"></i>
                         Asignar Examen por Correo
                     </button>
-                    <button id="configExamBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="configExamBtn"
+                        class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-cog mr-2"></i>
                         Configuración de Examen
                     </button>
-                    <button id="viewMyExamsBtn" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
+                    <button id="viewMyExamsBtn"
+                        class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 btn-modern">
                         <i class="fas fa-list mr-2"></i>
                         Ver en Mis Exámenes
                     </button>
                 </div>
-                
+
                 <!-- Menú desplegable para móvil (visible solo en móvil) -->
                 <div class="md:hidden w-full">
                     <div class="relative">
-                        <button id="examActionsMenuBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-between">
+                        <button id="examActionsMenuBtn"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center justify-between">
                             <span><i class="fas fa-bars mr-2"></i>Opciones del Examen</span>
                             <i class="fas fa-chevron-down" id="examActionsMenuIcon"></i>
                         </button>
-                        <div id="examActionsMenu" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                            <button id="editExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                        <div id="examActionsMenu"
+                            class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <button id="editExamBtnMobile"
+                                class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-edit mr-3 text-yellow-500"></i>
                                 <span>Editar Examen</span>
                             </button>
-                            <button id="applyChangesBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="applyChangesBtnMobile"
+                                class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-check mr-3 text-emerald-500"></i>
                                 <span>Aplicar Cambios</span>
                             </button>
-                            <button id="cancelEditBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="cancelEditBtnMobile"
+                                class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-times mr-3 text-gray-500"></i>
                                 <span>Cancelar</span>
                             </button>
-                            <button id="saveExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="saveExamBtnMobile"
+                                class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-bullhorn mr-3 text-green-500"></i>
                                 <span>Publicar Examen</span>
                             </button>
-                            <button id="assignExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="assignExamBtnMobile"
+                                class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-envelope mr-3 text-blue-500"></i>
                                 <span>Asignar Examen por Correo</span>
                             </button>
-                            <button id="configExamBtnMobile" class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="configExamBtnMobile"
+                                class="w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-cog mr-3 text-purple-500"></i>
                                 <span>Configuración de Examen</span>
                             </button>
-                            <button id="viewMyExamsBtnMobile" class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <button id="viewMyExamsBtnMobile"
+                                class="hidden w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-list mr-3 text-blue-500"></i>
                                 <span>Ver en Mis Exámenes</span>
                             </button>
@@ -4815,23 +4858,25 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Confirmación de Publicación -->
-    <div id="confirmPublishModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
+    <div id="confirmPublishModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
         <div class="card-modern p-8 max-w-lg mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
                     <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
                     Confirmar Publicación
                 </h3>
-                <button id="closeConfirmPublishModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeConfirmPublishModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4 mb-6">
                 <p class="text-gray-700 text-base leading-relaxed">
                     ¿Estás seguro de que quieres publicar este examen?
                 </p>
-                
+
                 <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -4852,11 +4897,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             </div>
 
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <button id="cancelPublishBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                <button id="cancelPublishBtn"
+                    class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </button>
-                <button id="confirmPublishBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                <button id="confirmPublishBtn"
+                    class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-check mr-2"></i>
                     Confirmar Publicación
                 </button>
@@ -4865,23 +4912,25 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Confirmación para Eliminar Pregunta -->
-    <div id="confirmDeleteQuestionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
+    <div id="confirmDeleteQuestionModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
         <div class="card-modern p-8 max-w-md mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
                     <i class="fas fa-trash-alt text-red-500 mr-3"></i>
                     Eliminar Pregunta
                 </h3>
-                <button id="closeConfirmDeleteQuestionModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeConfirmDeleteQuestionModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4 mb-6">
                 <p class="text-gray-700 text-base leading-relaxed">
                     ¿Estás seguro de que quieres eliminar esta pregunta?
                 </p>
-                
+
                 <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -4900,11 +4949,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             </div>
 
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <button id="cancelDeleteQuestionBtn" class="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern border border-gray-300">
+                <button id="cancelDeleteQuestionBtn"
+                    class="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern border border-gray-300">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </button>
-                <button id="confirmDeleteQuestionBtn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 btn-modern shadow-md hover:shadow-lg">
+                <button id="confirmDeleteQuestionBtn"
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 btn-modern shadow-md hover:shadow-lg">
                     <i class="fas fa-trash-alt mr-2"></i>
                     Eliminar
                 </button>
@@ -4913,39 +4964,45 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Asignación de Examen por Correo -->
-    <div id="assignExamModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
+    <div id="assignExamModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] hidden">
         <div class="card-modern p-8 max-w-lg mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
                     <i class="fas fa-paper-plane text-blue-500 mr-3"></i>
                     Asignar Examen
                 </h3>
-                <button id="closeAssignExamModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeAssignExamModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-6 mb-6">
                 <!-- Opciones de asignación -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-3">Método de asignación</label>
                     <div class="space-y-3">
-                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
                             <input type="radio" name="assignMethod" value="manual" class="mr-3" checked>
                             <div class="flex-1">
                                 <div class="font-semibold text-gray-800">
                                     <i class="fas fa-envelope mr-2 text-blue-500"></i>Asignar Manualmente
                                 </div>
-                                <div class="text-sm text-gray-600 mt-1">Ingresa los correos de los alumnos individualmente</div>
+                                <div class="text-sm text-gray-600 mt-1">Ingresa los correos de los alumnos
+                                    individualmente</div>
                             </div>
                         </label>
-                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
+                        <label
+                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors duration-200">
                             <input type="radio" name="assignMethod" value="group" class="mr-3">
                             <div class="flex-1">
                                 <div class="font-semibold text-gray-800">
                                     <i class="fas fa-users mr-2 text-green-500"></i>Asignar a Grupo
                                 </div>
-                                <div class="text-sm text-gray-600 mt-1">Asigna el examen a todos los alumnos de un grupo</div>
+                                <div class="text-sm text-gray-600 mt-1">Asigna el examen a todos los alumnos de un grupo
+                                </div>
                             </div>
                         </label>
                     </div>
@@ -4956,20 +5013,19 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     <p class="text-gray-700 text-sm">
                         Ingresa el correo electrónico del alumno al que deseas asignar este examen.
                     </p>
-                    
+
                     <div id="emailInputsContainer" class="space-y-3">
                         <div class="flex items-center gap-2 email-input-wrapper">
-                            <input 
-                                type="email" 
-                                class="email-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                placeholder="correo@ejemplo.com"
-                            >
-                            <button type="button" class="add-email-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors duration-200 hidden">
+                            <input type="email"
+                                class="email-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="correo@ejemplo.com">
+                            <button type="button"
+                                class="add-email-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors duration-200 hidden">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="emailErrors" class="space-y-2 hidden">
                         <!-- Los errores se mostrarán aquí -->
                     </div>
@@ -4978,17 +5034,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 <!-- Sección: Asignación por Grupo -->
                 <div id="groupAssignSection" class="space-y-4 hidden">
                     <p class="text-gray-700 text-sm">
-                        Selecciona el grupo al que deseas asignar este examen. Se asignará automáticamente a todos los alumnos del grupo.
+                        Selecciona el grupo al que deseas asignar este examen. Se asignará automáticamente a todos los
+                        alumnos del grupo.
                     </p>
-                    
+
                     <div>
                         <label for="selectGroup" class="block text-sm font-medium text-gray-700 mb-2">
                             Seleccionar Grupo <span class="text-red-500">*</span>
                         </label>
-                        <select 
-                            id="selectGroup" 
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
+                        <select id="selectGroup"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">-- Selecciona un grupo --</option>
                         </select>
                         <p id="groupInfo" class="text-xs text-gray-500 mt-2 hidden"></p>
@@ -4997,11 +5052,13 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             </div>
 
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <button id="cancelAssignExamBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
+                <button id="cancelAssignExamBtn"
+                    class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </button>
-                <button id="confirmAssignExamBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                <button id="confirmAssignExamBtn"
+                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-check mr-2"></i>
                     Confirmar Asignación
                 </button>
@@ -5010,22 +5067,24 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Confirmación de Eliminar Grupo -->
-    <div id="deleteGroupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[86] hidden">
+    <div id="deleteGroupModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[86] hidden">
         <div class="card-modern p-6 max-w-md mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
                 <h3 class="text-2xl font-bold text-gray-800">
                     <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Eliminar Grupo
                 </h3>
-                <button id="closeDeleteGroupModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeDeleteGroupModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4 mb-6">
                 <p class="text-gray-700 text-base leading-relaxed">
                     ¿Estás seguro de que deseas eliminar este grupo?
                 </p>
-                
+
                 <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -5033,28 +5092,31 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-red-700">
-                                Esta acción eliminará permanentemente el grupo y toda su información. 
+                                Esta acción eliminará permanentemente el grupo y toda su información.
                                 Los alumnos del grupo seguirán existiendo, pero ya no estarán asociados a este grupo.
                             </p>
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="deleteGroupInfo" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <p class="text-sm text-gray-600">
                         <strong>Grupo:</strong> <span id="deleteGroupName" class="font-semibold text-gray-800"></span>
                     </p>
                     <p class="text-sm text-gray-600 mt-1">
-                        <strong>Alumnos:</strong> <span id="deleteGroupStudents" class="font-semibold text-gray-800"></span>
+                        <strong>Alumnos:</strong> <span id="deleteGroupStudents"
+                            class="font-semibold text-gray-800"></span>
                     </p>
                 </div>
             </div>
 
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <button id="cancelDeleteGroupBtn" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
+                <button id="cancelDeleteGroupBtn"
+                    class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
                     <i class="fas fa-times mr-2"></i>Cancelar
                 </button>
-                <button id="confirmDeleteGroupBtn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
+                <button id="confirmDeleteGroupBtn"
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
                     <i class="fas fa-trash mr-2"></i>Eliminar Grupo
                 </button>
             </div>
@@ -5062,17 +5124,19 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Gestión de Grupo -->
-    <div id="manageGroupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[85] hidden">
+    <div id="manageGroupModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[85] hidden">
         <div class="card-modern p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
                 <h3 class="text-2xl font-bold text-gray-800">
                     <i class="fas fa-users-cog mr-2 text-blue-600"></i>Gestionar Grupo
                 </h3>
-                <button id="closeManageGroupModal" class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
+                <button id="closeManageGroupModal"
+                    class="text-gray-500 hover:text-red-500 text-2xl transition-colors duration-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div id="manageGroupContent" class="space-y-6">
                 <!-- El contenido se cargará dinámicamente -->
             </div>
@@ -5080,7 +5144,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
     <!-- Modal de Confirmación de Asignación Exitosa -->
-    <div id="assignSuccessModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[90] hidden">
+    <div id="assignSuccessModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[90] hidden">
         <div class="card-modern p-8 max-w-md mx-4 w-full">
             <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
@@ -5088,7 +5153,7 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     Examen Asignado
                 </h3>
             </div>
-            
+
             <div class="space-y-4 mb-6">
                 <p class="text-gray-700 text-base leading-relaxed" id="assignSuccessMessage">
                     <!-- El mensaje se mostrará aquí -->
@@ -5096,7 +5161,8 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
             </div>
 
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                <button id="acceptAssignSuccessBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
+                <button id="acceptAssignSuccessBtn"
+                    class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 btn-modern">
                     <i class="fas fa-check mr-2"></i>
                     Aceptar
                 </button>
@@ -5112,12 +5178,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between items-center py-4">
                         <div class="flex items-center">
-                            <div class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mr-3">
+                            <div
+                                class="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mr-3">
                                 <i class="fas fa-users text-lg text-blue-600"></i>
                             </div>
                             <h1 class="text-xl font-bold text-gray-800">Gestión de Grupos</h1>
                         </div>
-                        <button id="closeGroupsModal" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                        <button id="closeGroupsModal"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-200">
                             <i class="fas fa-times mr-2"></i>Cerrar
                         </button>
                     </div>
@@ -5131,16 +5199,14 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                     <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                         <div class="w-full sm:w-auto sm:flex-1 max-w-md">
                             <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="searchGroupsInput" 
-                                    placeholder="Buscar grupos..." 
-                                    class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="searchGroupsInput" placeholder="Buscar grupos..."
+                                    class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                <i
+                                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
                         </div>
-                        <button id="showCreateGroupFormBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
+                        <button id="showCreateGroupFormBtn"
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
                             <i class="fas fa-plus-circle mr-2"></i>Crear Grupo Nuevo
                         </button>
                     </div>
@@ -5160,21 +5226,16 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                             <h3 class="text-2xl font-bold text-gray-800 mb-6">
                                 <i class="fas fa-plus-circle mr-2 text-green-600"></i>Crear Nuevo Grupo
                             </h3>
-                            
+
                             <form id="createGroupForm" class="space-y-6">
                                 <!-- Nombre del Grupo -->
                                 <div>
                                     <label for="groupName" class="block text-sm font-medium text-gray-700 mb-2">
                                         Nombre del Grupo <span class="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="groupName" 
-                                        name="groupName"
-                                        required
+                                    <input type="text" id="groupName" name="groupName" required
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Ej: Grupo 1A - Programación"
-                                    />
+                                        placeholder="Ej: Grupo 1A - Programación" />
                                 </div>
 
                                 <!-- Descripción (Opcional) -->
@@ -5182,13 +5243,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                     <label for="groupDescription" class="block text-sm font-medium text-gray-700 mb-2">
                                         Descripción <span class="text-gray-500 text-xs">(Opcional)</span>
                                     </label>
-                                    <textarea 
-                                        id="groupDescription" 
-                                        name="groupDescription"
-                                        rows="3"
+                                    <textarea id="groupDescription" name="groupDescription" rows="3"
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Descripción del grupo..."
-                                    ></textarea>
+                                        placeholder="Descripción del grupo..."></textarea>
                                 </div>
 
                                 <!-- Semestre y Grupo -->
@@ -5197,27 +5254,17 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                         <label for="groupSemester" class="block text-sm font-medium text-gray-700 mb-2">
                                             Semestre <span class="text-red-500">*</span>
                                         </label>
-                                        <input 
-                                            type="text" 
-                                            id="groupSemester" 
-                                            name="groupSemester"
-                                            required
+                                        <input type="text" id="groupSemester" name="groupSemester" required
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Ej: 7"
-                                        />
+                                            placeholder="Ej: 7" />
                                     </div>
                                     <div>
                                         <label for="groupGroup" class="block text-sm font-medium text-gray-700 mb-2">
                                             Grupo <span class="text-red-500">*</span>
                                         </label>
-                                        <input 
-                                            type="text" 
-                                            id="groupGroup" 
-                                            name="groupGroup"
-                                            required
+                                        <input type="text" id="groupGroup" name="groupGroup" required
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="Ej: A"
-                                        />
+                                            placeholder="Ej: A" />
                                     </div>
                                 </div>
 
@@ -5226,14 +5273,9 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                     <label for="groupPassword" class="block text-sm font-medium text-gray-700 mb-2">
                                         Contraseña <span class="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="password" 
-                                        id="groupPassword" 
-                                        name="groupPassword"
-                                        required
+                                    <input type="password" id="groupPassword" name="groupPassword" required
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Contraseña para el grupo"
-                                    />
+                                        placeholder="Contraseña para el grupo" />
                                 </div>
 
                                 <!-- Alumnos -->
@@ -5243,27 +5285,29 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
                                     </label>
                                     <div id="groupStudentsInputs" class="space-y-2 mb-3">
                                         <div class="flex items-center gap-2">
-                                            <input 
-                                                type="email" 
-                                                class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                                                placeholder="correo@ucol.mx"
-                                            />
-                                            <button type="button" class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg hidden">
+                                            <input type="email"
+                                                class="group-student-email flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="correo@ucol.mx" />
+                                            <button type="button"
+                                                class="remove-student-email-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg hidden">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
                                     </div>
-                                    <button type="button" id="addStudentEmailBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <button type="button" id="addStudentEmailBtn"
+                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                         <i class="fas fa-plus mr-1"></i>Agregar otro correo
                                     </button>
                                 </div>
 
                                 <!-- Botones -->
                                 <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                                    <button type="button" id="cancelCreateGroupBtn" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200">
+                                    <button type="button" id="cancelCreateGroupBtn"
+                                        class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200">
                                         Cancelar
                                     </button>
-                                    <button type="submit" id="submitCreateGroupBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">
+                                    <button type="submit" id="submitCreateGroupBtn"
+                                        class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">
                                         <i class="fas fa-check mr-2"></i>Crear Grupo
                                     </button>
                                 </div>
@@ -5281,4 +5325,5 @@ IMPORTANTE: Genera SOLO UNA pregunta relacionada con el tema del examen.`;
     </div>
 
 </body>
+
 </html>
